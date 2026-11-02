@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regression metrics · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-regression-metrics" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Regression metrics</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">A model predicts 2.5, 5, 4, 8 for four houses that really cost 3, 5, 2, 7 (in hundreds of thousands). The errors are 0.5, 0, −2, −1. Average their sizes and you get the <strong>MAE</strong>, 0.875. Average their squares and you get the <strong>MSE</strong>, 1.31, where the big miss of 2 dominates. <strong>R²</strong> = 0.64 says the model explains 64% of the variation in prices.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> each metric judges errors differently: MAE treats all errors equally, MSE punishes big ones hard, and R² compares the model with just predicting the average. Picking the wrong one can reward the wrong model.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-paradigms.html">Regression</a>: predicting a number.</li>
+          <li>Mean, absolute value and squares.</li>
+          <li>Square roots.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of darts. MAE is the average distance of your darts from the bullseye. MSE squares each distance, so one dart that hits the wall counts as much as dozens of near misses.</p>
+          <p>R² compares you with a player who throws every dart at the middle of the board: 1 means perfect, 0 means no better than that player, below 0 means worse.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Notation:</strong> $y_i$ is the true value, $\hat y_i$ the prediction, $e_i = y_i - \hat y_i$ the error (residual), and $\bar y$ the mean of the true values.</p>
+        <h3>Start with four predictions by hand</h3>
+        <p>True values $y = [3, 5, 2, 7]$, predictions $\hat y = [2.5, 5, 4, 8]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the errors and the MAE (mean of absolute errors).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Errors 0.5, 0, −2, −1. MAE $= (0.5 + 0 + 2 + 1)/4 = 0.875$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the MSE (mean of squared errors) and RMSE.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Squares 0.25, 0, 4, 1. MSE $= 5.25/4 = 1.3125$; RMSE $= \sqrt{1.3125} \approx 1.15$.</p></details>
+          <p><strong>Step 3.</strong> $\bar y = 4.25$. Total variation $\sum (y_i - \bar y)^2 = 14.75$. Predict $R^2 = 1 - \sum e_i^2 / \sum (y_i - \bar y)^2$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$R^2 = 1 - 5.25 / 14.75 \approx 0.64$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-regression-metrics-1.svg" alt="True values and predictions for four houses with red residual lines; the third house has the largest error" width="600" height="340">
+          <figcaption>What you just measured: blue dots are true prices, yellow dots predictions, red lines the errors. The biggest red line dominates the MSE.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why is MSE more sensitive to the error of 2 than MAE?</p>
+          <details><summary>Check your answer</summary>
+            <p>Squaring turns 2 into 4 but 0.5 into 0.25, so large errors count far more than small ones.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: one outlier</h3>
+        <p>Change the last prediction from 8 to 17 (error −10).</p>
+        <ul>
+          <li><strong>MAE.</strong> Predict the new value.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(0.5 + 0 + 2 + 10)/4 = 3.125$: about 3.6 times larger.</p></details></li>
+          <li><strong>MSE.</strong> Predict it, and compare the growth.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(0.25 + 0 + 4 + 100)/4 \approx 26.1$: about 20 times larger. MSE is dominated by the single big miss.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what happened to MAE and MSE when one prediction became badly wrong?</p>
+          <details><summary>Check your answer</summary>
+            <p>Both rose, but MSE exploded because the huge error was squared.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's four houses: true prices $y = [3, 5, 2, 7]$, predictions $\hat y = [2.5, 5, 4, 8]$ (hundreds of thousands). Every column of the computation is in the table; then we compare with the "always predict the mean" baseline and see what one outlier does to each metric.</p>
+        <table>
+          <thead>
+            <tr><th>House</th><th>$y$</th><th>$\hat y$</th><th>$e = y - \hat y$</th><th>$|e|$</th><th>$e^2$</th><th>$y - \bar y$</th><th>$(y - \bar y)^2$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>3</td><td>2.5</td><td>0.5</td><td>0.5</td><td>0.25</td><td>−1.25</td><td>1.5625</td></tr>
+            <tr><td>2</td><td>5</td><td>5</td><td>0</td><td>0</td><td>0</td><td>0.75</td><td>0.5625</td></tr>
+            <tr><td>3</td><td>2</td><td>4</td><td>−2</td><td>2</td><td>4</td><td>−2.25</td><td>5.0625</td></tr>
+            <tr><td>4</td><td>7</td><td>8</td><td>−1</td><td>1</td><td>1</td><td>2.75</td><td>7.5625</td></tr>
+            <tr><td>Sum</td><td>17</td><td></td><td></td><td>3.5</td><td>5.25</td><td>0</td><td>14.75</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Errors (residuals)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$e_i = y_i - \hat y_i = [0.5,\; 0,\; -2,\; -1]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Positive means the model guessed too low, negative too high. The signs cancel if you just add them ($-2.5$), which is why every metric first removes the sign.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>MAE</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{MAE} = \frac{0.5 + 0 + 2 + 1}{4} = \frac{3.5}{4} = 0.875$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">On average the prediction is off by 87,500. Every unit of error counts the same, whatever the size of the miss.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>MSE and RMSE</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{MSE} = \frac{0.25 + 0 + 4 + 1}{4} = 1.3125, \qquad \text{RMSE} = \sqrt{1.3125} = 1.146$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Squaring makes the miss of 2 contribute 4 of the 5.25 total. RMSE puts the result back in the original unit (about 115,000), and is always at least as large as MAE.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Total variation around the mean</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\bar y = \frac{17}{4} = 4.25, \qquad \sum (y_i - \bar y)^2 = 14.75$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">This is the squared error of the laziest possible model, one that always predicts 4.25. Its MSE would be $14.75 / 4 = 3.69$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>R²</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$R^2 = 1 - \frac{\sum e_i^2}{\sum (y_i - \bar y)^2} = 1 - \frac{5.25}{14.75} = 1 - 0.356 = 0.644$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Our model leaves 35.6% of the baseline's squared error, so it explains 64.4% of the variation. $R^2 = 0$ means "no better than the mean", 1 means perfect.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>One outlier: prediction 8 → 17</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{MAE} = \frac{3.5 + 9}{4} = 3.125, \qquad \text{MSE} = \frac{5.25 - 1 + 100}{4} = 26.06$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The fourth error grows from $-1$ to $-10$. MAE grows 3.6 times; MSE grows 20 times, because the 10 is squared to 100.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>R² can go negative</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$R^2 = 1 - \frac{104.25}{14.75} = 1 - 7.07 = -6.07$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The model is now seven times worse than always predicting the mean. A negative $R^2$ is not a bug: it means the model is worse than the baseline.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>MAE 0.875, MSE 1.31 (RMSE 1.15), $R^2 = 0.64$. One bad prediction pushes MAE to 3.1, MSE to 26.1 and $R^2$ to $-6.07$.</p>
+          <p>Use MAE when every unit of error costs the same, MSE/RMSE when large misses are especially bad, and $R^2$ to compare against the mean baseline.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Compute each error $e_i = y_i - \hat y_i$. <strong>MAE</strong> averages $|e_i|$; <strong>MSE</strong> averages $e_i^2$; <strong>RMSE</strong> is $\sqrt{\text{MSE}}$, back in the original units.</p>
+        <p><strong>R²</strong> $= 1 - \sum e_i^2 / \sum (y_i - \bar y)^2$ compares the model with predicting the mean.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute MAE, MSE and R² in one pass over the errors, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>First compute the mean of the true values. Then, for each point, add the absolute error, the squared error, and the squared distance of the true value from the mean. Finally divide and form $1 - \text{SS}_{res} / \text{SS}_{tot}$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the metrics by hand. It will make more sense.</p>
+        <pre><code class="language-c">void reg_metrics(double y[], double p[], int n, double out[]) {   /* MAE, MSE, R^2 */
+    double mean = 0, abs_sum = 0, sq_sum = 0, tot = 0;
+    for (int i = 0; i &lt; n; i++) mean += y[i] / n;
+    for (int i = 0; i &lt; n; i++) {
+        double e = y[i] - p[i];                 /* error (residual) */
+        abs_sum += fabs(e);
+        sq_sum += e * e;
+        tot += (y[i] - mean) * (y[i] - mean);   /* variation around the mean */
+    }
+    out[0] = abs_sum / n;                       /* MAE */
+    out[1] = sq_sum / n;                        /* MSE */
+    out[2] = 1 - sq_sum / tot;                  /* R^2 */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>MAE</strong> is the mean absolute error, <strong>MSE</strong> the mean squared error (RMSE its square root), and <strong>R²</strong> the share of the variance in $y$ explained by the model.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"What do you care about?"} --&gt;|"typical error size, robust to outliers"| MAE["MAE"]
+  A --&gt;|"big errors are very costly"| MSE["MSE / RMSE"]
+  A --&gt;|"error in the original units"| RMSE["RMSE or MAE"]
+  A --&gt;|"how much variation is explained"| R2["R squared"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: forecasting electricity demand, where a big miss can cause a blackout, which box? (Answer: "MSE / RMSE".)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what R² does the "always predict the mean" model get?</p>
+          <details><summary>Check your answer</summary>
+            <p>Exactly 0: its squared errors are the total variation itself.</p>
+          </details>
+        </div>
+        <p>The definitions, with our four houses:</p>
+        $$\text{MAE} = \tfrac{1}{n}\sum |e_i| = 0.875, \quad \text{MSE} = \tfrac{1}{n}\sum e_i^2 \approx 1.31, \quad R^2 = 1 - \tfrac{\sum e_i^2}{\sum (y_i - \bar y)^2} \approx 0.64$$
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Units</th><th>Outliers</th><th>Best value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>MAE</td><td>Same as $y$</td><td>Robust</td><td>0</td></tr>
+            <tr><td>MSE</td><td>$y$ squared</td><td>Very sensitive</td><td>0</td></tr>
+            <tr><td>RMSE</td><td>Same as $y$</td><td>Sensitive</td><td>0</td></tr>
+            <tr><td>$R^2$</td><td>None (a ratio)</td><td>Sensitive</td><td>1 (0 = as good as the mean)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>$R^2$ can be <strong>negative</strong> on test data: a model can do worse than predicting the mean. And a high $R^2$ doesn't prove the model is right; it can still be biased or overfit.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Know which metric is in which units: MAE and RMSE are in the units of $y$, MSE in squared units, and $R^2$ has no units. Examiners often ask for RMSE "in euros".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the absolute value in MAE, so positive and negative errors cancel out.</li>
+          <li>Comparing MSE values across datasets with different scales.</li>
+          <li>Reading $R^2 = 0.64$ as "64% of predictions are correct"; it's the share of variance explained.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>True values [10, 20, 30], predictions [12, 18, 33]. Compute MAE and MSE.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Errors are −2, 2, −3.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>MAE = (2 + 2 + 3)/3 ≈ 2.33. MSE = (4 + 4 + 9)/3 ≈ 5.67.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>For the same data, compute $R^2$. (The mean of [10, 20, 30] is 20.) Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Total variation $= 100 + 0 + 100 = 200$; squared errors $= 17$. $R^2 = 1 - 17/200 = 0.915$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Least squares, the method of minimising squared errors, was published by Legendre in 1805 and used by Gauss to predict where the asteroid Ceres would reappear.</p>
+          <p>MSE is popular partly because it is smooth and easy to differentiate, which makes training with gradient descent simple; MAE has a kink at zero.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>MAE treats all errors equally <strong>because</strong> it averages their absolute sizes.</li>
+          <li>MSE punishes big errors <strong>because</strong> squaring makes large errors grow much faster than small ones.</li>
+          <li>RMSE is easier to interpret <strong>because</strong> the square root brings it back to the units of $y$.</li>
+          <li>$R^2 = 0$ means "as good as the mean" <strong>because</strong> the mean predictor's squared error equals the total variation.</li>
+          <li>$R^2$ can be negative <strong>because</strong> a model can make larger errors than the mean predictor.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How are MAE and MSE like scoring darts?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MAE is the average distance from the bullseye; MSE squares distances, so one wild throw counts hugely.</p></details></li>
+          <li><strong>Compute MAE, MSE and $R^2$ for truth [3, 5, 2, 7] and predictions [2.5, 5, 4, 8].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MAE 0.875, MSE about 1.31, $R^2$ about 0.64.</p></details></li>
+          <li><strong>Why does the code compute the mean in a first loop before the main loop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the $R^2$ denominator.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The total variation $\sum (y_i - \bar y)^2$ needs the mean, so it must be known before the second loop adds up those squares.</p></details></li>
+          <li><strong>So what do MAE, MSE and $R^2$ measure, in one sentence each?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MAE: average absolute error. MSE: average squared error, sensitive to big misses. $R^2$: share of the variation in $y$ explained by the model.</p></details></li>
+          <li><strong>Why did one outlier multiply the MSE by about 20 but the MAE by about 3.6?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares 10 and 10².</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MAE adds the error 10 as it is, while MSE adds $10^2 = 100$, so the outlier dominates the squared sum.</p></details></li>
+          <li><strong>Which metrics are in the same units as $y$?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MAE and RMSE; MSE is in squared units and $R^2$ has no units.</p></details></li>
+          <li><strong>When can $R^2$ be negative?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When the model's squared errors exceed the total variation, i.e. it predicts worse than always guessing the mean, which can happen on test data.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out RMSE and the negative-$R^2$ case. I'd keep the darts analogy, the four-house example, the outlier effect, and "MAE robust, MSE punishes big misses, $R^2$ = variance explained".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/model_evaluation.html#regression-metrics" target="_blank" rel="noopener">scikit-learn: Regression metrics</a>: MAE, MSE, $R^2$ and more with code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Coefficient_of_determination" target="_blank" rel="noopener">Wikipedia: Coefficient of determination</a>: what $R^2$ means and its pitfalls.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/linear-regression/loss" target="_blank" rel="noopener">Google ML Crash Course: Loss</a>: squared versus absolute loss.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+R+squared+explained" target="_blank" rel="noopener">YouTube search: StatQuest R-squared</a>: StatQuest explains $R^2$ clearly.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

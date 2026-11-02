@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Support vector machine (SVM) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-svm" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Support vector machine (SVM)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Three red points (1, 1), (1, 2), (2, 1) and three blue points (3, 3), (4, 3), (4, 4). Many lines separate them, but the SVM picks the one with the widest empty "street" between the classes: $x_1 + x_2 = 4.5$. Only the points touching the street, (1, 2), (2, 1) and (3, 3), decide where it goes. They are the support vectors.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> maximising the margin gives a boundary that generalises well even with few examples, and with kernels the same idea draws curved boundaries. SVMs were state of the art for classification before deep learning.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-logistic-regression.html">Linear classifiers</a>: $w^\top x + b$.</li>
+          <li>Vector length $\lVert w \rVert$ and dot products.</li>
+          <li>Distance from a point to a line.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine laying a road between two villages so that it stays as far as possible from the nearest house on each side. Only the houses at the very edge of each village matter; houses further back could move without changing the road.</p>
+          <p>An SVM lays that road between two classes. The edge houses are the support vectors, and the width of the road is the margin.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Model:</strong> predict the class by the sign of $f(x) = w^\top x + b$. Points with $f(x) = \pm 1$ lie on the edges of the street; the margin width is $2 / \lVert w \rVert$. Scale features first.</p>
+        <h3>Start with the widest street by hand</h3>
+        <p>Red: (1, 1), (1, 2), (2, 1). Blue: (3, 3), (4, 3), (4, 4). Look at $s = x_1 + x_2$ for each point. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute $s$ for every point. Which red point is closest to the blue class, and which blue point is closest to red?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Red: 2, 3, 3. Blue: 6, 7, 8. The closest are red (1, 2) and (2, 1) with $s = 3$, and blue (3, 3) with $s = 6$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: where is the widest street, and what is the boundary?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Between the lines $s = 3$ and $s = 6$, so the boundary runs down the middle: $x_1 + x_2 = 4.5$.</p></details>
+          <p><strong>Step 3.</strong> The SVM writes it as $w = (2/3, 2/3)$, $b = -3$. Predict $f$ at (3, 3) and at (1, 2), and the margin width.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$f(3, 3) = 4 - 3 = 1$ and $f(1, 2) = 2 - 3 = -1$: exactly on the edges. Width $= 2/\lVert w \rVert = 2/(0.943) \approx 2.12$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-svm-1.svg" alt="Red and blue points with the SVM boundary x1 + x2 = 4.5, dashed margin lines through the support vectors (1,2), (2,1) and (3,3)" width="560" height="410">
+          <figcaption>What you just found: the solid line is the boundary, the dashed lines are the edges of the street, and the large circles are the support vectors.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which points determine the SVM boundary?</p>
+          <details><summary>Check your answer</summary>
+            <p>Only the support vectors, the points on the edges of the margin. Moving any other point (without crossing the margin) changes nothing.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: soft margins and kernels</h3>
+        <p>Real data is rarely this clean.</p>
+        <ul>
+          <li><strong>A red point appears at (3.5, 3.5).</strong> Predict what a hard-margin SVM can do.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No line separates the classes any more, so a hard margin is impossible. A soft-margin SVM allows a few violations, each paying a penalty weighted by C.</p></details></li>
+          <li><strong>Red points inside a ring of blue points.</strong> Predict how an SVM can separate them.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>With a kernel (e.g. RBF), the SVM works as if the points were mapped to a higher-dimensional space, where a flat boundary exists; back in 2D it looks like a circle.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what does the parameter C control in a soft-margin SVM?</p>
+          <details><summary>Check your answer</summary>
+            <p>The trade-off between a wide margin and few margin violations: large C punishes violations (narrower margin, risk of overfitting), small C allows more (wider margin, more bias).</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The trained SVM from the page is $w = (\tfrac23, \tfrac23)$, $b = -3$, i.e. the boundary $x_1 + x_2 = 4.5$. Here every number is checked: the score of each point, its distance to the boundary, the margin, and what a misplaced point costs.</p>
+        <table>
+          <thead>
+            <tr><th>Point</th><th>Class $y$</th><th>$f(x) = w^\top x + b$</th><th>$y \cdot f(x)$</th><th>Distance $f/\lVert w\rVert$</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>(1, 1)</td><td>−1</td><td>−1.667</td><td>1.667</td><td>−1.768</td><td>outside the margin</td></tr>
+            <tr><td>(1, 2)</td><td>−1</td><td>−1</td><td>1</td><td>−1.061</td><td><strong>support vector</strong></td></tr>
+            <tr><td>(2, 1)</td><td>−1</td><td>−1</td><td>1</td><td>−1.061</td><td><strong>support vector</strong></td></tr>
+            <tr><td>(3, 3)</td><td>+1</td><td>1</td><td>1</td><td>1.061</td><td><strong>support vector</strong></td></tr>
+            <tr><td>(4, 3)</td><td>+1</td><td>1.667</td><td>1.667</td><td>1.768</td><td>outside the margin</td></tr>
+            <tr><td>(4, 4)</td><td>+1</td><td>2.333</td><td>2.333</td><td>2.475</td><td>outside the margin</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Score of a point</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$f(3, 3) = \tfrac23 \cdot 3 + \tfrac23 \cdot 3 - 3 = 4 - 3 = 1, \qquad f(1, 2) = \tfrac23 \cdot 3 - 3 = -1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The sign gives the class: positive is blue, negative is red. The support vectors sit exactly at $f = \pm 1$; that is how the SVM scales $w$ and $b$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Check the constraints</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$y_i f(x_i) \ge 1 \text{ for all six points: } 1.667, 1, 1, 1, 1.667, 2.333$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Multiplying by the label makes "correct and outside the street" the same as "at least 1". All six pass, so this is a valid hard-margin solution. The three points with exactly 1 are the support vectors.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Length of w</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\lVert w \rVert = \sqrt{(\tfrac23)^2 + (\tfrac23)^2} = \tfrac23\sqrt 2 \approx 0.943$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The score $f$ is not a distance yet. Dividing by $\lVert w \rVert$ converts it into an actual geometric distance.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Distance of each point to the boundary</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{dist}(3, 3) = \frac{f}{\lVert w \rVert} = \frac{1}{0.943} = 1.061, \qquad \text{dist}(4, 4) = \frac{2.333}{0.943} = 2.475$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Check (3, 3) by geometry: the closest point on $x_1 + x_2 = 4.5$ is (2.25, 2.25), and $\sqrt{0.75^2 + 0.75^2} = 1.061$. The formula and the picture agree.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Margin width</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{margin} = \frac{2}{\lVert w \rVert} = \frac{2}{0.943} \approx 2.121$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The street runs from $f = -1$ to $f = +1$, i.e. 1.061 on each side. Training minimises $\lVert w \rVert^2$ precisely to make this number as large as possible.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Classify a new point</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$f(2, 2) = \tfrac23 \cdot 4 - 3 = -0.333 \;\Rightarrow\; \text{red, but inside the street (distance } 0.354)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The sign decides the class; $|f| < 1$ warns that the point lies inside the margin, so the decision is less certain.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Cost of a violating point (soft margin)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{red point } (3.5, 3.5): \; f = 1.667, \quad \text{hinge} = \max(0,\; 1 - y f) = \max(0,\; 1 + 1.667) = 2.667$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A soft-margin SVM pays a hinge loss for every point with $y f < 1$, multiplied by $C$. A large $C$ makes this point expensive, so the boundary bends towards it; a small $C$ accepts the mistake and keeps a wide street.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>All the SVM needs at prediction time is one dot product: $f(x) = w^\top x + b$. Sign = class, $|f|/\lVert w \rVert$ = distance.</p>
+          <p>Here the margin is 2.121 and only three points (the support vectors) touch it. The hinge loss shows how a soft margin trades street width against mistakes.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Find $w, b$ that separate the classes with the largest margin: minimise $\tfrac12 \lVert w \rVert^2$ subject to $y_i (w^\top x_i + b) \ge 1$ for every training point.</p>
+        <p>Allow violations with slack (soft margin, parameter C) for noisy data, and use kernels for non-linear boundaries.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to classify a new point with a trained linear SVM, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute $w^\top x + b$; if it is positive, predict one class, otherwise the other. Its size tells you how far from the boundary the point is.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have found the boundary by hand. It will make more sense.</p>
+        <pre><code class="language-c">double svm_decision(double w[], double b, double x[], int d) {   /* sign = predicted class */
+    double s = b;
+    for (int j = 0; j &lt; d; j++) s += w[j] * x[j];
+    return s;                                                    /* |s| ~ distance from boundary */
+}
+
+double margin_width(double w[], int d) {                         /* 2 / ||w|| */
+    double nn = 0;
+    for (int j = 0; j &lt; d; j++) nn += w[j] * w[j];
+    return 2 / sqrt(nn);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>support vector machine</strong> is a classifier that finds the separating boundary with the <strong>maximum margin</strong>; the training points on the margin are the <strong>support vectors</strong>.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"Are the classes separable by a line?"} --&gt;|"yes, cleanly"| H["hard-margin SVM"]
+  A --&gt;|"almost, some noise"| S["soft-margin SVM, tune C"]
+  A --&gt;|"no, curved boundary"| K["kernel SVM (RBF, polynomial), tune C and gamma"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: red points in a disc surrounded by blue points, which box? (Answer: "kernel SVM".)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why does the SVM minimise $\lVert w \rVert$?</p>
+          <details><summary>Check your answer</summary>
+            <p>The margin width is $2/\lVert w \rVert$, so a smaller $\lVert w \rVert$ means a wider street.</p>
+          </details>
+        </div>
+        <p>The hard-margin training problem:</p>
+        $$\min_{w, b} \; \tfrac12 \lVert w \rVert^2 \quad \text{subject to} \quad y_i\,(w^\top x_i + b) \ge 1 \;\; \forall i, \qquad \text{margin} = \frac{2}{\lVert w \rVert}$$
+        <p>For our points, $w = (2/3, 2/3)$: $\lVert w \rVert = 0.943$, margin $= 2.12$, which is exactly the distance between the lines $x_1 + x_2 = 3$ and $x_1 + x_2 = 6$.</p>
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training, linear SVM</td><td>about $O(nd)$ per pass</td><td>Specialised solvers (e.g. liblinear)</td></tr>
+            <tr><td>Training, kernel SVM</td><td>between $O(n^2)$ and $O(n^3)$</td><td>Works with all pairs of points</td></tr>
+            <tr><td>Prediction, linear</td><td>$O(d)$</td><td>One dot product</td></tr>
+            <tr><td>Prediction, kernel</td><td>$O(\#\text{SV} \cdot d)$</td><td>One kernel per support vector</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> small to medium datasets with many features, such as text, or clear margins between classes.</p>
+        <ul>
+          <li><strong>Pro:</strong> Maximum margin generalises well, even in high dimensions.</li>
+          <li><strong>Pro:</strong> Kernels give flexible non-linear boundaries.</li>
+          <li><strong>Con:</strong> Kernel SVMs scale poorly beyond tens of thousands of examples.</li>
+          <li><strong>Con:</strong> Needs feature scaling and tuning of C (and gamma); no native probabilities.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>SVMs are very sensitive to feature scale: a feature measured in thousands dominates $\lVert w \rVert$ and the margin. Always standardize features first.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Given $w$ and $b$, compute $f(x)$ for each point: $|f| = 1$ means support vector, $|f| &gt; 1$ outside the margin, $|f| &lt; 1$ inside it. Margin width is $2/\lVert w \rVert$.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Saying all training points define the boundary; only the support vectors do.</li>
+          <li>Forgetting to scale features.</li>
+          <li>Confusing large C (narrow margin, low bias) with small C (wide margin, more bias).</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>With $w = (2/3, 2/3)$, $b = -3$, classify the new point (2, 2) and say whether it is inside the margin.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Compute $f$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$f = 8/3 - 3 \approx -0.33$: red side, and $|f| &lt; 1$, so it lies inside the margin.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A linear SVM has $w = (3, 4)$. What is the margin width? If you double $w$ and $b$, does the boundary change? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\lVert w \rVert = 5$, so the width is $2/5 = 0.4$. Doubling $w$ and $b$ leaves the boundary $w^\top x + b = 0$ unchanged, but the canonical margin lines $f = \pm 1$ move closer together; the SVM fixes this scale by requiring $y_i f(x_i) \ge 1$ with equality at the support vectors.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Vapnik and Chervonenkis developed the theory in the 1960s; the modern soft-margin SVM with kernels was published by Cortes and Vapnik in 1995.</p>
+          <p>In the early 2000s, SVMs held records in handwritten-digit and text classification until deep neural networks overtook them around 2012.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Only support vectors matter <strong>because</strong> the margin is set by the closest points of each class.</li>
+          <li>Minimising $\lVert w \rVert$ widens the margin <strong>because</strong> the margin width is $2/\lVert w \rVert$.</li>
+          <li>Soft margins handle noise <strong>because</strong> they let some points violate the margin at a cost set by C.</li>
+          <li>Kernels give curved boundaries <strong>because</strong> they act as a flat boundary in a higher-dimensional space.</li>
+          <li>Scaling is essential <strong>because</strong> the margin is measured in raw feature units.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is an SVM like laying a road between two villages?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The road stays as far as possible from the nearest houses on each side, and only those edge houses decide where it goes.</p></details></li>
+          <li><strong>Find the SVM boundary for red (1, 1), (1, 2), (2, 1) and blue (3, 3), (4, 3), (4, 4).</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The closest points have $x_1 + x_2 = 3$ (red) and $6$ (blue), so the boundary is $x_1 + x_2 = 4.5$, with support vectors (1, 2), (2, 1), (3, 3).</p></details></li>
+          <li><strong>Why does <code>margin_width</code> return $2/\lVert w \rVert$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the lines $f = \pm 1$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The margin edges are $w^\top x + b = 1$ and $= -1$; the distance between these parallel lines is $2/\lVert w \rVert$.</p></details></li>
+          <li><strong>So what is an SVM, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A classifier that chooses the separating boundary with the widest margin, determined by the support vectors.</p></details></li>
+          <li><strong>Why does a wide margin help generalisation?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions new points near the boundary.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>New points that fall near the training data still land on the correct side, because the boundary keeps a large safety distance from both classes.</p></details></li>
+          <li><strong>What do linear and kernel SVMs cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Linear: roughly $O(nd)$ training and $O(d)$ prediction. Kernel: $O(n^2)$ to $O(n^3)$ training and a kernel per support vector at prediction.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: strong generalisation, kernels for non-linear boundaries. Cons: poor scaling to huge datasets, needs scaling and tuning of C and gamma.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the optimisation formula and kernels. I'd keep the road analogy, the 6-point example with its support vectors, and "widest street, only edge points matter".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/svm.html" target="_blank" rel="noopener">scikit-learn: Support vector machines</a>: linear and kernel SVMs with examples.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Support_vector_machine" target="_blank" rel="noopener">Wikipedia: Support vector machine</a>: the optimisation problem and kernels.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-034-artificial-intelligence-fall-2010/" target="_blank" rel="noopener">MIT OCW 6.034 Artificial Intelligence</a>: Patrick Winston's famous SVM lecture.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+support+vector+machines" target="_blank" rel="noopener">YouTube search: StatQuest SVM</a>: StatQuest's main ideas video.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

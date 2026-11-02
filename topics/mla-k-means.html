@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>k-means clustering · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-k-means" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">k-means clustering</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four points: (1, 1), (2, 1), (4, 4), (5, 4). Put two centres anywhere, say on (1, 1) and (2, 1). Give each point to its nearest centre, then move each centre to the average of its points. Repeat: after a couple of rounds the centres settle at (1.5, 1) and (4.5, 4), one in the middle of each natural group. That's k-means.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it splits unlabelled data into $k$ compact groups with a simple, fast loop. It's the first tool for customer segmentation, image colour compression and summarising data.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-paradigms.html">Unsupervised learning</a>.</li>
+          <li>Euclidean distance and averages of points.</li>
+          <li><a href="mla-knn.html">KNN</a>, for comparison (they are often confused).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine placing $k$ ice-cream stands on a beach. Each sunbather walks to the nearest stand; then each stand moves to the middle of its customers; people re-choose the nearest stand; and so on until nobody switches.</p>
+          <p>k-means is exactly that dance. The stands are the centroids, and each round lowers the total walking distance.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Inputs:</strong> numeric, scaled features and the number of clusters $k$, chosen in advance. Here $k = 2$, with initial centroids $c_1 = (1, 1)$ and $c_2 = (2, 1)$.</p>
+        <h3>Start with one iteration by hand</h3>
+        <p>Points (1, 1), (2, 1), (4, 4), (5, 4). Centroids $c_1 = (1, 1)$, $c_2 = (2, 1)$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Assignment: which centroid is nearest to each point?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>(1, 1) → $c_1$. (2, 1) → $c_2$ (distance 0). (4, 4) and (5, 4) → $c_2$, which is closer than $c_1$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: update each centroid to the mean of its points.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$c_1 = (1, 1)$ (only one point). $c_2 = ((2 + 4 + 5)/3, (1 + 4 + 4)/3) \approx (3.67, 3)$.</p></details>
+          <p><strong>Step 3.</strong> Iteration 2: reassign (2, 1). Predict its new cluster and the new centroids.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>(2, 1) is now 1 from $c_1$ and about 2.6 from $c_2$, so it moves to $c_1$. New centroids: $c_1 = (1.5, 1)$, $c_2 = (4.5, 4)$. A third round changes nothing: converged.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-k-means-1.svg" alt="Four points in two clusters with final centroids (1.5, 1) and (4.5, 4); the earlier centroid (3.67, 3) is shown faded" width="560" height="360">
+          <figcaption>What you just did: the centroids start badly, then move to the middle of each natural group. Crosses mark the final centroids.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what are the two steps of each k-means iteration?</p>
+          <details><summary>Check your answer</summary>
+            <p>Assign every point to its nearest centroid; then move each centroid to the mean of its assigned points.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: choosing k and the start</h3>
+        <p>Two things k-means doesn't decide for you.</p>
+        <ul>
+          <li><strong>$k = 1, 2, 3, 4$ on these points.</strong> Predict how the within-cluster sum of squares (WCSS) behaves.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It always falls as $k$ grows (to 0 at $k = 4$). The "elbow", where it stops falling fast, is at $k = 2$ here: WCSS drops from 19 to 1, then only to 0.5.</p></details></li>
+          <li><strong>A bad start.</strong> Predict the risk of starting both centroids inside one group.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>k-means can get stuck in a poor local optimum. Use k-means++ seeding and several restarts, keeping the lowest WCSS.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what is the final within-cluster sum of squares here?</p>
+          <details><summary>Check your answer</summary>
+            <p>Each point is 0.5 from its centroid, so $4 \times 0.25 = 1.0$.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>k-means with $k = 2$ on the points (1, 1), (2, 1), (4, 4), (5, 4), starting from a bad choice of centroids, $c_1 = (1, 1)$ and $c_2 = (2, 1)$. Every distance is squared Euclidean, as k-means uses.</p>
+        <table>
+          <thead>
+            <tr><th>Point</th><th>Iter 1: to $c_1$</th><th>Iter 1: to $c_2$</th><th>Cluster</th><th>Iter 2: to $c_1$</th><th>Iter 2: to $c_2$</th><th>Cluster</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>(1, 1)</td><td>0</td><td>1</td><td>1</td><td>0</td><td>11.11</td><td>1</td></tr>
+            <tr><td>(2, 1)</td><td>1</td><td>0</td><td><strong>2</strong></td><td>1</td><td>6.78</td><td><strong>1</strong></td></tr>
+            <tr><td>(4, 4)</td><td>18</td><td>13</td><td>2</td><td>18</td><td>1.11</td><td>2</td></tr>
+            <tr><td>(5, 4)</td><td>25</td><td>18</td><td>2</td><td>25</td><td>2.78</td><td>2</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Iteration 1: assign</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d^2\big((4, 4), c_1\big) = 3^2 + 3^2 = 18, \qquad d^2\big((4, 4), c_2\big) = 2^2 + 3^2 = 13 \;\Rightarrow\; c_2$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each point joins its nearest centroid. Because $c_2 = (2, 1)$ is slightly closer to the far group, it grabs (2, 1), (4, 4) and (5, 4), while $c_1$ keeps only (1, 1).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Iteration 1: update</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$c_1 = (1, 1), \qquad c_2 = \left(\frac{2 + 4 + 5}{3}, \frac{1 + 4 + 4}{3}\right) = (3.667, 3)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each centroid moves to the mean of its points. $c_2$ is dragged up towards the big group, leaving (2, 1) far behind.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>WCSS after iteration 1</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{WCSS} = 0 + \big(1.667^2 + 2^2\big) + \big(0.333^2 + 1^2\big) + \big(1.333^2 + 1^2\big) = 6.78 + 1.11 + 2.78 = 10.67$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The within-cluster sum of squares adds every point's squared distance to its own centroid. It is the number k-means is trying to minimise.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Iteration 2: reassign</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d^2\big((2, 1), c_1\big) = 1 \;<\; d^2\big((2, 1), c_2\big) = 1.667^2 + 2^2 = 6.78 \;\Rightarrow\; (2, 1) \text{ switches to } c_1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Now that $c_2$ has moved away, (2, 1) is much closer to $c_1$. This is the step that repairs the bad start.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Iteration 2: update</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$c_1 = \left(\frac{1 + 2}{2}, 1\right) = (1.5, 1), \qquad c_2 = \left(\frac{4 + 5}{2}, 4\right) = (4.5, 4)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Both centroids now sit in the middle of a natural group.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>WCSS after iteration 2</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{WCSS} = 0.5^2 + 0.5^2 + 0.5^2 + 0.5^2 = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Every point is 0.5 from its centroid. The error dropped from 10.67 to 1: each iteration can only lower (or keep) the WCSS.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Iteration 3: convergence</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{assignments } [1, 1, 2, 2] \text{ unchanged} \;\Rightarrow\; \text{stop}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Recomputing the distances gives the same clusters, so the centroids would not move. k-means stops when nothing changes.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Two iterations of "assign to nearest, move to the mean" turned a bad start into the natural clustering, with WCSS 10.67 → 1.</p>
+          <p>A different start could have converged to a worse result, which is why k-means++ initialisation and several restarts are used in practice.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Pick $k$ starting centroids. Repeat until assignments stop changing: <strong>assign</strong> each point to its nearest centroid, then <strong>update</strong> each centroid to the mean of its points.</p>
+        <p>Run several times with different starts (k-means++) and choose $k$ with the elbow method or silhouette score.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one k-means step in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For each point, find the centroid with the smallest squared distance and record its index. Then, for each centroid, average the coordinates of the points assigned to it.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the iteration by hand. It will make more sense.</p>
+        <pre><code class="language-c">void kmeans_step(double x[], double y[], int n, double cx[], double cy[], int k, int assign[]) {
+    for (int i = 0; i &lt; n; i++) {                              /* assignment step */
+        int best = 0;
+        for (int c = 1; c &lt; k; c++)
+            if ((x[i]-cx[c])*(x[i]-cx[c]) + (y[i]-cy[c])*(y[i]-cy[c]) &lt;
+                (x[i]-cx[best])*(x[i]-cx[best]) + (y[i]-cy[best])*(y[i]-cy[best])) best = c;
+        assign[i] = best;
+    }
+    for (int c = 0; c &lt; k; c++) {                              /* update step */
+        double sx = 0, sy = 0; int cnt = 0;
+        for (int i = 0; i &lt; n; i++) if (assign[i] == c) { sx += x[i]; sy += y[i]; cnt++; }
+        if (cnt) { cx[c] = sx / cnt; cy[c] = sy / cnt; }       /* mean of its points */
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>k-means</strong> partitions data into $k$ clusters by alternating between assigning each point to its nearest centroid and moving each centroid to the mean of its points, minimising the within-cluster sum of squares.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["choose k starting centroids"] --&gt; B["assign each point to the nearest centroid"]
+  B --&gt; C["move each centroid to the mean of its points"]
+  C --&gt; D{"did any assignment change?"}
+  D --&gt;|yes| B
+  D --&gt;|no| E["done: clusters are stable"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: in our example, how many times do you pass through "move each centroid" before stopping? (Answer: 3; the third pass changes nothing.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: can an iteration ever increase the total within-cluster distance?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. Both steps can only keep it the same or lower it, which is why k-means always converges.</p>
+          </details>
+        </div>
+        <p>k-means minimises the within-cluster sum of squares (WCSS, or inertia):</p>
+        $$\text{WCSS} = \sum_{j=1}^{k} \sum_{x \in C_j} \lVert x - \mu_j \rVert^2 \qquad (= 4 \times 0.5^2 = 1.0 \text{ at the end})$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>One iteration</td><td>$O(nkd)$</td><td>Every point against every centroid</td></tr>
+            <tr><td>Whole run</td><td>$O(nkd \cdot \text{iterations})$</td><td>Usually few iterations</td></tr>
+            <tr><td>Assigning a new point</td><td>$O(kd)$</td><td>Nearest of $k$ centroids</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> large datasets with roughly round, similar-sized clusters, when you know (or can guess) $k$.</p>
+        <ul>
+          <li><strong>Pro:</strong> Simple, fast and scales to millions of points.</li>
+          <li><strong>Pro:</strong> Easy to interpret: each cluster is summarised by its centroid.</li>
+          <li><strong>Con:</strong> You must choose $k$, and results depend on the starting centroids.</li>
+          <li><strong>Con:</strong> Assumes round, similar-sized clusters; sensitive to outliers and feature scale.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>k-means assumes clusters are round blobs. On crescent shapes, rings or clusters of very different sizes it splits them wrongly; use DBSCAN or a Gaussian mixture instead.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams give points and starting centroids and ask for one or two iterations. Write a table of distances per point, mark the nearest centroid, then average each group.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Confusing k-means (unsupervised clustering) with KNN (supervised classification).</li>
+          <li>Running it once and trusting the result, despite its sensitivity to the start.</li>
+          <li>Forgetting to scale features, so one large-valued feature decides the clusters.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Points 1, 2, 9, 10 on a line, $k = 2$, start centroids 1 and 2. Do one full iteration.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Assign 9 and 10 first.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Assign: 1 → c₁; 2, 9, 10 → c₂. Update: c₁ = 1, c₂ = 7. The next iteration moves 2 to c₁, giving c₁ = 1.5, c₂ = 9.5.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>For the four points of the example, compute the WCSS for $k = 1$ (one centroid at the overall mean). Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Mean = (3, 2.5). Squared distances: (1, 1): 4 + 2.25 = 6.25; (2, 1): 1 + 2.25 = 3.25; (4, 4): 1 + 2.25 = 3.25; (5, 4): 4 + 2.25 = 6.25. WCSS = 19. With $k = 2$ it's 1, a huge drop: the elbow is at 2.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Stuart Lloyd devised the algorithm at Bell Labs in 1957 for quantising signals; it was only published in 1982, so it's often called Lloyd's algorithm.</p>
+          <p>Colour quantisation in image formats like GIF uses k-means: cluster the image's colours into, say, 256 groups and replace each pixel by its centroid colour.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Each iteration lowers WCSS <strong>because</strong> both the assignment and the update step can only reduce it.</li>
+          <li>It converges <strong>because</strong> WCSS cannot decrease forever with finitely many assignments.</li>
+          <li>Results depend on the start <strong>because</strong> it only reaches a local optimum.</li>
+          <li>It prefers round clusters <strong>because</strong> it assigns by straight-line distance to a single centre.</li>
+          <li>Scaling matters <strong>because</strong> distances are dominated by the largest-valued feature.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is k-means like placing ice-cream stands on a beach?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>People walk to the nearest stand, stands move to the middle of their customers, and this repeats until nobody switches.</p></details></li>
+          <li><strong>Do k-means on (1, 1), (2, 1), (4, 4), (5, 4) starting from centroids (1, 1) and (2, 1).</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Iteration 1: c₂ takes (2, 1), (4, 4), (5, 4), moving to (3.67, 3). Iteration 2: (2, 1) moves to c₁, giving (1.5, 1) and (4.5, 4). Then it is stable.</p></details></li>
+          <li><strong>Why does the update step check <code>if (cnt)</code> before dividing?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions empty clusters.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A centroid might end up with no points; dividing by zero would break it, so it keeps its old position (or is re-initialised).</p></details></li>
+          <li><strong>So what is k-means, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A clustering method that alternates assigning points to the nearest centroid and moving centroids to the mean of their points.</p></details></li>
+          <li><strong>Why is k-means guaranteed to stop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions WCSS.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Neither step can increase the within-cluster sum of squares, and there are only finitely many ways to assign points, so it must reach a state where nothing changes.</p></details></li>
+          <li><strong>What does one iteration cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(nkd)$: every point is compared with every centroid in $d$ dimensions.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: fast, simple and interpretable. Cons: needs $k$ and a good start; assumes round, similar-sized clusters.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out k-means++ and silhouette scores. I'd keep the ice-cream analogy, the four-point example, and "assign to nearest, move to mean, repeat; choose $k$ with the elbow".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/clustering.html#k-means" target="_blank" rel="noopener">scikit-learn: K-means</a>: the algorithm, k-means++ and mini-batch variants.</li>
+          <li><a href="https://www.naftaliharris.com/blog/visualizing-k-means-clustering/" target="_blank" rel="noopener">Naftali Harris: Visualizing k-means</a>: an interactive step-by-step demo.</li>
+          <li><a href="https://en.wikipedia.org/wiki/K-means_clustering" target="_blank" rel="noopener">Wikipedia: k-means clustering</a>: history, variants and limitations.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+k-means+clustering" target="_blank" rel="noopener">YouTube search: StatQuest k-means</a>: StatQuest's visual walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

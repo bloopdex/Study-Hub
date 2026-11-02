@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activation functions · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-activation-functions" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Activation functions</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Feed the scores $z = -2, 0, 2$ through different activations. <strong>Sigmoid</strong> gives 0.12, 0.5, 0.88: squashed into (0, 1). <strong>Tanh</strong> gives −0.96, 0, 0.96: into (−1, 1). <strong>ReLU</strong> gives 0, 0, 2: negatives cut to zero. <strong>Softmax</strong> on all three at once gives 0.02, 0.12, 0.87, probabilities that sum to 1. Each shape suits a different job.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> the activation decides what a layer can represent and how well gradients flow during training. Switching from sigmoid to ReLU is one of the changes that made deep networks trainable.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-neuron.html">The artificial neuron</a>.</li>
+          <li>Exponentials $e^z$.</li>
+          <li>Derivatives (slopes), for the gradient discussion.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of different volume knobs. A sigmoid is a dimmer that never fully reaches off or on; tanh is the same dimmer centred on zero; ReLU is a switch that's off for negatives and passes positives straight through.</p>
+          <p>Softmax is different: it's a vote counter that turns several scores into shares of 100%.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>The five functions:</strong> $\sigma(z) = \frac{1}{1 + e^{-z}}$, $\tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$, $\text{ReLU}(z) = \max(0, z)$, $\text{LeakyReLU}(z) = \max(0.01z, z)$, $\text{softmax}(z)_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$.</p>
+        <h3>Start with three scores by hand</h3>
+        <p>Apply each function to $z = -2, 0, 2$. Use $e^{-2} \approx 0.135$ and $e^{2} \approx 7.389$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Sigmoid of −2, 0, 2.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$1/(1 + 7.389) \approx 0.119$, $0.5$, $1/(1 + 0.135) \approx 0.881$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: tanh and ReLU of −2, 0, 2.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>tanh: −0.964, 0, 0.964. ReLU: 0, 0, 2.</p></details>
+          <p><strong>Step 3.</strong> Softmax of the vector $[-2, 0, 2]$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Exponentials 0.135, 1, 7.389, sum 8.524: $[0.016, 0.117, 0.867]$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-activation-functions-1.svg" alt="Plot of sigmoid, tanh and ReLU between z = -4 and 4" width="580" height="360">
+          <figcaption>What you just computed: sigmoid (indigo) and tanh (yellow) flatten out at both ends; ReLU (green) is flat for negatives and a straight line for positives.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which activation outputs values centred on zero?</p>
+          <details><summary>Check your answer</summary>
+            <p>tanh, with outputs between −1 and 1 and $\tanh(0) = 0$.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: slopes matter</h3>
+        <p>Training multiplies slopes (derivatives) layer after layer.</p>
+        <ul>
+          <li><strong>Sigmoid slope $\sigma(z)(1 - \sigma(z))$ at $z = 0$ and $z = 2$.</strong> Predict both.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0.25 at $z = 0$ (its maximum) and $0.881 \cdot 0.119 \approx 0.105$ at $z = 2$. Ten layers at 0.25 multiply to about $10^{-6}$.</p></details></li>
+          <li><strong>ReLU slope for positive $z$, and Leaky ReLU at $z = -2$.</strong> Predict both.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>ReLU: 1, so gradients pass unchanged. Leaky ReLU at −2: slope 0.01 and output −0.02, so a neuron is never completely "dead".</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why do sigmoid gradients get small in deep networks?</p>
+          <details><summary>Check your answer</summary>
+            <p>Its slope is at most 0.25 and near 0 for large $|z|$; multiplying many such slopes through the layers shrinks the gradient towards 0.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The three scores $z = -2, 0, 2$ pushed through every activation, with the arithmetic shown, then the derivatives. The derivatives decide how well gradients survive through many layers.</p>
+        <table>
+          <thead>
+            <tr><th>$z$</th><th>Sigmoid</th><th>Tanh</th><th>ReLU</th><th>Leaky ReLU (0.01)</th><th>Softmax (all three)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>−2</td><td>0.119</td><td>−0.964</td><td>0</td><td>−0.02</td><td>0.016</td></tr>
+            <tr><td>0</td><td>0.5</td><td>0</td><td>0</td><td>0</td><td>0.117</td></tr>
+            <tr><td>2</td><td>0.881</td><td>0.964</td><td>2</td><td>2</td><td>0.867</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Sigmoid</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma(2) = \frac{1}{1 + e^{-2}} = \frac{1}{1 + 0.1353} = 0.881, \qquad \sigma(-2) = 1 - \sigma(2) = 0.119$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The sigmoid is symmetric around 0.5: $\sigma(-z) = 1 - \sigma(z)$. You only need to compute one side.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Tanh</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\tanh(2) = \frac{e^{2} - e^{-2}}{e^{2} + e^{-2}} = \frac{7.389 - 0.135}{7.389 + 0.135} = 0.964$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Tanh is a stretched sigmoid ($\tanh z = 2\sigma(2z) - 1$) with outputs centred on 0, which tends to make the next layer's learning easier.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>ReLU and Leaky ReLU</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{ReLU}(-2) = 0, \quad \text{ReLU}(2) = 2, \qquad \text{Leaky}(-2) = 0.01 \cdot (-2) = -0.02$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">ReLU costs one comparison. The leaky version keeps a small slope for negatives so the neuron never becomes completely silent.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Softmax over the three scores</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$e^{z} = [0.135,\; 1,\; 7.389], \quad \sum = 8.524 \;\Rightarrow\; \left[\tfrac{0.135}{8.524}, \tfrac{1}{8.524}, \tfrac{7.389}{8.524}\right] = [0.016,\; 0.117,\; 0.867]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Softmax is different: it uses all the scores at once and returns probabilities that sum to 1. A gap of 2 between scores becomes a ratio of $e^2 \approx 7.4$ between probabilities.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Derivatives at z = 2</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma'(2) = 0.881 \cdot 0.119 = 0.105, \qquad \tanh'(2) = 1 - 0.964^2 = 0.071, \qquad \text{ReLU}'(2) = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">At $z = 2$ the sigmoid and tanh are already flattening out, so their slopes are small. ReLU keeps a slope of exactly 1 for any positive input.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Why it matters: 5 layers deep</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{best case sigmoid: } 0.25^5 \approx 0.001, \qquad \text{ReLU (active path): } 1^5 = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Backpropagation multiplies one derivative per layer. Even at its steepest the sigmoid's slope is 0.25, so after 5 layers the gradient is at most 0.1% of its size: the vanishing gradient. This is the main reason hidden layers use ReLU.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Sigmoid and tanh squash into a fixed range and have small slopes for large $|z|$; ReLU is cheap and keeps a slope of 1 for positive inputs.</p>
+          <p>Use ReLU (or a variant) in hidden layers, sigmoid for a single yes/no output, softmax for a choice among several classes.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Hidden layers: use <strong>ReLU</strong> (or Leaky ReLU / GELU) by default; tanh for some recurrent nets.</p>
+        <p>Output layer: <strong>sigmoid</strong> for one yes/no probability, <strong>softmax</strong> for one-of-$K$ classes, nothing (linear) for regression.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute softmax, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Exponentiate every score, add them up, and divide each exponential by that sum (subtracting the largest score first, for numerical safety).</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the values by hand. It will make more sense.</p>
+        <pre><code class="language-c">double relu(double z)       { return z &gt; 0 ? z : 0; }
+double leaky_relu(double z) { return z &gt; 0 ? z : 0.01 * z; }
+double sigmoid(double z)    { return 1 / (1 + exp(-z)); }
+
+void softmax(double z[], int k, double out[]) {
+    double mx = z[0], sum = 0;
+    for (int i = 1; i &lt; k; i++) if (z[i] &gt; mx) mx = z[i];
+    for (int i = 0; i &lt; k; i++) { out[i] = exp(z[i] - mx); sum += out[i]; }   /* shift for safety */
+    for (int i = 0; i &lt; k; i++) out[i] /= sum;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: an <strong>activation function</strong> is the non-linear function applied to a neuron's weighted sum; common ones are sigmoid, tanh, ReLU, Leaky ReLU, and softmax for multi-class outputs.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"Which layer?"} --&gt;|hidden| H["ReLU (default) or Leaky ReLU / GELU"]
+  A --&gt;|output| B{"What do you predict?"}
+  B --&gt;|"one probability (yes/no)"| S["sigmoid"]
+  B --&gt;|"one of K classes"| SM["softmax"]
+  B --&gt;|"a real number"| L["linear (no activation)"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: the output layer of a digit classifier (0–9), which box? (Answer: "softmax".)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what is the slope of ReLU for $z = 2$ and for $z = -2$?</p>
+          <details><summary>Check your answer</summary>
+            <p>1 for $z = 2$, 0 for $z = -2$.</p>
+          </details>
+        </div>
+        <p>The derivatives that backpropagation multiplies through the layers:</p>
+        $$\sigma'(z) = \sigma(z)(1 - \sigma(z)) \le 0.25, \qquad \tanh'(z) = 1 - \tanh^2(z) \le 1, \qquad \text{ReLU}'(z) = \begin{cases} 1 & z &gt; 0 \\ 0 & z &lt; 0 \end{cases}$$
+        <table>
+          <thead>
+            <tr><th>Function</th><th>$z = -2$</th><th>$z = 0$</th><th>$z = 2$</th><th>Range</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sigmoid</td><td>0.119</td><td>0.5</td><td>0.881</td><td>(0, 1)</td></tr>
+            <tr><td>Tanh</td><td>−0.964</td><td>0</td><td>0.964</td><td>(−1, 1)</td></tr>
+            <tr><td>ReLU</td><td>0</td><td>0</td><td>2</td><td>[0, ∞)</td></tr>
+            <tr><td>Leaky ReLU (0.01)</td><td>−0.02</td><td>0</td><td>2</td><td>(−∞, ∞)</td></tr>
+            <tr><td>Softmax of $[-2, 0, 2]$</td><td>0.016</td><td>0.117</td><td>0.867</td><td>sums to 1</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>ReLU neurons can "die": if a neuron's $z$ becomes negative for every input, its slope is 0 and it never updates again. A too-high learning rate makes this more likely; Leaky ReLU avoids it.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Know the value and the slope of each function at 0: sigmoid (0.5, 0.25), tanh (0, 1), ReLU (0, undefined: 0 or 1 by convention). And which one goes on which output.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using softmax for multi-label problems (several classes can be true at once), where independent sigmoids are right.</li>
+          <li>Using a sigmoid output with an unbounded regression target.</li>
+          <li>Computing softmax without subtracting the maximum, which overflows for large scores.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Compute ReLU and sigmoid of $z = 1$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$e^{-1} \approx 0.368$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>ReLU(1) = 1; $\sigma(1) = 1/1.368 \approx 0.731$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Compute softmax of $[1, 2, 3]$, then of $[101, 102, 103]$. What do you notice, and why does the code subtract the maximum? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Both give $[0.090, 0.245, 0.665]$: softmax only depends on differences between scores. Subtracting the max changes nothing mathematically but keeps $e^{103}$ from overflowing.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>ReLU was popularised for deep networks around 2010–2012; AlexNet (2012) reported training about six times faster with ReLU than with tanh.</p>
+          <p>Large language models often use smooth ReLU-like functions such as GELU or SwiGLU in their feed-forward layers.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Sigmoid suits a single probability <strong>because</strong> it maps any score into (0, 1).</li>
+          <li>Softmax suits one-of-$K$ classes <strong>because</strong> its outputs are positive and sum to 1.</li>
+          <li>ReLU trains deep nets well <strong>because</strong> its slope is 1 for positive inputs, so gradients don't shrink.</li>
+          <li>Sigmoid and tanh saturate <strong>because</strong> their slopes approach 0 for large $|z|$.</li>
+          <li>Leaky ReLU avoids dead neurons <strong>because</strong> it keeps a small slope for negative inputs.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How are sigmoid, tanh, ReLU and softmax like different knobs?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sigmoid and tanh are dimmers that never fully switch, ReLU is an off/through switch, and softmax is a counter that splits 100% among several options.</p></details></li>
+          <li><strong>Compute sigmoid, tanh and ReLU of $-2, 0, 2$, and softmax of $[-2, 0, 2]$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sigmoid 0.12, 0.5, 0.88; tanh −0.96, 0, 0.96; ReLU 0, 0, 2; softmax 0.016, 0.117, 0.867.</p></details></li>
+          <li><strong>Why does <code>softmax</code> subtract <code>mx</code> before exponentiating?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions overflow and differences.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Large scores would make $e^z$ overflow. Softmax only depends on differences between scores, so subtracting the maximum gives the same result safely.</p></details></li>
+          <li><strong>So what is an activation function, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The non-linear function applied to a neuron's weighted sum, which lets networks represent non-linear patterns.</p></details></li>
+          <li><strong>Why did ReLU replace sigmoid in hidden layers?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares slopes.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sigmoid's slope is at most 0.25, so gradients shrink layer after layer; ReLU's slope is 1 for positive inputs, so gradients pass through deep networks.</p></details></li>
+          <li><strong>What are the ranges and slopes at 0 of sigmoid and tanh?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sigmoid: (0, 1), slope 0.25 at 0. Tanh: (−1, 1), slope 1 at 0.</p></details></li>
+          <li><strong>Which activation goes on the output for regression, binary and multi-class problems?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Linear (none), sigmoid, and softmax.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out Leaky ReLU and the softmax overflow trick. I'd keep the knob analogy, the values at −2, 0, 2, and "ReLU inside, sigmoid/softmax at the output".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://en.wikipedia.org/wiki/Activation_function" target="_blank" rel="noopener">Wikipedia: Activation function</a>: a table of functions and their properties.</li>
+          <li><a href="https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity" target="_blank" rel="noopener">PyTorch docs: Non-linear activations</a>: every activation available in PyTorch.</li>
+          <li><a href="https://cs231n.github.io/neural-networks-1/#actfun" target="_blank" rel="noopener">Stanford CS231n: Activation functions</a>: practical advice on choosing them.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=activation+functions+neural+networks+explained" target="_blank" rel="noopener">YouTube search: activation functions explained</a>: pick a short visual overview.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

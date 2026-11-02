@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="330" viewBox="0 0 640 330" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Singly linked list 7 to 5 to 3; after removing 5, node 7 points directly to 3</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="640" height="330" rx="16" fill="#f8fafc"/>
+  <text x="320" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Removing 5 from 7 → 5 → 3</text>
+  <line x1="232.0" y1="90.0" x2="298.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="362.0" y1="90.0" x2="428.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <polyline points="492,90 552,90" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="232.0" y1="200.0" x2="428.0" y2="200.0" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="292.4" y="190.0" width="75.2" height="19" rx="4" fill="#f8fafc"/>
+  <text x="330.0" y="205.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">relinked</text>
+  <line x1="362.0" y1="256.5" x2="428.0" y2="218.5" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <polyline points="492,200 552,200" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="60" y="96" text-anchor="start" font-size="15" font-weight="700" fill="#334155">before</text>
+  <rect x="168" y="70" width="64" height="40" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="200" y="96" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">7</text>
+  <rect x="298" y="70" width="64" height="40" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="330" y="96" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">5</text>
+  <rect x="428" y="70" width="64" height="40" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="460" y="96" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">3</text>
+  <text x="580" y="96" text-anchor="middle" font-size="15" fill="#64748b">NULL</text>
+  <text x="60" y="206" text-anchor="start" font-size="15" font-weight="700" fill="#334155">after</text>
+  <rect x="168" y="180" width="64" height="40" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="200" y="206" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">7</text>
+  <rect x="428" y="180" width="64" height="40" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="460" y="206" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">3</text>
+  <rect x="298" y="255" width="64" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="330" y="281" text-anchor="middle" font-size="15" font-weight="700" fill="#94a3b8">5</text>
+  <text x="580" y="206" text-anchor="middle" font-size="15" fill="#64748b">NULL</text>
+  <text x="420" y="300" text-anchor="start" font-size="15" fill="#94a3b8">freed</text>
+</svg>

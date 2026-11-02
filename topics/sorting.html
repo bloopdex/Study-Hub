@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sorting · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/review-bank.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-hub="sorting" data-slug="sorting" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <main id="content" class="max-w-6xl mx-auto px-4 py-8">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+    <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+      <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Hub</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight">Sorting</h1>
+      <p class="mt-3 text-slate-700 dark:text-slate-300">Six classic ways to put things in order. Three are simple and run in $O(n^2)$. Three are clever and run in $O(n \log n)$, the best a comparison sort can do.</p>
+      <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> sorting is the first step of countless other algorithms, such as binary search, deduplication and merging, and it is where you learn the vocabulary of best, worst, stable and in-place.</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button id="mixed-review" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Mixed review</button>
+        <span class="text-sm text-slate-500 dark:text-slate-400">5 random questions mixed from all six sorts.</span>
+      </div>
+    </section>
+
+    <section id="mixed-review-panel" hidden class="mt-6 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+      <h2 class="text-xl font-semibold">Mixed review</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Answer each one out loud before opening the sample answer.</p>
+      <ol id="mixed-review-list" class="mt-4 list-decimal space-y-4 pl-5"></ol>
+    </section>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Quick comparison</h2>
+      <table>
+        <thead>
+          <tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable</th><th>In-place</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Bubble</td><td>$O(n)$</td><td>$O(n^2)$</td><td>$O(n^2)$</td><td>$O(1)$</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Insertion</td><td>$O(n)$</td><td>$O(n^2)$</td><td>$O(n^2)$</td><td>$O(1)$</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Selection</td><td>$O(n^2)$</td><td>$O(n^2)$</td><td>$O(n^2)$</td><td>$O(1)$</td><td>No</td><td>Yes</td></tr>
+          <tr><td>Merge</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n)$</td><td>Yes</td><td>No</td></tr>
+          <tr><td>Quick</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n^2)$</td><td>$O(\log n)$</td><td>No</td><td>Yes</td></tr>
+          <tr><td>Heap</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(1)$</td><td>No</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <h2 class="mt-10 text-xl font-semibold">The six algorithms</h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="sorting-bubble-sort">Bubble sort</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Swap neighbours that are out of order until nothing moves.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(n²) worst · stable · in-place</p>
+        <a href="sorting-bubble-sort.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="sorting-insertion-sort">Insertion sort</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Slide each new item into place inside a growing sorted prefix.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(n²) worst · O(n) if sorted · stable · in-place</p>
+        <a href="sorting-insertion-sort.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="sorting-selection-sort">Selection sort</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Find the smallest item, put it in front, repeat on the rest.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(n²) always · not stable · in-place</p>
+        <a href="sorting-selection-sort.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="sorting-merge-sort">Merge sort</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Split in half, sort each half, merge the two sorted halves.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(n log n) always · stable · O(n) extra</p>
+        <a href="sorting-merge-sort.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="sorting-quick-sort">Quick sort</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Partition around a pivot, then sort each side.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(n log n) avg · O(n²) worst · not stable · in-place</p>
+        <a href="sorting-quick-sort.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="sorting-heap-sort">Heap sort</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Build a max-heap, then pull out the maximum n times.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(n log n) always · not stable · in-place</p>
+        <a href="sorting-heap-sort.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+    </div>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+
+      <h2>Which one to pick?</h2>
+      <pre class="mermaid">
+flowchart TD
+  A{"Small n (under ~50) or nearly sorted?"} -->|yes| B["Insertion sort"]
+  A -->|no| C{"Need a stable sort?"}
+  C -->|yes| D["Merge sort"]
+  C -->|no| E{"Need a worst-case guarantee with O(1) extra memory?"}
+  E -->|yes| F["Heap sort"]
+  E -->|no| G["Quick sort with a random pivot"]
+      </pre>
+
+      <h2>Key points</h2>
+      <ul>
+        <li>Bubble, insertion and selection sort are $O(n^2)$ <strong>because</strong> each of up to $n$ passes can touch the rest of the array.</li>
+        <li>Merge, quick and heap sort reach $O(n log n)$ <strong>because</strong> they cut the problem into about $log_2 n$ levels of $n$ work.</li>
+        <li>No comparison sort beats $Omega(n log n)$ <strong>because</strong> it must tell apart all $n!$ input orders, which takes $log_2(n!)$ yes/no comparisons.</li>
+        <li>Stability comes from never jumping over equal items: bubble, insertion and merge sort are stable; selection, quick and heap sort are not.</li>
+        <li>Pick by constraint: nearly sorted → insertion, stable → merge, $O(1)$ memory with a guarantee → heap, fastest on average → quick.</li>
+      </ul>
+
+      <h2>External resources</h2>
+      <ul>
+        <li><a href="https://visualgo.net/en/sorting" target="_blank" rel="noopener">VisuAlgo: Sorting</a>: animate all six algorithms on your own input.</li>
+        <li><a href="https://www.toptal.com/developers/sorting-algorithms" target="_blank" rel="noopener">Toptal: Sorting Algorithms Animations</a>: side-by-side races on random, nearly sorted and reversed input.</li>
+        <li><a href="https://en.wikipedia.org/wiki/Sorting_algorithm" target="_blank" rel="noopener">Wikipedia: Sorting algorithm</a>: a large comparison table of time, memory and stability.</li>
+        <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006 Introduction to Algorithms</a>: university lectures on sorting and heaps.</li>
+      </ul>
+      <p><strong>Videos</strong></p>
+      <ul>
+        <li><a href="https://www.youtube.com/watch?v=kPRA0W1kECg" target="_blank" rel="noopener">15 Sorting Algorithms in 6 Minutes</a>: see and hear how each algorithm moves data.</li>
+      </ul>
+    </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doubly linked list · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="structure-doubly-linked-list" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="linear-structures.html" class="hover:text-indigo-500">Linear structures</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Linear structures</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Doubly linked list</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>4 ⇄ 6 ⇄ 9</code>, where every node points both forward and back. Insert 5 after 4: four pointers change and nothing moves: <code>4 ⇄ 5 ⇄ 6 ⇄ 9</code>. Now delete 6 using only a pointer to 6: it knows both neighbours, so you link 5 and 9 directly. That's a doubly linked list.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> every node knows its predecessor, so deleting or inserting next to <em>any</em> node you hold is $O(1)$, in both directions. The cost is one extra pointer per node.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="structure-singly-linked-list.html">Singly linked list</a>.</li>
+          <li>Pointers and <code>NULL</code>.</li>
+          <li>Drawing boxes and arrows for pointer changes.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a train: each carriage is coupled to the one in front <em>and</em> the one behind. You can walk through it in either direction.</p>
+          <p>To take out one carriage, you only need that carriage: uncouple it from its two neighbours and couple those neighbours together. A doubly linked list removes a node exactly the same way.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>The list is <code>4 ⇄ 6 ⇄ 9</code>; each node has <code>prev</code> and <code>next</code>. Predict which pointers change, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Insert 5 after 4. Predict: which <em>existing</em> pointers change?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Two: <code>4.next</code> now points to 5, and <code>6.prev</code> now points to 5. The new node gets <code>prev = 4</code>, <code>next = 6</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: walking backwards from 9, which values do you see?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>9, 6, 5, 4. The <code>prev</code> pointers make the backward walk as easy as the forward one.</p></details>
+          <p><strong>Step 3.</strong> Delete node 6, given only a pointer to it. Predict the two pointer changes.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p><code>5.next</code> becomes 9 and <code>9.prev</code> becomes 5. Node 6 is then freed: <code>4 ⇄ 5 ⇄ 9</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/structure-doubly-linked-list-1.svg" alt="Doubly linked list 4, 5, 6, 9 with arrows in both directions; the new node 5 is highlighted" width="640" height="200">
+          <figcaption>What you just built by hand: every link exists twice, once forward and once back. The green node 5 was inserted with four pointer writes.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why can a doubly linked list delete a node given only a pointer to it?</p>
+          <details><summary>Check your answer</summary>
+            <p>The node stores <code>prev</code>, so its predecessor is known without walking from the head.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the ends of the list</h3>
+        <p>Keep both <code>head</code> and <code>tail</code>. Work on <code>4 ⇄ 5 ⇄ 9</code>.</p>
+        <ul>
+          <li><strong>Delete the head, 4.</strong> Predict what changes.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p><code>head</code> becomes 5, and <code>5.prev</code> becomes <code>NULL</code>. No walk needed.</p></details></li>
+          <li><strong>Delete the tail, 9.</strong> Predict the cost, and compare with a singly linked list.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$O(1)$: <code>tail</code> becomes <code>9.prev</code>, which is 5. A singly linked list needs $O(n)$ here, because it must find the node before the tail.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what are the four pointer writes when inserting between two nodes?</p>
+          <details><summary>Check your answer</summary>
+            <p>New node's <code>prev</code> and <code>next</code>, the left neighbour's <code>next</code>, and the right neighbour's <code>prev</code>.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Each node stores a value, <code>prev</code> and <code>next</code>. The first node's <code>prev</code> and the last node's <code>next</code> are <code>NULL</code>.</p>
+        <p>To insert or delete next to a node you hold, rewire the links on both sides. Check for <code>NULL</code> neighbours at the ends.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the steps of "delete node x" in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Make x's previous node point forward to x's next node. 2. Make x's next node point back to x's previous node. 3. Free x, updating head or tail if x was at an end.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the operations by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct Node { int val; struct Node *prev, *next; } Node;
+
+void insert_after(Node *p, int v) {           /* p must not be NULL */
+    Node *n = malloc(sizeof(Node));
+    n-&gt;val = v;
+    n-&gt;prev = p;
+    n-&gt;next = p-&gt;next;
+    if (p-&gt;next) p-&gt;next-&gt;prev = n;           /* right neighbour points back */
+    p-&gt;next = n;
+}</code></pre>
+        <pre><code class="language-c">Node *remove_node(Node *head, Node *x) {     /* O(1): x knows its neighbours */
+    if (x-&gt;prev) x-&gt;prev-&gt;next = x-&gt;next;
+    else head = x-&gt;next;                      /* x was the head */
+    if (x-&gt;next) x-&gt;next-&gt;prev = x-&gt;prev;
+    free(x);
+    return head;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>doubly linked list</strong> is a chain of nodes where each node points to both its next and its previous node.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  A["4"] &lt;--&gt; B["5"]
+  B &lt;--&gt; C["6"]
+  C &lt;--&gt; D["9"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after deleting 6, which two nodes are linked directly? (Answer: 5 and 9.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the table, predict: does the extra <code>prev</code> pointer make search faster?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. You still have to walk node by node to find a value: $O(n)$.</p>
+          </details>
+        </div>
+        <p>Memory is the price of the backward link. With values of $v$ bytes and pointers of $p$ bytes, $n$ nodes take:</p>
+        $$n \cdot (v + 2p) \quad \text{versus} \quad n \cdot (v + p) \text{ for a singly linked list}$$
+        <p>On a 64-bit machine with 4-byte <code>int</code>s, that's about 20 bytes per node instead of 12 (before padding).</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>push_front / push_back (head and tail kept)</td><td>$O(1)$</td><td>Ends are known directly</td></tr>
+            <tr><td>pop_front / pop_back</td><td>$O(1)$</td><td><code>prev</code> gives the new tail instantly</td></tr>
+            <tr><td>Insert after / before a known node</td><td>$O(1)$</td><td>Four pointer writes</td></tr>
+            <tr><td>Delete a known node</td><td>$O(1)$</td><td>The node knows both neighbours</td></tr>
+            <tr><td>Search / access $k$-th</td><td>$O(n)$</td><td>Still walk node by node</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Order matters when inserting. If you set <code>p-&gt;next = n</code> <em>before</em> reading <code>p-&gt;next</code> into <code>n-&gt;next</code>, the old right neighbour is lost.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>The classic contrast: deleting a node you hold is $O(1)$ in a doubly linked list but $O(n)$ in a singly linked one, because the singly linked node doesn't know its predecessor.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Updating only the <code>next</code> pointers and forgetting the matching <code>prev</code> ones.</li>
+          <li>Not handling the ends: <code>x-&gt;prev</code> or <code>x-&gt;next</code> may be <code>NULL</code>.</li>
+          <li>Overwriting <code>p-&gt;next</code> before using it to set the new node's <code>next</code>.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Starting from <code>4 ⇄ 6 ⇄ 9</code>, how many pointer writes does inserting 5 after 4 need in total?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Count the new node's two pointers plus the neighbours' pointers.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Four: <code>5.prev</code>, <code>5.next</code>, <code>4.next</code>, <code>6.prev</code>.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A text editor keeps the cursor as a pointer into a doubly linked list of characters. What do "insert a character at the cursor" and "delete the character before the cursor" cost, and why would an array be worse? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Both are $O(1)$: rewire around the cursor's node. In an array, each insert or delete in the middle shifts all later characters, $O(n)$ per keystroke.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Browser history, LRU caches and music playlists with "previous" and "next" buttons are classic doubly linked lists.</p>
+          <p>Java's <code>LinkedList</code> and C++'s <code>std::list</code> are both doubly linked, so this is the structure you get when you ask a library for "a linked list".</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Deleting a known node is $O(1)$ <strong>because</strong> it stores pointers to both neighbours.</li>
+          <li>pop_back is $O(1)$ <strong>because</strong> the tail's <code>prev</code> gives the new tail without walking.</li>
+          <li>Every insert writes four pointers <strong>because</strong> each link exists in both directions.</li>
+          <li>Search is still $O(n)$ <strong>because</strong> extra links don't give an address formula.</li>
+          <li>It uses more memory <strong>because</strong> each node carries a second pointer.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a doubly linked list like a train?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each carriage is coupled to the one in front and the one behind, so you can walk either way and remove a carriage by joining its two neighbours.</p></details></li>
+          <li><strong>Walk through inserting 5 after 4 in 4 ⇄ 6 ⇄ 9.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The new node gets prev = 4 and next = 6; then 6.prev = 5 and 4.next = 5, giving 4 ⇄ 5 ⇄ 6 ⇄ 9.</p></details></li>
+          <li><strong>Why does <code>insert_after</code> set <code>n-&gt;next = p-&gt;next</code> before changing <code>p-&gt;next</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what would be lost.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Once <code>p-&gt;next</code> is overwritten, the old right neighbour can no longer be reached, so it must be copied into the new node first.</p></details></li>
+          <li><strong>So what is a doubly linked list, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A chain of nodes where each node points to both its next and its previous node.</p></details></li>
+          <li><strong>Why is deleting a known node $O(1)$ here but $O(n)$ in a singly linked list?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer names the missing information.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Deletion must change the predecessor's <code>next</code>. A doubly linked node stores its predecessor; a singly linked node doesn't, so you'd have to walk from the head to find it.</p></details></li>
+          <li><strong>What do the main operations cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Push and pop at both ends, insert next to a known node and delete a known node are all $O(1)$; search and access by position are $O(n)$.</p></details></li>
+          <li><strong>When is the extra memory not worth it?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When you only ever add and remove at the front or only walk forward, as in a simple stack; a singly linked list does that with less memory.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the memory formula and the order-of-writes detail. I'd keep the train analogy, the insert and delete pictures, and "$O(1)$ delete of a known node, costs an extra pointer".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/list" target="_blank" rel="noopener">VisuAlgo: Linked list</a>: choose "Doubly Linked List" and animate inserts and removals.</li>
+          <li><a href="https://www.geeksforgeeks.org/doubly-linked-list/" target="_blank" rel="noopener">GeeksforGeeks: Doubly linked list</a>: operations with code and diagrams.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Doubly_linked_list" target="_blank" rel="noopener">Wikipedia: Doubly linked list</a>: variants, sentinels and circular versions.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=doubly+linked+list+explained" target="_blank" rel="noopener">YouTube search: doubly linked list explained</a>: pick a walkthrough of insert and delete.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

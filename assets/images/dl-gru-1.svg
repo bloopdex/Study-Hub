@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="300" viewBox="0 0 700 300" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">GRU gates diagram</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="700" height="300" rx="16" fill="#f8fafc"/>
+  <text x="350" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">One GRU step</text>
+  <line x1="160.0" y1="90.0" x2="230.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="170.0" y="80.0" width="50.0" height="19" rx="4" fill="#f8fafc"/>
+  <text x="195.0" y="95.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">r · h</text>
+  <line x1="300.0" y1="173.0" x2="300.0" y2="117.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="370.0" y1="90.0" x2="430.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="500.0" y1="173.0" x2="500.0" y2="117.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="534.4" y1="117.0" x2="605.6" y2="173.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <polyline points="90,60 90,35 500,35 500,60" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="20" y="63" width="140" height="54" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="90" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#94a3b8">h(t−1) = 0.5</text>
+  <rect x="230" y="173" width="140" height="54" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="300" y="206" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">reset r = 0.73</text>
+  <rect x="230" y="63" width="140" height="54" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="300" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">candidate h̃</text>
+  <text x="300" y="105" text-anchor="middle" font-size="12" fill="#475569">tanh(…) = 0.63</text>
+  <rect x="430" y="173" width="140" height="54" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="500" y="206" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">update z = 0.5</text>
+  <rect x="430" y="63" width="140" height="54" rx="8" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="500" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">blend</text>
+  <text x="500" y="105" text-anchor="middle" font-size="12" fill="#475569">(1−z)·h + z·h̃</text>
+  <rect x="585" y="173" width="110" height="54" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="640" y="206" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">h(t) = 0.57</text>
+  <text x="300" y="28" text-anchor="middle" font-size="15" fill="#64748b">old state passes straight to the blend</text>
+  <text x="90" y="270" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">x(t) = 1</text>
+</svg>

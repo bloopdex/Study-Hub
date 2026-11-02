@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batch normalization · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-batch-normalization" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Batch normalization</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">One neuron outputs 2, 4 and 6 for the three examples in a mini-batch. Batch normalization subtracts the batch mean (4) and divides by the batch standard deviation (1.63): $[-1.22, 0, 1.22]$. Then it lets the network rescale and shift that with two learned numbers, $\gamma$ and $\beta$; with $\gamma = 2$, $\beta = 1$ the output is $[-1.45, 1, 3.45]$. That's batch normalization.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> keeping each layer's inputs on a stable scale makes training faster and more robust: you can use higher learning rates, and the network is less sensitive to initialisation. It was a key ingredient of very deep CNNs.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-preprocessing.html">Standardization</a>: $(x - \mu)/\sigma$.</li>
+          <li><a href="dl-sgd.html">Mini-batches</a>.</li>
+          <li><a href="dl-mlp.html">Layers</a> and pre-activations.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of judges at a competition whose scoring habits drift: one day everyone scores high, the next day low. A fair organiser rescales each day's scores to the same average and spread before comparing.</p>
+          <p>Batch norm does that for every neuron, every mini-batch, so the next layer always receives inputs on a familiar scale; $\gamma$ and $\beta$ let it choose its own preferred scale.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Formula:</strong> for each feature over the batch: $\hat x = (x - \mu_B)/\sqrt{\sigma_B^2 + \varepsilon}$, then $y = \gamma \hat x + \beta$, with learned $\gamma$, $\beta$.</p>
+        <h3>Start with three activations by hand</h3>
+        <p>One neuron's values over a batch of three: $x = [2, 4, 6]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Batch mean and (population) variance.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Mean 4. Squared deviations 4, 0, 4: variance $8/3 \approx 2.67$, standard deviation $\approx 1.63$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the normalized values $\hat x$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$(2 - 4)/1.63 \approx -1.22$, $0$, $1.22$.</p></details>
+          <p><strong>Step 3.</strong> Scale and shift with $\gamma = 2$, $\beta = 1$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$2 \cdot (-1.22) + 1 \approx -1.45$, $1$, $3.45$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-batch-normalization-1.svg" alt="Three rows: raw activations 2, 4, 6; normalized -1.22, 0, 1.22; scaled and shifted -1.45, 1, 3.45" width="680" height="290">
+          <figcaption>What you just computed: normalize to mean 0 and spread 1, then let the learned $\gamma$, $\beta$ pick the final scale.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why does batch norm add $\gamma$ and $\beta$ after normalizing?</p>
+          <details><summary>Check your answer</summary>
+            <p>So the network can still choose any scale and offset, including undoing the normalization if that works best.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: training versus test</h3>
+        <p>During training the network also keeps running averages, say mean 3.8 and variance 2.5.</p>
+        <ul>
+          <li><strong>A single test input with value 5.</strong> Predict its normalized value with the running statistics.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(5 - 3.8)/\sqrt{2.5} \approx 0.76$ (then scaled by $\gamma$, shifted by $\beta$).</p></details></li>
+          <li><strong>Why not normalize the test input by its own "batch"?</strong> Predict the problem.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>A batch of one has variance 0, and predictions would depend on which other examples happen to be in the batch. Fixed running statistics make inference deterministic.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what statistics does batch norm use at test time?</p>
+          <details><summary>Check your answer</summary>
+            <p>Running averages of the mean and variance collected during training, not the statistics of the test batch.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>A mini-batch of 3 examples with two features on very different scales, normalised step by step, then scaled with learned $\gamma, \beta$, and finally the running statistics used at test time.</p>
+        <table>
+          <thead>
+            <tr><th>Example</th><th>Feature 1</th><th>Feature 1 normalised</th><th>Feature 2</th><th>Feature 2 normalised</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>2</td><td>−1.225</td><td>10</td><td>−0.926</td></tr>
+            <tr><td>2</td><td>4</td><td>0</td><td>20</td><td>−0.463</td></tr>
+            <tr><td>3</td><td>6</td><td>1.225</td><td>60</td><td>1.389</td></tr>
+            <tr><td>Mean / std</td><td>4 / 1.633</td><td>0 / 1</td><td>30 / 21.6</td><td>0 / 1</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Batch mean (per feature)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mu_1 = \frac{2 + 4 + 6}{3} = 4, \qquad \mu_2 = \frac{10 + 20 + 60}{3} = 30$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Batch norm works feature by feature, across the examples of the batch.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Batch variance</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma_1^2 = \frac{(-2)^2 + 0^2 + 2^2}{3} = 2.667, \qquad \sigma_2^2 = \frac{(-20)^2 + (-10)^2 + 30^2}{3} = 466.7$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Population variance (divide by $n$). Feature 2 varies about 175 times more than feature 1: without normalisation, the next layer's weights would need very different scales.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Normalise</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat x = \frac{x - \mu}{\sqrt{\sigma^2 + \varepsilon}}: \quad \frac{2 - 4}{1.633} = -1.225, \qquad \frac{60 - 30}{21.6} = 1.389$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Both features now have mean 0 and standard deviation 1. The small $\varepsilon$ (e.g. $10^{-5}$) avoids dividing by 0 if a feature is constant in the batch.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Scale and shift</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$y = \gamma \hat x + \beta, \quad \gamma = 2, \; \beta = 1: \quad [-1.449,\; 1,\; 3.449]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$\gamma$ and $\beta$ are learned like weights. They let the network choose the best mean and spread for each feature, including undoing the normalisation entirely ($\gamma = \sigma$, $\beta = \mu$) if that is best.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Update the running statistics</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mu_{\text{run}} \leftarrow 0.9\,\mu_{\text{run}} + 0.1 \cdot 4, \qquad \sigma^2_{\text{run}} \leftarrow 0.9\,\sigma^2_{\text{run}} + 0.1 \cdot 2.667$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">During training, batch norm keeps an exponential average of the batch statistics. After many batches these settle near the dataset's true mean and variance, here about 4 and 2.667.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Test time: one example, no batch</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$x = 5: \quad \hat x = \frac{5 - 4}{\sqrt{2.667}} = 0.612, \qquad y = 2 \cdot 0.612 + 1 = 2.225$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">At test time there may be a single example, so batch statistics make no sense. The running mean and variance are used instead, which makes the prediction for an example independent of the rest of the batch.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Batch norm turns each feature into mean 0, standard deviation 1 within the batch, then applies a learned scale $\gamma$ and shift $\beta$.</p>
+          <p>Training uses the batch's statistics; inference uses the running averages. Mixing the two up (forgetting <code>model.eval()</code>) is a classic bug.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Training: for each feature, normalize with the current mini-batch's mean and variance, then apply learned $\gamma$ and $\beta$; update running averages of mean and variance.</p>
+        <p>Inference: use the stored running averages instead of batch statistics.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe batch norm for one feature in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the batch mean and variance, normalize each value, then multiply by $\gamma$ and add $\beta$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have normalized the three values by hand. It will make more sense.</p>
+        <pre><code class="language-c">void batch_norm(double x[], int n, double gamma, double beta, double out[]) {
+    double mean = 0, variance = 0, eps = 1e-5;
+    for (int i = 0; i &lt; n; i++) mean += x[i] / n;
+    for (int i = 0; i &lt; n; i++) variance += (x[i] - mean) * (x[i] - mean) / n;
+    for (int i = 0; i &lt; n; i++)
+        out[i] = gamma * (x[i] - mean) / sqrt(variance + eps) + beta;   /* normalize, scale, shift */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>batch normalization</strong> normalizes each feature to zero mean and unit variance over the mini-batch, then applies a learned scale $\gamma$ and shift $\beta$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X["layer output x (batch)"] --&gt; M["batch mean, variance"]
+  M --&gt; N["x̂ = (x - mean) / √(var + ε)"]
+  N --&gt; Y["y = γ x̂ + β"]
+  Y --&gt; NEXT["activation / next layer"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: at test time, which box changes? (Answer: "batch mean, variance" is replaced by the stored running averages.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what happens with a batch size of 1?</p>
+          <details><summary>Check your answer</summary>
+            <p>The variance is 0 and every value becomes 0 after normalization: batch norm breaks down with tiny batches.</p>
+          </details>
+        </div>
+        <p>The transformation and our numbers:</p>
+        $$\hat x_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \varepsilon}}, \quad y_i = \gamma \hat x_i + \beta, \qquad \mu_B = 4,\; \sigma_B^2 = 2.67 \Rightarrow \hat x = [-1.22, 0, 1.22]$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Mean and variance from</th><th>Learned parameters</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training</td><td>The current mini-batch</td><td>$\gamma$, $\beta$ (2 per feature)</td></tr>
+            <tr><td>Inference</td><td>Running averages from training</td><td>Same $\gamma$, $\beta$</td></tr>
+            <tr><td>Extra parameters per feature</td><td>—</td><td>2 learned + 2 running statistics</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Batch norm behaves differently in training and evaluation. Forgetting to switch modes (or using batch sizes of 1–2) gives poor, unstable results. For small batches or sequence models, layer normalization is the usual alternative.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Give the four steps: batch mean, batch variance, normalize, scale and shift. Then add the train/test difference (running statistics). That covers almost every exam question on it.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using the test batch's own statistics at inference.</li>
+          <li>Forgetting $\varepsilon$, which divides by zero when the variance is 0.</li>
+          <li>Forgetting that $\gamma$ and $\beta$ are learned, not fixed at 1 and 0.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Normalize $[1, 3]$ with batch norm ($\gamma = 1$, $\beta = 0$, ignore $\varepsilon$).</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Mean 2, population variance 1.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$[-1, 1]$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>What $\gamma$ and $\beta$ make batch norm output exactly its input $[2, 4, 6]$ again? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\gamma = \sigma_B \approx 1.63$ and $\beta = \mu_B = 4$: then $\gamma\hat x + \beta = x$. So batch norm never removes representational power; the network can learn to undo it.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Ioffe and Szegedy introduced batch normalization in 2015, explaining it as reducing "internal covariate shift"; later research suggests it mainly helps by smoothing the loss landscape.</p>
+          <p>Transformers use layer normalization instead, which normalizes across the features of one example, so it works with any batch size.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Batch norm stabilises training <strong>because</strong> each layer receives inputs with a consistent scale.</li>
+          <li>It needs $\gamma$ and $\beta$ <strong>because</strong> the network must still be able to choose any scale and offset.</li>
+          <li>Inference uses running statistics <strong>because</strong> predictions shouldn't depend on which examples share a batch.</li>
+          <li>Tiny batches break it <strong>because</strong> their mean and variance are too noisy, or undefined for one example.</li>
+          <li>It allows higher learning rates <strong>because</strong> normalized activations keep gradients well-behaved.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is batch norm like rescaling judges' scores each day?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each day's scores are shifted and scaled to the same average and spread so they can be compared; batch norm does that for each neuron over each mini-batch.</p></details></li>
+          <li><strong>Apply batch norm to [2, 4, 6] with $\gamma = 2$, $\beta = 1$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Mean 4, sd 1.63, normalized $[-1.22, 0, 1.22]$, output $[-1.45, 1, 3.45]$.</p></details></li>
+          <li><strong>Why does the code add <code>eps</code> inside the square root?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions zero variance.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If all values in the batch are equal, the variance is 0 and the division would blow up; $\varepsilon$ keeps it finite.</p></details></li>
+          <li><strong>So what is batch normalization, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Normalizing each feature over the mini-batch to zero mean and unit variance, then applying a learned scale and shift.</p></details></li>
+          <li><strong>Why does batch norm use running averages at test time?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer considers a single test example.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A single example has no meaningful batch variance, and predictions shouldn't change with the batch composition; running averages from training give fixed, reliable statistics.</p></details></li>
+          <li><strong>How many learned parameters does batch norm add per feature?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Two, $\gamma$ and $\beta$ (plus two non-learned running statistics).</p></details></li>
+          <li><strong>When would you use layer normalization instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>With small batches or in sequence models like Transformers, because it normalizes within each example rather than across the batch.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the covariate-shift debate and layer norm. I'd keep the judges analogy, the [2, 4, 6] example, and "normalize per batch, learned $\gamma$ and $\beta$, running stats at test time".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://arxiv.org/abs/1502.03167" target="_blank" rel="noopener">Ioffe and Szegedy: Batch Normalization (arXiv)</a>: the original paper.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html" target="_blank" rel="noopener">PyTorch docs: nn.BatchNorm1d</a>: parameters, momentum and running statistics.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Batch_normalization" target="_blank" rel="noopener">Wikipedia: Batch normalization</a>: the method and theories of why it works.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=batch+normalization+explained" target="_blank" rel="noopener">YouTube search: batch normalization explained</a>: pick a clear walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

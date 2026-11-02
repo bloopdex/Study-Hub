@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Binary search · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="searching-binary" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="searching.html" class="hover:text-indigo-500">Searching</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Searching</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Binary search</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Look for 9 in <code>[1, 3, 5, 7, 9, 11, 13]</code>. Check the middle, 7: too small, so 9 must be on the right. Check the middle of the right half, 11: too big. Check 9: found. Three looks instead of five. That's binary search: halve the range every time.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> on a sorted array, every comparison throws away half of what's left. So it needs at most $\lfloor \log_2 n \rfloor + 1$ comparisons: 20 for a million elements.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Sorted arrays and zero-based indexing.</li>
+          <li><a href="searching-linear.html">Linear search</a>, the baseline to beat.</li>
+          <li>Logarithms: $\log_2 n$ is how many times you can halve $n$ before reaching 1.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Play "guess my number from 1 to 100" against a friend who says "higher" or "lower". The smart first guess is 50, because whatever the answer, half the numbers are gone.</p>
+          <p>Binary search plays that game on a sorted array. The middle element answers "higher" or "lower", and half the array disappears. Seven guesses are enough for 1 to 100.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Data requirement:</strong> the array must be <strong>sorted</strong>.</p>
+        <h3>Start with one search by hand</h3>
+        <p>Look for 9 in <code>[1, 3, 5, 7, 9, 11, 13]</code>. The range starts as indices 0 to 6. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> The middle index is 3, value 7. Predict: which half do you keep?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>7 &lt; 9, so 9 can only be to the right. Keep indices 4 to 6.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the middle of 4..6 is index 5, value 11. Where next?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>11 &gt; 9, so go left. Keep only index 4.</p></details>
+          <p><strong>Step 3.</strong> The middle of 4..4 is index 4. Predict the result.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>a[4] = 9: found at index 4 after 3 comparisons.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/searching-binary-1.svg" alt="Binary search probes 7, then 11, then finds 9 at index 4, halving the range each time." width="720" height="290">
+          <figcaption>What you just did by hand: each row throws away half the range (grey). Yellow is the middle being checked.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does one comparison with the middle element guarantee?</p>
+          <details><summary>Check your answer</summary>
+            <p>Either the target is found, or half of the remaining range is ruled out, because the array is sorted.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture</h3>
+        <p>Now search the same array for 4, which isn't there.</p>
+        <ul>
+          <li><strong>Steps 1 and 2.</strong> 7 &gt; 4, so go left to 0..2; the middle is 3. Predict where you go next.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>3 &lt; 4, so go right: the range is index 2 only.</p></details></li>
+          <li><strong>Step 3.</strong> a[2] = 5. Predict: what happens to the range?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>5 &gt; 4, so <code>hi</code> becomes 1 while <code>lo</code> is 2. The range is empty, so return −1. Still only 3 comparisons.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how does binary search know that 4 is missing?</p>
+          <details><summary>Check your answer</summary>
+            <p>The range shrinks until <code>lo &gt; hi</code>. An empty range means no place is left where 4 could be.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Keep a range <code>lo..hi</code> where the target could be. Look at the middle. If it's the target, done. If it's too small, move <code>lo</code> past it; if too big, move <code>hi</code> before it.</p>
+        <p>When the range is empty, the target isn't there.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of one round in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Look at the middle of the current range. 2. If it's the target, stop. 3. Otherwise keep only the half where the target could still be.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one search by hand. It will make more sense.</p>
+        <pre><code class="language-c">int binary_search(const int a[], int n, int x) {
+    int lo = 0, hi = n - 1;                 /* x can only be in a[lo..hi] */
+    while (lo &lt;= hi) {                      /* range not empty */
+        int mid = lo + (hi - lo) / 2;       /* avoids overflow of lo + hi */
+        if (a[mid] == x) return mid;
+        if (a[mid] &lt; x) lo = mid + 1;       /* x is to the right */
+        else hi = mid - 1;                  /* x is to the left */
+    }
+    return -1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>binary search</strong> finds a target in a sorted array by comparing it with the middle of the current range and discarding the half that cannot contain it.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["lo = 0, hi = n - 1"] --> B{"lo &lt;= hi ?"}
+  B -->|no| F["Return -1: not found"]
+  B -->|yes| C["mid = middle of lo..hi"]
+  C --> D{"compare a[mid] with x"}
+  D -->|equal| E["Return mid"]
+  D -->|"a[mid] &lt; x"| G["lo = mid + 1"]
+  D -->|"a[mid] &gt; x"| H["hi = mid - 1"]
+  G --> B
+  H --> B
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: searching for 9, which arrow leaves the compare box first, and which second? (Answer: "a[mid] &lt; x" for 7, then "a[mid] &gt; x" for 11.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: starting with 1,000 elements, how many halvings until one element is left?</p>
+          <details><summary>Check your answer</summary>
+            <p>About 10, because $2^{10} = 1024$.</p>
+          </details>
+        </div>
+        <p>Each comparison halves the range, so after $k$ comparisons about $n / 2^k$ elements are left. The search ends when that reaches 1:</p>
+        $$\frac{n}{2^k} = 1 \;\Longrightarrow\; k = \log_2 n, \qquad \text{at most } \lfloor \log_2 n \rfloor + 1 \text{ comparisons.}$$
+        <p>For our 7 elements: $\lfloor \log_2 7 \rfloor + 1 = 3$, exactly what we used.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Data requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(1)$</td><td>$O(\log n)$</td><td>$O(\log n)$</td><td>$O(1)$</td><td>Sorted</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Off-by-one errors are the classic bug. Use <code>lo &lt;= hi</code> together with <code>mid ± 1</code>. Writing <code>lo = mid</code> instead of <code>mid + 1</code> can loop forever when <code>lo</code> and <code>hi</code> are neighbours.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>"How many comparisons at most for $n$ elements?" Answer $\lfloor \log_2 n \rfloor + 1$: 10 for 1,000, 20 for 1,000,000.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Running it on unsorted data. It doesn't crash; it silently gives wrong answers.</li>
+          <li>Computing <code>(lo + hi) / 2</code>, which can overflow for huge indices; use <code>lo + (hi - lo) / 2</code>.</li>
+          <li>Updating with <code>lo = mid</code> or <code>hi = mid</code>, which never excludes <code>mid</code> and can loop forever.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Search for 13 in <code>[1, 3, 5, 7, 9, 11, 13]</code>. Which elements do you compare with?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Start at index 3, then the middle of 4..6.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>7, then 11, then 13: found at index 6 after 3 comparisons.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A sorted array has 4,000,000 elements. What is the maximum number of comparisons binary search needs? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>22. $2^{21} \approx 2.1$ million and $2^{22} \approx 4.2$ million, so $\lfloor \log_2 4{,}000{,}000 \rfloor + 1 = 21 + 1 = 22$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Java's library binary search had the <code>(lo + hi) / 2</code> overflow bug for about nine years, until Joshua Bloch reported it in 2006. Even experts get the details wrong.</p>
+          <p>Binary search is worth mastering because the idea, "halve the possibilities", reappears everywhere: guessing games, debugging with <code>git bisect</code>, and searching for the smallest value that makes a condition true.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>It needs sorted data <strong>because</strong> only order lets one comparison rule out a whole half.</li>
+          <li>It is $O(\log n)$ <strong>because</strong> each comparison halves the range, and you can halve $n$ only $\log_2 n$ times.</li>
+          <li>It stops with "not found" when <code>lo &gt; hi</code> <strong>because</strong> an empty range leaves no place for the target.</li>
+          <li><code>mid ± 1</code> is essential <strong>because</strong> <code>mid</code> has already been checked and must leave the range.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> the loop version only keeps <code>lo</code>, <code>hi</code> and <code>mid</code>.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is binary search like the "guess my number" game?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Guessing the middle means every "higher" or "lower" answer rules out half the numbers. Binary search uses the middle element of a sorted array the same way.</p></details></li>
+          <li><strong>Walk through a search for 9 in [1, 3, 5, 7, 9, 11, 13].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Middle 7 is too small, so go right; middle 11 is too big, so go left; middle 9 matches at index 4. Three comparisons.</p></details></li>
+          <li><strong>Why does the code compute <code>mid</code> as <code>lo + (hi - lo) / 2</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions what can go wrong with <code>lo + hi</code>.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>For very large arrays, <code>lo + hi</code> can exceed the largest <code>int</code> and overflow to a negative number. <code>hi - lo</code> never overflows.</p></details></li>
+          <li><strong>So what is binary search, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It searches a sorted array by checking the middle of the current range and keeping only the half that can still contain the target.</p></details></li>
+          <li><strong>Why does binary search only work on sorted data?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer explains what one comparison tells you.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If the middle is smaller than the target, sorting guarantees everything to its left is smaller too, so that half can go. Without order, one comparison says nothing about the other elements.</p></details></li>
+          <li><strong>What are its best, average and worst cases?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Best $O(1)$ if the first middle is the target. Average and worst $O(\log n)$, at most $\lfloor \log_2 n \rfloor + 1$ comparisons. Extra space $O(1)$.</p></details></li>
+          <li><strong>How does binary search report that a value is missing?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The range shrinks until <code>lo</code> passes <code>hi</code>. The range is then empty, and the function returns −1.</p></details></li>
+          <li><strong>When would you still use linear search instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When the data is unsorted and you only search once, since sorting costs more than one linear scan. Also for tiny arrays, where linear search is fast enough and simpler.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the overflow detail and the exact $\lfloor \log_2 n \rfloor + 1$ bound. I'd keep the guessing-game analogy, one search on the 7-element array, and "sorted data, halve each time, $O(\log n)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.khanacademy.org/computing/computer-science/algorithms/binary-search/a/binary-search" target="_blank" rel="noopener">Khan Academy: Binary search</a>: an interactive lesson with the guessing game.</li>
+          <li><a href="https://www.geeksforgeeks.org/binary-search/" target="_blank" rel="noopener">GeeksforGeeks: Binary search</a>: iterative and recursive code in several languages.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Binary_search" target="_blank" rel="noopener">Wikipedia: Binary search</a>: variants, history and the overflow bug.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006 Introduction to Algorithms</a>: lectures on searching sorted arrays.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=binary+search+explained" target="_blank" rel="noopener">YouTube search: binary search explained</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning paradigms · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-paradigms" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Learning paradigms</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four emails, each with a number of links: 0, 1, 5, 7. If you also know which ones are spam (the last two), a program can learn the rule "5 links or more means spam": that's <strong>supervised</strong> learning. Without the labels, it can still notice two groups, {0, 1} and {5, 7}: <strong>unsupervised</strong>. And a program that learns by trying actions and getting points is doing <strong>reinforcement</strong> learning.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> the kind of data you have, with or without answers or rewards, decides which family of methods you can use and how you measure success. It's the first question in any ML project.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Basic statistics: mean, data table with rows and columns.</li>
+          <li>Functions: an input $x$ mapped to an output $y$.</li>
+          <li>No ML background needed: this is the starting page.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of three ways to learn a language. A teacher corrects every sentence (supervised). You read lots of books with no one explaining, and notice patterns yourself (unsupervised). You move abroad and learn from what works and what gets blank stares (reinforcement).</p>
+          <p>Machine learning uses the same three set-ups: labelled examples, unlabelled data, or rewards for actions.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Notation:</strong> a dataset has $n$ examples; each has features $x$ (the inputs) and, in supervised learning, a label $y$ (the answer to predict).</p>
+        <h3>Start with the same data, three ways</h3>
+        <p>Emails with link counts $x = [0, 1, 5, 7]$. Labels (1 = spam): $y = [0, 0, 1, 1]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> With the labels, find a threshold $t$ such that "spam if $x \ge t$" makes no mistakes. Predict $t$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$t = 5$: emails with 0 and 1 links are below it and are not spam; 5 and 7 are at or above it and are spam. Zero errors.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: without labels, how would you split the four values into two groups?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>By the big gap: {0, 1} and {5, 7}. No answers were given, but the structure is still visible.</p></details>
+          <p><strong>Step 3.</strong> A spam filter that gets +1 when the user keeps a delivered email and −1 when they report it as spam. Which paradigm is that?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Reinforcement-style learning: it learns from rewards for its actions, not from a fixed table of correct answers.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-paradigms-1.svg" alt="Four emails on a number line by link count; labelled version with threshold at 5, unlabelled version with two groups" width="640" height="320">
+          <figcaption>What you just did: with labels (top) you learn a rule; without labels (bottom) you can only find groups.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does supervised learning need that unsupervised learning doesn't?</p>
+          <details><summary>Check your answer</summary>
+            <p>Labels: the correct answer $y$ for each training example.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: classification vs regression</h3>
+        <p>Within supervised learning, the type of the label decides the task.</p>
+        <ul>
+          <li><strong>"Is this email spam?"</strong> Predict the task type and the output.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Classification: the output is one of a fixed set of classes (spam / not spam).</p></details></li>
+          <li><strong>"What will this house sell for?"</strong> Predict the task type and the output.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Regression: the output is a real number, such as 312,000 €.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: is predicting tomorrow's temperature classification or regression?</p>
+          <details><summary>Check your answer</summary>
+            <p>Regression: the answer is a number on a continuous scale, not a category.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's four emails with link counts $x = [0, 1, 5, 7]$, treated three ways. Supervised: with labels $y = [0, 0, 1, 1]$, we run the code's threshold search and compute the loss of every candidate. Unsupervised: without labels, we score every possible two-group split. Reinforcement: a filter learns the value of "deliver" from a stream of rewards.</p>
+        <table>
+          <thead>
+            <tr><th>Threshold $t$</th><th>Predictions ($x \ge t$)</th><th>Errors</th><th>0-1 loss</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>[1, 1, 1, 1]</td><td>2 (emails 1, 2)</td><td>0.50</td></tr>
+            <tr><td>1</td><td>[0, 1, 1, 1]</td><td>1 (email 2)</td><td>0.25</td></tr>
+            <tr><td>5</td><td>[0, 0, 1, 1]</td><td>0</td><td><strong>0</strong></td></tr>
+            <tr><td>7</td><td>[0, 0, 0, 1]</td><td>1 (email 3)</td><td>0.25</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Supervised: define the loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L(f) = \frac{1}{n} \sum_{i=1}^{n} \big[f(x_i) \ne y_i\big], \qquad f_t(x) = [x \ge t]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The 0-1 loss counts mistakes. Learning means searching the candidate rules $f_t$ for the one with the smallest loss: the $\arg\min$ in the page's formula.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Try every threshold</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L(f_0) = \tfrac24, \quad L(f_1) = \tfrac14, \quad L(f_5) = 0, \quad L(f_7) = \tfrac14$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">This is exactly what the double loop in the code does: the outer loop picks $t$, the inner loop counts errors. $t = 5$ wins with no mistakes.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Use the learned rule</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{new email with } x = 3: \quad 3 \ge 5 \text{ is false} \;\Rightarrow\; \text{not spam}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The labels taught the program where the boundary is. Any value between 1 and 5 would fit the training data equally well; the code keeps the first one it finds.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Unsupervised: score each split</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\{0\}\{1,5,7\}: 0 + 18.67 = 18.67, \quad \{0,1\}\{5,7\}: 0.5 + 2 = 2.5, \quad \{0,1,5\}\{7\}: 14 + 0 = 14$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Without labels, quality is measured by how tight each group is: the sum of squared distances to the group mean. For $\{0, 1\}$ the mean is 0.5, giving $0.25 + 0.25$; for $\{5, 7\}$ the mean is 6, giving $1 + 1$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Pick the tightest split</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\min(18.67,\; 2.5,\; 14) = 2.5 \;\Rightarrow\; \{0, 1\} \text{ and } \{5, 7\}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">It found the same two groups as the labels, but it cannot name them: "spam" is a meaning only labels provide. Here the structure and the labels happen to agree.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Reinforcement: rewards one at a time</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$Q \leftarrow Q + \alpha\,(r - Q), \quad \alpha = 0.5: \quad 0 \xrightarrow{+1} 0.5 \xrightarrow{+1} 0.75 \xrightarrow{-1} -0.125 \xrightarrow{+1} 0.4375$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The filter keeps a running estimate $Q$ of how good "deliver" is. Each reward ($+1$ kept, $-1$ reported) nudges it halfway towards that reward. Nobody ever tells it the correct answer; it only gets feedback on what it did.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Same four numbers, three kinds of learning: labels give a rule with zero errors ($t = 5$); no labels still reveal two groups (score 2.5); rewards give a value estimate (0.44) that keeps updating.</p>
+          <p>The paradigm is set by the feedback available: correct answers (supervised), none (unsupervised), or rewards for actions (reinforcement).</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>Supervised</strong>: learn a function from inputs to known outputs; it's <strong>classification</strong> if the output is a category and <strong>regression</strong> if it's a number.</p>
+        <p><strong>Unsupervised</strong>: find structure (groups, directions, anomalies) in inputs alone. <strong>Reinforcement</strong>: learn which actions earn the most reward over time.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to learn the best threshold from labelled data, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Try each data value as the threshold, count how many examples it gets wrong, and keep the threshold with the fewest errors.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have found the threshold by hand. It will make more sense.</p>
+        <pre><code class="language-c">double best_threshold(double x[], int y[], int n) {    /* y = 1 for spam, 0 otherwise */
+    double best_t = x[0]; int best_err = n + 1;
+    for (int i = 0; i &lt; n; i++) {                       /* try each value as threshold */
+        int err = 0;
+        for (int j = 0; j &lt; n; j++) err += (x[j] &gt;= x[i]) != y[j];   /* predict 1 if x &gt;= t */
+        if (err &lt; best_err) { best_err = err; best_t = x[i]; }
+    }
+    return best_t;                                      /* learned from the labels */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>supervised learning</strong> learns a mapping from features to known labels; <strong>unsupervised learning</strong> finds structure in unlabelled data; <strong>reinforcement learning</strong> learns actions that maximise reward.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"Do you have the correct answer for each example?"} --&gt;|yes| B{"Is the answer a category or a number?"}
+  B --&gt;|category| C["Supervised: classification"]
+  B --&gt;|number| D["Supervised: regression"]
+  A --&gt;|no| E{"Do you get rewards for actions?"}
+  E --&gt;|yes| F["Reinforcement learning"]
+  E --&gt;|no| G["Unsupervised: clustering, PCA, anomalies"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: grouping customers by shopping habits, with no labels, ends in which box? (Answer: "Unsupervised".)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what quantity does supervised learning try to make small?</p>
+          <details><summary>Check your answer</summary>
+            <p>The average loss: how far the model's predictions are from the true labels on the training data.</p>
+          </details>
+        </div>
+        <p>Supervised learning picks, from a family of models, the one with the smallest average loss $L$ on the $n$ training examples:</p>
+        $$\hat f \;=\; \arg\min_{f} \; \frac{1}{n} \sum_{i=1}^{n} L\big(f(x_i),\, y_i\big)$$
+        <p>For the threshold rule, $L$ is 1 for a wrong label and 0 for a right one, so the average loss is the error rate: $0/4$ at $t = 5$.</p>
+        <table>
+          <thead>
+            <tr><th>Paradigm</th><th>Data</th><th>Goal</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Supervised (classification)</td><td>$(x, y)$, $y$ a class</td><td>Predict the class</td><td>Spam filter</td></tr>
+            <tr><td>Supervised (regression)</td><td>$(x, y)$, $y$ a number</td><td>Predict the number</td><td>House prices</td></tr>
+            <tr><td>Unsupervised</td><td>$x$ only</td><td>Find structure</td><td>Customer segments, PCA</td></tr>
+            <tr><td>Reinforcement</td><td>States, actions, rewards</td><td>Maximise total reward</td><td>Game-playing agents</td></tr>
+            <tr><td>Self-supervised</td><td>$x$, labels made from $x$</td><td>Learn general features</td><td>Next-word prediction</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A low training error does not mean a good model. With so few examples, many thresholds (anything between 1 and 5) fit perfectly; only new, unseen data shows which rule generalises.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Classify any scenario by two questions: "Are there labels?" and "Is the label a category or a number?". Add "Are there rewards for actions?" for reinforcement learning.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Calling a numeric prediction "classification" because the numbers are integers (predicting a count is still regression).</li>
+          <li>Thinking unsupervised learning has no goal; it optimises things like cluster compactness.</li>
+          <li>Judging a model on the same data it was trained on.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Classify each task: (a) recognising handwritten digits 0–9, (b) predicting a car's fuel use in litres per 100 km, (c) grouping news articles by topic with no labels.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Labels? Category or number?</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>(a) supervised classification, (b) supervised regression, (c) unsupervised clustering.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>With $x = [0, 1, 5, 7]$ and labels $y = [0, 1, 1, 1]$, which threshold does <code>best_threshold</code> return, and how many errors does it make? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>It tries 0, 1, 5, 7 in order. $t = 1$ predicts [0, 1, 1, 1], exactly the labels, so 0 errors. It returns 1.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Arthur Samuel coined "machine learning" in 1959 for a checkers program that improved by playing against itself: an early reinforcement learner.</p>
+          <p>Large language models are trained mostly self-supervised: the "label" for each position is just the next word of the text, so no human labelling is needed.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Supervised learning needs labels <strong>because</strong> it learns by comparing its predictions with the correct answers.</li>
+          <li>Classification and regression differ <strong>because</strong> one predicts a category and the other a number.</li>
+          <li>Unsupervised learning finds structure <strong>because</strong> without answers, all it can use is how the inputs relate to each other.</li>
+          <li>Reinforcement learning uses rewards <strong>because</strong> the right action is only judged by its consequences.</li>
+          <li>Training error can mislead <strong>because</strong> a model can fit the training data without generalising.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How are the three paradigms like three ways of learning a language?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A teacher correcting you is supervised; reading on your own and spotting patterns is unsupervised; living abroad and learning from reactions is reinforcement.</p></details></li>
+          <li><strong>With $x = [0, 1, 5, 7]$ and labels $[0, 0, 1, 1]$, what threshold rule do you learn?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>"Spam if $x \ge 5$", which makes no errors on the four emails.</p></details></li>
+          <li><strong>Why does <code>best_threshold</code> count errors for every candidate threshold?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what "learning" means here.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Learning here means choosing the rule with the smallest training error, so each candidate must be scored on the labelled data and the best one kept.</p></details></li>
+          <li><strong>So what are supervised, unsupervised and reinforcement learning, in one sentence each?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Supervised learns from labelled examples, unsupervised finds structure in unlabelled data, and reinforcement learns actions that maximise reward.</p></details></li>
+          <li><strong>Why can't unsupervised learning tell you which group is "spam"?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions labels.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It never sees labels, so it can find two groups but cannot know what they mean; naming them needs extra information.</p></details></li>
+          <li><strong>What is the difference between classification and regression?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Classification predicts a category from a fixed set; regression predicts a continuous number.</p></details></li>
+          <li><strong>Why is a perfect training score not enough to trust a model?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Many models can fit a small training set perfectly; only performance on new data shows whether it generalises.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out self-supervised learning and the loss formula. I'd keep the language analogy, the spam-threshold example with and without labels, and "labels → supervised; no labels → unsupervised; rewards → reinforcement".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://developers.google.com/machine-learning/intro-to-ml" target="_blank" rel="noopener">Google: Introduction to Machine Learning</a>: a short course on ML types and terms.</li>
+          <li><a href="https://scikit-learn.org/stable/getting_started.html" target="_blank" rel="noopener">scikit-learn: Getting started</a>: fitting, predicting and evaluating models in practice.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Machine_learning" target="_blank" rel="noopener">Wikipedia: Machine learning</a>: paradigms and history.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+machine+learning+introduction" target="_blank" rel="noopener">YouTube search: StatQuest machine learning intro</a>: StatQuest's gentle overview.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

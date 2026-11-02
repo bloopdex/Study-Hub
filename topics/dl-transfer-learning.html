@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer learning · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-transfer-learning" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Transfer learning</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">You have 2,000 photos of cats and dogs. Instead of training a CNN from scratch, take a ResNet-18 already trained on ImageNet's 1.2 million images, freeze its ~11 million weights, and replace its last layer (512 features → 1,000 classes) with a new one (512 → 2). Only $512 \cdot 2 + 2 = 1{,}026$ weights need training. The pretrained features already know edges, fur and eyes. That's transfer learning.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it gets strong results with little data, little compute and short training, by reusing what a big model learned on a big dataset. It is the default way to build image and text models in practice.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-cnn.html">CNNs</a>.</li>
+          <li><a href="dl-mlp.html">Dense layers</a> and parameter counts.</li>
+          <li><a href="mlf-bias-variance.html">Overfitting</a> on small datasets.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>A professional photographer who starts painting doesn't relearn what light, shapes and composition are; they reuse that knowledge and only learn brushwork.</p>
+          <p>A pretrained network's early layers know general visual features. Transfer learning reuses them and trains only the part specific to the new task.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Two strategies:</strong> <strong>Feature extraction</strong>: freeze the pretrained layers and train only a new head. <strong>Fine-tuning</strong>: then also unfreeze some top layers and train them with a small learning rate.</p>
+        <h3>Start with the parameter count by hand</h3>
+        <p>ResNet-18: about 11.7 million parameters; its last layer maps 512 features to 1,000 ImageNet classes. New task: cat vs dog. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Parameters of the original last layer.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$512 \cdot 1000 + 1000 = 513{,}000$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: parameters of the new head (512 → 2).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$512 \cdot 2 + 2 = 1{,}026$.</p></details>
+          <p><strong>Step 3.</strong> With the backbone frozen, what fraction of the model's parameters are trained?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>About $1{,}026 / 11.2$ million ≈ 0.01%. Everything else is reused as is.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-transfer-learning-1.svg" alt="Pretrained ResNet backbone frozen (grey, 11 million weights), old ImageNet head removed, new 512 to 2 head trained (green)" width="680" height="290">
+          <figcaption>What you just counted: the frozen backbone (grey) supplies 512 features; only the small new head (green) learns.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which part of the pretrained network is replaced, and why?</p>
+          <details><summary>Check your answer</summary>
+            <p>The final classification layer, because it predicts the old task's 1,000 classes; the new task needs a layer with its own 2 outputs.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: fine-tuning</h3>
+        <p>After training the new head, you unfreeze the last block of ResNet-18 (about 8.4 million weights).</p>
+        <ul>
+          <li><strong>Trainable parameters now.</strong> Predict roughly how many.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>About 8.4M + 1,026 ≈ 8.4M: far more capacity to adapt, but also more risk of overfitting 2,000 images.</p></details></li>
+          <li><strong>Learning rate.</strong> Predict a sensible choice.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Much smaller than for the head, e.g. 10–100 times smaller, so the pretrained features change gently.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: when should you fine-tune more layers rather than only the head?</p>
+          <details><summary>Check your answer</summary>
+            <p>When you have more data or the new images differ a lot from ImageNet; then higher layers also need to adapt.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>What actually trains during transfer learning: the new head. To keep the numbers readable, the frozen network outputs 3 features (a real ResNet-18 gives 512) for one photo of a dog: $f = [0.2, 1.5, 0.3]$. The new head has weights $W = \begin{bmatrix} 0.5 & -0.2 & 0.1 \\ -0.3 & 0.4 & 0.2 \end{bmatrix}$ (row 1 = cat, row 2 = dog), biases 0, learning rate 0.5.</p>
+        <table>
+          <thead>
+            <tr><th></th><th>Cat</th><th>Dog (true)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Logit before</td><td>−0.17</td><td>0.60</td></tr>
+            <tr><td>Probability before</td><td>0.317</td><td>0.683</td></tr>
+            <tr><td>Gradient $p - y$</td><td>0.317</td><td>−0.317</td></tr>
+            <tr><td>Logit after one step</td><td>−0.547</td><td>0.977</td></tr>
+            <tr><td>Probability after</td><td>0.179</td><td><strong>0.821</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Frozen features</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$f = \text{backbone}(\text{photo}) = [0.2,\; 1.5,\; 0.3]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The pretrained layers are not updated. They work as a fixed feature extractor: feature 2 might be "furry ears", learned from ImageNet's 1.2 million images.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Logits of the new head</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_{\text{cat}} = 0.5 \cdot 0.2 - 0.2 \cdot 1.5 + 0.1 \cdot 0.3 = -0.17, \qquad z_{\text{dog}} = -0.06 + 0.6 + 0.06 = 0.60$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The head is a single dense layer: one dot product per class.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Softmax and loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$p = \frac{[e^{-0.17}, e^{0.6}]}{e^{-0.17} + e^{0.6}} = [0.317,\; 0.683], \qquad L = -\ln 0.683 = 0.381$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The randomly initialised head already leans towards dog, but only weakly.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Gradient of the head only</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial L}{\partial z} = p - y = [0.317,\; -0.317], \qquad \frac{\partial L}{\partial W_{\text{dog}}} = -0.317 \cdot f = [-0.063,\; -0.475,\; -0.095]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each class row's gradient is its error times the features. The largest feature (1.5) gets the largest change. No gradient flows into the frozen backbone.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Update and check</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$W_{\text{dog}} = [-0.268,\; 0.637,\; 0.248], \quad z = [-0.547,\; 0.977] \;\Rightarrow\; p_{\text{dog}} = 0.821, \; L = 0.197$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One step raised the dog probability from 0.68 to 0.82 and halved the loss. Only 6 numbers (8 with biases) changed.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>At real scale</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$512 \cdot 2 + 2 = 1{,}026 \text{ trainable} \quad \text{vs} \quad 11.2 \text{ million frozen} \;\Rightarrow\; 0.009\%$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Training under 0.01% of the weights is why transfer learning works with 2,000 photos and a laptop. Later, you can "fine-tune": unfreeze the top layers and train them with a much smaller learning rate.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Transfer learning reuses a pretrained network as a fixed feature extractor and trains only a new final layer. Here one step took $p_{\text{dog}}$ from 0.68 to 0.82.</p>
+          <p>With few examples, train only the head; with more data, also fine-tune the top layers, gently.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Load a model pretrained on a large dataset, remove its task-specific output layer, add a new head for your classes, and freeze the rest. Train the head.</p>
+        <p>If you have enough data, unfreeze the top layers and fine-tune everything with a small learning rate. Preprocess inputs exactly as in pretraining.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to count the trainable parameters of a new dense head, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Multiply the number of input features by the number of classes for the weights, and add one bias per class.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have counted the parameters by hand. It will make more sense.</p>
+        <pre><code class="language-c">long dense_params(long n_in, long n_out) { return n_in * n_out + n_out; }   /* weights + biases */
+
+double trainable_share(long trainable, long total) {        /* fraction actually trained */
+    return (double)trainable / total;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>transfer learning</strong> reuses a model pretrained on a large dataset as the starting point for a new task, replacing and training its output layer (and optionally fine-tuning other layers).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"How much labelled data do you have?"} --&gt;|"little (hundreds to thousands)"| F["freeze backbone, train only the new head"]
+  A --&gt;|"more, or very different images"| T["train head, then fine-tune top layers with a small learning rate"]
+  A --&gt;|"huge dataset, very different domain"| S["consider training (or fully fine-tuning) the whole network"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: 2,000 cat and dog photos, which box? (Answer: freeze the backbone and train only the new head.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why use a small learning rate when fine-tuning?</p>
+          <details><summary>Check your answer</summary>
+            <p>The pretrained weights are already good; large updates could destroy them ("catastrophic forgetting").</p>
+          </details>
+        </div>
+        <p>The new head's size and its share of the model:</p>
+        $$\#\text{head} = 512 \cdot 2 + 2 = 1{,}026, \qquad \frac{1{,}026}{\approx 11.2\text{M}} \approx 0.01\%$$
+        <table>
+          <thead>
+            <tr><th>Approach</th><th>Trained weights</th><th>Data needed</th><th>Training time</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>From scratch</td><td>all ≈ 11.7M</td><td>Large (100k+ images)</td><td>Long</td></tr>
+            <tr><td>Feature extraction</td><td>1,026 (head only)</td><td>Small (hundreds)</td><td>Minutes</td></tr>
+            <tr><td>Fine-tune last block</td><td>≈ 8.4M</td><td>Medium</td><td>Moderate</td></tr>
+            <tr><td>Full fine-tuning</td><td>all, small learning rate</td><td>Medium to large</td><td>Long</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Use the <strong>same preprocessing</strong> as the pretrained model (image size, normalization means and standard deviations). Feeding differently scaled inputs silently breaks the pretrained features.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Explain why early layers transfer well (generic edges and textures) and later ones less (task-specific shapes), then pick freeze versus fine-tune from the data size and similarity.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to freeze the backbone, so 2,000 images overwrite millions of good weights.</li>
+          <li>Fine-tuning with the same large learning rate as for the new head.</li>
+          <li>Using different input preprocessing from the one used in pretraining.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>A pretrained model outputs 2,048 features. How many parameters does a new head for 10 classes have?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Weights plus biases.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$2048 \cdot 10 + 10 = 20{,}490$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>You have 500 X-ray images. Compare: training a CNN from scratch, feature extraction with an ImageNet model, and full fine-tuning. Which would you try first, and why? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Feature extraction first: with 500 images a from-scratch model would overfit badly, and full fine-tuning has millions of trainable weights. Even though X-rays differ from ImageNet photos, generic low-level features still help; then try fine-tuning the top layers gently.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>ImageNet-pretrained CNNs became the standard starting point after 2014, when researchers showed their features beat hand-crafted ones on many other vision tasks.</p>
+          <p>Large language models are the extreme case: pretrained once on huge text collections, then adapted to countless tasks with fine-tuning or just prompting.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Pretrained features transfer <strong>because</strong> early layers learn generic patterns like edges and textures.</li>
+          <li>Only the head is replaced <strong>because</strong> the final layer is specific to the original classes.</li>
+          <li>Freezing prevents overfitting <strong>because</strong> a small dataset then trains only a few thousand weights.</li>
+          <li>Fine-tuning uses a small learning rate <strong>because</strong> large updates would destroy useful pretrained weights.</li>
+          <li>Preprocessing must match <strong>because</strong> the pretrained weights expect inputs on the same scale.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is transfer learning like a photographer learning to paint?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>They reuse what they already know about light and composition and only learn the new brushwork; the network reuses general features and learns only the new head.</p></details></li>
+          <li><strong>How many parameters does a new 512 → 2 head have, and what share of ResNet-18 is that?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>1,026, about 0.01% of the roughly 11 million parameters.</p></details></li>
+          <li><strong>Why does <code>dense_params</code> add <code>n_out</code> to <code>n_in * n_out</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions biases.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each output neuron has one weight per input plus one bias, so the biases add $n_{\text{out}}$ parameters.</p></details></li>
+          <li><strong>So what is transfer learning, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Reusing a model pretrained on a large dataset as the starting point for a new task, retraining only its head or fine-tuning it.</p></details></li>
+          <li><strong>Why does transfer learning work with only 2,000 images?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer separates generic and specific features.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The backbone already extracts general features from 1.2 million images; with it frozen, the small dataset only has to train a tiny head, which it can do without overfitting.</p></details></li>
+          <li><strong>What is the difference between feature extraction and fine-tuning?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Feature extraction freezes the pretrained layers and trains only the new head; fine-tuning also updates some or all pretrained layers with a small learning rate.</p></details></li>
+          <li><strong>Why must preprocessing match the pretrained model?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The pretrained weights expect inputs with the same size and normalization; otherwise the features they compute become meaningless.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out exact layer counts and preprocessing details. I'd keep the photographer analogy, the 1,026-weight head on a frozen ResNet, and "reuse, replace the head, fine-tune gently if you have more data".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html" target="_blank" rel="noopener">PyTorch tutorial: Transfer learning for computer vision</a>: feature extraction and fine-tuning in code.</li>
+          <li><a href="https://cs231n.github.io/transfer-learning/" target="_blank" rel="noopener">Stanford CS231n: Transfer learning</a>: when to freeze and when to fine-tune.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Transfer_learning" target="_blank" rel="noopener">Wikipedia: Transfer learning</a>: overview and history.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=transfer+learning+fine+tuning+explained" target="_blank" rel="noopener">YouTube search: transfer learning explained</a>: pick a short practical overview.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

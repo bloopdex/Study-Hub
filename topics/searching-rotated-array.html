@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rotated array search · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="searching-rotated-array" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="searching.html" class="hover:text-indigo-500">Searching</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Searching</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Search in a rotated sorted array</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Look for 0 in <code>[4, 5, 6, 7, 0, 1, 2]</code>, a sorted array that was "rotated" so it starts in the middle. The middle is 7. The left half <code>[4..7]</code> is in order and 0 isn't in it, so go right. Repeat, and 0 is found at index 4. That's the trick: one half is always sorted.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> even though the array isn't fully sorted, you can still throw away half of it with every comparison. That keeps the search at $O(\log n)$ when all values are distinct.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="searching-binary.html">Binary search</a>, which this modifies.</li>
+          <li>Rotation: moving the first $k$ elements to the end, e.g. <code>[0, 1, 2, 4, 5, 6, 7]</code> → <code>[4, 5, 6, 7, 0, 1, 2]</code>.</li>
+          <li>Checking whether a value lies in a range: $a \le x &lt; b$.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Picture a clock face read starting from 4 o'clock: 4, 5, 6, 7, then it wraps to 12, 1, 2. Cut it anywhere into two halves, and at least one half runs in plain order with no wrap.</p>
+          <p>The algorithm uses that half. You can tell at a glance whether the target fits inside the ordered half; if it doesn't, it must be in the other one.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Data requirement:</strong> a <strong>sorted array that has been rotated</strong>, with <strong>distinct</strong> values.</p>
+        <h3>Start with one search by hand</h3>
+        <p>Look for 0 in <code>[4, 5, 6, 7, 0, 1, 2]</code>, indices 0 to 6. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> The middle is index 3, value 7. Compare a[0] = 4 with 7. Predict: which half is sorted?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>4 ≤ 7, so the left half <code>[4, 5, 6, 7]</code> is sorted.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: is 0 inside the sorted range 4..7? Where do you go?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>No, 0 &lt; 4. So it must be in the other half: keep indices 4..6.</p></details>
+          <p><strong>Step 3.</strong> The middle of 4..6 is index 5, value 1. a[4] = 0 ≤ 1, so the left part <code>[0, 1]</code> is sorted. Predict the next move.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>0 is in 0..1, so go left to index 4: a[4] = 0, found. 3 probes.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/searching-rotated-array-1.svg" alt="Rotated array search: the left half 4 to 7 is sorted and does not contain 0, so go right; then the half 0 to 1 is sorted and contains 0, so go left and find 0 at index 4." width="750" height="290">
+          <figcaption>What you just did by hand: indigo marks the half that is sorted. Yellow is the middle, and grey has been thrown away.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: how do you tell which half is sorted?</p>
+          <details><summary>Check your answer</summary>
+            <p>If <code>a[lo] ≤ a[mid]</code>, the left half is sorted; otherwise the right half is.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture</h3>
+        <p>Search the same array for 5.</p>
+        <ul>
+          <li><strong>Step 1.</strong> Middle 7, and the left half 4..7 is sorted. Predict: is 5 in it?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Yes, 4 ≤ 5 &lt; 7, so keep the left side, indices 0..2.</p></details></li>
+          <li><strong>Step 2.</strong> The middle of 0..2 is index 1. Predict the result.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>a[1] = 5: found in 2 probes.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why do we only test the target against the <em>sorted</em> half?</p>
+          <details><summary>Check your answer</summary>
+            <p>Only a sorted half has a simple "is it between the ends?" test. If the target fails that test, it can only be in the other half.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Look at the middle. If it's the target, done. Otherwise decide which half is sorted by comparing <code>a[lo]</code> with <code>a[mid]</code>.</p>
+        <p>If the target fits between the ends of that sorted half, search there. If not, search the other half.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of one round in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Check the middle. 2. Find which half is in order. 3. If the target is within that half's range, keep it; otherwise keep the other half.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one search by hand. It will make more sense.</p>
+        <pre><code class="language-c">int search_rotated(const int a[], int n, int x) {
+    int lo = 0, hi = n - 1;
+    while (lo &lt;= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] == x) return mid;
+        if (a[lo] &lt;= a[mid]) {                        /* left half is sorted */
+            if (a[lo] &lt;= x &amp;&amp; x &lt; a[mid]) hi = mid - 1;
+            else lo = mid + 1;
+        } else {                                      /* right half is sorted */
+            if (a[mid] &lt; x &amp;&amp; x &lt;= a[hi]) lo = mid + 1;
+            else hi = mid - 1;
+        }
+    }
+    return -1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>rotated array search</strong> is binary search that, at each step, finds the sorted half and keeps it only if the target lies within its range.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["mid = middle of lo..hi"] --> B{"a[mid] == x ?"}
+  B -->|yes| C["Return mid"]
+  B -->|no| D{"a[lo] &lt;= a[mid] ?"}
+  D -->|"yes: left sorted"| E{"a[lo] &lt;= x &lt; a[mid] ?"}
+  D -->|"no: right sorted"| F{"a[mid] &lt; x &lt;= a[hi] ?"}
+  E -->|yes| G["Go left"]
+  E -->|no| H["Go right"]
+  F -->|yes| H
+  F -->|no| G
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: searching for 0, which box do you reach in round 1? (Answer: "Go right", because the left half 4..7 is sorted but doesn't contain 0.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does the rotation make the search slower than ordinary binary search?</p>
+          <details><summary>Check your answer</summary>
+            <p>No, with distinct values. Every round still throws away half the range, so it is still logarithmic.</p>
+          </details>
+        </div>
+        <p>Each round halves the range, exactly like binary search, so at most:</p>
+        $$\lfloor \log_2 n \rfloor + 1 \text{ rounds} \;=\; O(\log n).$$
+        <p>With duplicates, such as <code>[2, 2, 2, 3, 2]</code>, <code>a[lo] == a[mid]</code> can't tell which half is sorted, and the worst case drops to $O(n)$.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Data requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(1)$</td><td>$O(\log n)$</td><td>$O(\log n)$, or $O(n)$ with duplicates</td><td>$O(1)$</td><td>Rotated sorted, distinct values</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Use <code>&lt;=</code> in <code>a[lo] &lt;= a[mid]</code>. When the range has two elements, <code>lo == mid</code>, and a strict <code>&lt;</code> would wrongly treat the left "half" as unsorted.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>The one sentence examiners want: "at least one half is always sorted, so test the target against that half". Add "$O(\log n)$ with distinct values, $O(n)$ with duplicates".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Testing the target against the unsorted half, where "between the ends" means nothing.</li>
+          <li>Mixing strict and non-strict bounds: the sorted-left test is <code>a[lo] &lt;= x &lt; a[mid]</code>, because <code>a[mid]</code> was already checked.</li>
+          <li>Promising $O(\log n)$ when duplicates are allowed.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Search for 2 in <code>[4, 5, 6, 7, 0, 1, 2]</code>. What happens in round 1?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>The first middle is 7 again, and the left half is sorted.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>2 is not in 4..7, so go right to indices 4..6. The middle 1 has a sorted left part 0..1 that doesn't hold 2, so go right: a[6] = 2 is found.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Search for 3 in <code>[6, 7, 1, 2, 3, 4, 5]</code>. Here the <em>right</em> half is sorted in round 1. List the probes. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Middle index 3 (value 2): a[0] = 6 &gt; 2, so the right half 2..5 is sorted and 3 is in it, so go right to 4..6. Middle index 5 (value 4): the left part 3..4 is sorted and holds 3, so go left: a[4] = 3, found. Probes: 2, 4, 3.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>This is one of the most common coding-interview questions (it's LeetCode problem 33), because it tests whether you understand <em>why</em> binary search works, not just its code.</p>
+          <p>The same idea, "find the part that's ordered and reason about it", also finds the rotation point, which is the minimum, in $O(\log n)$.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>One half is always sorted <strong>because</strong> the rotation creates only one "wrap" point, and it can be in only one half.</li>
+          <li>We test the target against the sorted half <strong>because</strong> only there does "between the ends" mean "inside".</li>
+          <li>It is $O(\log n)$ with distinct values <strong>because</strong> each round still throws away half the range.</li>
+          <li>Duplicates can make it $O(n)$ <strong>because</strong> <code>a[lo] == a[mid]</code> no longer reveals which half is sorted.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> it keeps only <code>lo</code>, <code>hi</code> and <code>mid</code>.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a rotated array like a clock read from 4 o'clock?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It runs in order, wraps around once, then runs in order again. Cut it in two, and at least one half has no wrap, so it's plainly sorted.</p></details></li>
+          <li><strong>Walk through a search for 0 in [4, 5, 6, 7, 0, 1, 2].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Middle 7: the left half 4..7 is sorted but doesn't hold 0, so go right. Middle 1: the part 0..1 is sorted and holds 0, so go left. a[4] = 0, found.</p></details></li>
+          <li><strong>Why does the code compare <code>a[lo]</code> with <code>a[mid]</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what <code>a[lo] ≤ a[mid]</code> proves.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If <code>a[lo] ≤ a[mid]</code>, there's no wrap between them, so the left half is sorted. Otherwise the wrap is on the left, which means the right half is sorted.</p></details></li>
+          <li><strong>So what is rotated array search, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It's binary search that finds the sorted half each round and keeps it only if the target lies within it.</p></details></li>
+          <li><strong>Why does every round still remove half the range?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each round decides between the left and right of <code>mid</code>, exactly like binary search. Only the way of deciding is different.</p></details></li>
+          <li><strong>What are its best, average and worst cases?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Best $O(1)$, average and worst $O(\log n)$ with distinct values, but $O(n)$ in the worst case with duplicates. Extra space $O(1)$.</p></details></li>
+          <li><strong>Why do duplicates break the $O(\log n)$ guarantee?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer gives a case where you can't decide.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>In [2, 2, 2, 3, 2], <code>a[lo]</code>, <code>a[mid]</code> and <code>a[hi]</code> are all 2, so you can't tell which half is sorted. You may have to shrink the range one step at a time.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the strict-versus-non-strict bounds and the duplicates case. I'd keep the clock analogy, the search for 0, and "one half is always sorted, so test against it, $O(\log n)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/search-an-element-in-a-sorted-and-pivoted-array/" target="_blank" rel="noopener">GeeksforGeeks: Search in a rotated sorted array</a>: two approaches with code.</li>
+          <li><a href="https://leetcode.com/problems/search-in-rotated-sorted-array/" target="_blank" rel="noopener">LeetCode 33: Search in Rotated Sorted Array</a>: practise the exact problem with test cases.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Binary_search" target="_blank" rel="noopener">Wikipedia: Binary search</a>: the base algorithm and its variations.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=search+in+rotated+sorted+array+explained" target="_blank" rel="noopener">YouTube search: search in rotated sorted array explained</a>: pick a walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="470" viewBox="0 0 620 470" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Transformer block diagram</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="620" height="470" rx="16" fill="#f8fafc"/>
+  <text x="310" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">One Transformer block (repeated N times)</text>
+  <line x1="250.0" y1="396.0" x2="250.0" y2="354.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="250.0" y1="306.0" x2="250.0" y2="269.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="250.0" y1="221.0" x2="250.0" y2="184.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="250.0" y1="136.0" x2="250.0" y2="99.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <polyline points="150,420 110,420 110,245 150,245" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+  <polyline points="150,245 130,245 130,75 150,75" fill="none" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow)"/>
+  <polyline points="420,420 480,420 480,75 420,75" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="150" y="396" width="200" height="48" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="250" y="418" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">embeddings + positions</text>
+  <text x="250" y="435" text-anchor="middle" font-size="12" fill="#475569">3 tokens × 512</text>
+  <rect x="150" y="306" width="200" height="48" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="250" y="328" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">multi-head self-attention</text>
+  <text x="250" y="345" text-anchor="middle" font-size="12" fill="#475569">8 heads × 64</text>
+  <rect x="150" y="221" width="200" height="48" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="250" y="251" text-anchor="middle" font-size="14" font-weight="700" fill="#94a3b8">add &amp; layer norm</text>
+  <rect x="150" y="136" width="200" height="48" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="250" y="166" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">feed-forward 512→2048→512</text>
+  <rect x="150" y="51" width="200" height="48" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="250" y="81" text-anchor="middle" font-size="14" font-weight="700" fill="#94a3b8">add &amp; layer norm</text>
+  <text x="70" y="335" text-anchor="middle" font-size="15" fill="#15803d">residual</text>
+  <text x="540" y="250" text-anchor="middle" font-size="15" font-weight="700" fill="#475569">× N blocks</text>
+</svg>

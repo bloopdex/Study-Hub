@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Union-Find (disjoint sets) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-union-find" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Union-Find (disjoint sets)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Six people, 0 to 5, each alone. "0 and 1 are friends": merge their groups. "2 and 3 are friends": merge. "1 and 3 are friends": now 0, 1, 2, 3 are one group. Are 0 and 3 connected? Ask each for their group's leader: same leader, so yes. That's Union-Find: merge groups and ask "same group?", both in nearly constant time.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> with two small tricks (union by size, path compression), each operation costs $O(\alpha(n))$, under 5 for any realistic $n$. It powers Kruskal's algorithm, cycle detection and connected-component counting.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Arrays and recursion.</li>
+          <li>Trees: each group is stored as a tree (see <a href="tree-binary-tree-basics.html">Binary tree basics</a>).</li>
+          <li>The idea of connected components (see <a href="graph-dfs.html">DFS</a>).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of clubs where each club has one president. To check whether two people are in the same club, ask each of them "who is your president?" and compare.</p>
+          <p>To merge two clubs, one president simply agrees to report to the other. Union-Find stores exactly that: each person points to someone higher in their club, up to the president (the root).</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Notation:</strong> <code>p[x]</code> is x's parent; a root has <code>p[x] == x</code>. <code>size[r]</code> is the number of elements under root r.</p>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>Start with <code>p = [0, 1, 2, 3, 4, 5]</code>, all sizes 1. union(a, b) links the smaller tree's root under the bigger one (ties: b under a). Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> union(0, 1), then union(2, 3). Predict <code>p</code>.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Ties, so 1 goes under 0 and 3 under 2: p = [0, 0, 2, 2, 4, 5]. Sizes of roots 0 and 2: 2 each.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: union(1, 3). Which roots are found, and which goes under which?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>find(1) = 0 and find(3) = 2. Sizes tie, so root 2 goes under root 0: p[2] = 0, size[0] = 4.</p></details>
+          <p><strong>Step 3.</strong> find(3). Predict the path and what path compression changes.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Path 3 → 2 → 0, root 0. Compression points 3 straight at 0: p[3] = 0. Is 0 connected to 3? Yes, same root. Is 4? No, its root is 4.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-union-find-1.svg" alt="Union-Find forest after unions: 1, 2 and 3 under root 0 after path compression; 4 and 5 alone" width="600" height="290">
+          <figcaption>What you just built: arrows point to parents. After path compression, 3 points straight at the root 0.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: how do you tell whether two elements are in the same set?</p>
+          <details><summary>Check your answer</summary>
+            <p>Find the root of each by following parent pointers; they're in the same set exactly when the roots are equal.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: counting groups</h3>
+        <p>Continue from the state above.</p>
+        <ul>
+          <li><strong>How many groups are there?</strong> Predict by counting roots.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Three: roots 0, 4 and 5 (every element with <code>p[x] == x</code>).</p></details></li>
+          <li><strong>union(4, 5), then union(5, 0).</strong> Predict the number of groups after each.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Two after union(4, 5), then one. Root 4 (size 2) goes under root 0 (size 4).</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what does path compression do?</p>
+          <details><summary>Check your answer</summary>
+            <p>During a find, it makes every vertex on the path point directly to the root, so later finds are shorter.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>find(x)</strong>: follow parents up to the root, then make every node on the way point straight to it (path compression).</p>
+        <p><strong>union(a, b)</strong>: find both roots; if different, put the smaller tree's root under the bigger one (union by size).</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write union by size in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Find both roots. 2. If they are the same, stop. 3. Otherwise put the smaller tree's root under the bigger one and add the sizes.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the operations by hand. It will make more sense.</p>
+        <pre><code class="language-c">int find(int p[], int x) {                        /* with path compression */
+    if (p[x] != x) p[x] = find(p, p[x]);           /* point straight at the root */
+    return p[x];
+}
+
+void unite(int p[], int size[], int a, int b) {   /* union by size */
+    a = find(p, a); b = find(p, b);
+    if (a == b) return;                           /* already in the same set */
+    if (size[a] &lt; size[b]) { int t = a; a = b; b = t; }
+    p[b] = a;                                     /* smaller tree under the bigger root */
+    size[a] += size[b];
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>Union-Find</strong> (a disjoint-set structure) keeps elements in non-overlapping groups, each stored as a tree with a root, and supports <strong>find</strong> (which group?) and <strong>union</strong> (merge two groups).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph BT
+  1((1)) --&gt; 0((0))
+  2((2)) --&gt; 0
+  3((3)) --&gt; 0
+  4((4))
+  5((5))
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after union(4, 5), what does find(5) return? (Answer: 4, since 5 goes under 4 in the tie.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: without either trick, how tall can a tree get after $n$ unions?</p>
+          <details><summary>Check your answer</summary>
+            <p>$n - 1$, a chain, making each find $O(n)$.</p>
+          </details>
+        </div>
+        <p>With both union by size and path compression, a sequence of $m$ operations on $n$ elements costs:</p>
+        $$O\big(m \, \alpha(n)\big), \qquad \alpha(n) \le 4 \text{ for any } n \text{ you will ever meet}$$
+        <p>$\alpha$ is the inverse Ackermann function, which grows unimaginably slowly. With union by size alone, trees stay at height $O(\log n)$.</p>
+        <table>
+          <thead>
+            <tr><th>Version</th><th>find / union cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>No tricks</td><td>$O(n)$ worst case</td><td>Trees can become chains</td></tr>
+            <tr><td>Union by size only</td><td>$O(\log n)$</td><td>A tree's height grows only when its size doubles</td></tr>
+            <tr><td>Both tricks</td><td>$O(\alpha(n))$ amortized</td><td>Paths are flattened as they are used</td></tr>
+            <tr><td>Space</td><td>$O(n)$</td><td>Parent and size arrays</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Union-Find can only <strong>merge</strong> groups. It cannot split a group or delete an edge; for that you need other structures.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Name both optimisations and what each prevents: union by size stops tall trees; path compression flattens paths during finds. Together: amortized $O(\alpha(n))$, "practically constant".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Linking <code>p[a] = b</code> with the original elements instead of their roots, which breaks the trees.</li>
+          <li>Forgetting to update the size of the new root.</li>
+          <li>Comparing <code>p[a] == p[b]</code> instead of <code>find(a) == find(b)</code>: parents may differ while roots match.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Starting fresh with 4 elements, do union(0, 1), union(2, 3), union(0, 3). How many groups remain, and what is find(2)?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Work with roots and sizes.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>One group. After union(0, 3), root 2 goes under root 0, so find(2) = 0.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Use Union-Find to count the islands in a grid where land cells 1 touch up/down/left/right: rows <code>1 1 0</code>, <code>0 1 0</code>, <code>0 0 1</code>. How many islands? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Union each land cell with its land neighbours: (0,0)–(0,1)–(1,1) form one group; (2,2) is alone. Count the roots among land cells: 2 islands.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Robert Tarjan proved in 1975 that the $\alpha(n)$ bound is tight: Union-Find is one of the rare structures whose exact complexity involves the inverse Ackermann function.</p>
+          <p>Image editors use it to find connected regions for the "magic wand" tool, and Kruskal's algorithm uses it to check for cycles.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Same root means same group <strong>because</strong> each group is one tree with one root.</li>
+          <li>Union by size keeps trees short <strong>because</strong> the smaller tree goes under the bigger one, so heights grow only slowly.</li>
+          <li>Path compression speeds up later finds <strong>because</strong> every node on a path is linked straight to the root.</li>
+          <li>Operations are almost $O(1)$ <strong>because</strong> together the two tricks give $O(\alpha(n))$, at most about 4.</li>
+          <li>Groups can only merge <strong>because</strong> the structure has no way to undo a link.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Union-Find like clubs with presidents?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Two people are in the same club if they have the same president; merging clubs means one president agrees to report to the other.</p></details></li>
+          <li><strong>Walk through union(0, 1), union(2, 3), union(1, 3) and then find(3).</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>p becomes [0, 0, 2, 2, 4, 5]; union(1, 3) links root 2 under root 0; find(3) goes 3 → 2 → 0 and then sets p[3] = 0.</p></details></li>
+          <li><strong>Why does <code>unite</code> call <code>find</code> on both arguments first?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what must be linked.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Only roots can be linked. Linking the original elements would attach part of a tree and leave the rest of the group behind.</p></details></li>
+          <li><strong>So what is Union-Find, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A structure that keeps disjoint groups as trees and answers "same group?" and "merge these groups" in almost constant time.</p></details></li>
+          <li><strong>Why does union by size keep the trees short?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer looks at when a node gets deeper.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A node only gets one level deeper when its tree is put under a tree at least as big, so its tree at least doubles each time; that can happen at most $\log_2 n$ times.</p></details></li>
+          <li><strong>What do find and union cost with and without the two tricks?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Without: up to $O(n)$. Union by size: $O(\log n)$. Both tricks: amortized $O(\alpha(n))$, effectively constant.</p></details></li>
+          <li><strong>Where is Union-Find used?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Kruskal's minimum spanning tree, cycle detection in undirected graphs, counting connected components and grouping pixels in images.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the Ackermann function and the proof. I'd keep the club-president analogy, the three unions and one find, and "find the root, link roots, two tricks make it nearly constant".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/ufds" target="_blank" rel="noopener">VisuAlgo: Union-Find disjoint sets</a>: animate unions and path compression.</li>
+          <li><a href="https://cp-algorithms.com/data_structures/disjoint_set_union.html" target="_blank" rel="noopener">CP-Algorithms: Disjoint set union</a>: both optimisations and applications.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Disjoint-set_data_structure" target="_blank" rel="noopener">Wikipedia: Disjoint-set data structure</a>: history and the $\alpha(n)$ analysis.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=union+find+path+compression+explained" target="_blank" rel="noopener">YouTube search: Union-Find with path compression</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

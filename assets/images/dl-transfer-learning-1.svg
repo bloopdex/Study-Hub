@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="290" viewBox="0 0 680 290" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Transfer learning diagram</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="680" height="290" rx="16" fill="#f8fafc"/>
+  <text x="340" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Feature extraction with a pretrained CNN</text>
+  <line x1="165.0" y1="140.0" x2="200.0" y2="140.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="392.6" y1="113.0" x2="450.0" y2="96.3" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <line x1="392.6" y1="167.0" x2="450.0" y2="183.8" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="15" y="113" width="150" height="54" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="90" y="138" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">cat / dog photo</text>
+  <text x="90" y="155" text-anchor="middle" font-size="12" fill="#475569">224×224×3</text>
+  <rect x="200" y="113" width="200" height="54" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="300" y="138" text-anchor="middle" font-size="14" font-weight="700" fill="#94a3b8">ResNet-18 backbone</text>
+  <text x="300" y="155" text-anchor="middle" font-size="12" fill="#475569">frozen · ≈ 11M weights</text>
+  <rect x="450" y="43" width="180" height="54" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="540" y="68" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">old head 512→1000</text>
+  <text x="540" y="85" text-anchor="middle" font-size="12" fill="#475569">removed</text>
+  <rect x="450" y="183" width="180" height="54" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="540" y="208" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">new head 512→2</text>
+  <text x="540" y="225" text-anchor="middle" font-size="12" fill="#475569">trained · 1,026 weights</text>
+  <text x="420" y="275" text-anchor="middle" font-size="15" fill="#64748b">512 features</text>
+</svg>

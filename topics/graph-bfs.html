@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Breadth-first search (BFS) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-bfs" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Breadth-first search (BFS)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Start at vertex 0 of a small graph. First visit all its neighbours (1 and 2), then all <em>their</em> new neighbours (3), then the next ring (4). Like ripples on a pond, BFS explores in layers, and the layer number is the shortest number of edges from the start.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> BFS visits every reachable vertex in $O(V + E)$ and gives the <em>shortest path in number of edges</em> to each one, which is the basis for routing, friend-of-friend suggestions and puzzle solvers.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="graph-representations.html">Graph representations</a>.</li>
+          <li><a href="structure-queue.html">Queue</a> (FIFO).</li>
+          <li>Arrays used as "visited" flags.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Drop a stone in a pond: the ripple reaches everything 1 metre away, then 2 metres, then 3, in rings.</p>
+          <p>BFS spreads from the start vertex the same way. A queue keeps the ring order: everything at distance 1 is processed before anything at distance 2.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> BFS distances are shortest paths only when every edge counts as 1 (unweighted graph). For weights, use Dijkstra.</p>
+        <h3>Start with one BFS by hand</h3>
+        <p>Graph: 0–1, 0–2, 1–3, 2–3, 3–4 (undirected). Start at 0 with the queue <code>[0]</code>; neighbours are checked in increasing order. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Dequeue 0. Predict which vertices are enqueued and their distances.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>1 and 2, both at distance 1. Queue: <code>[1, 2]</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: dequeue 1, then 2. What gets enqueued?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>From 1: vertex 3 (distance 2). From 2: 3 is already discovered, so nothing. Queue: <code>[3]</code>.</p></details>
+          <p><strong>Step 3.</strong> Dequeue 3, then 4. Predict the final visit order and distances.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>From 3: vertex 4 at distance 3. Visit order 0, 1, 2, 3, 4; distances 0, 1, 1, 2, 3.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-bfs-1.svg" alt="Graph 0-1, 0-2, 1-3, 2-3, 3-4 coloured by BFS layer from vertex 0, with distances" width="600" height="280">
+          <figcaption>What you just did by hand: each colour is one BFS layer, and the small number is the distance from 0.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why was vertex 3 not enqueued twice?</p>
+          <details><summary>Check your answer</summary>
+            <p>It was marked as discovered when 1 enqueued it, so when 2 saw it, it was skipped.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the shortest path itself</h3>
+        <p>Store, for each vertex, the vertex that discovered it (its <em>parent</em>).</p>
+        <ul>
+          <li><strong>Parents.</strong> Predict the parent of 3 and of 4.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>parent(3) = 1 (1 found it first), parent(4) = 3.</p></details></li>
+          <li><strong>Path to 4.</strong> Predict the shortest path from 0 to 4 by following parents backwards.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>4 → 3 → 1 → 0, reversed: 0, 1, 3, 4. Three edges, matching distance 3.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: in BFS, why are all distance-1 vertices processed before any distance-2 vertex?</p>
+          <details><summary>Check your answer</summary>
+            <p>The queue is FIFO: distance-1 vertices were enqueued first, and distance-2 vertices are only added while processing them.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Put the start in a queue with distance 0 and mark it. Repeatedly dequeue a vertex and, for each unmarked neighbour, mark it, set distance = current + 1, and enqueue it.</p>
+        <p>Mark vertices when they are <em>enqueued</em>, not when dequeued, so nobody enters the queue twice.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the BFS loop in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Take the vertex at the front of the queue. For each neighbour not yet discovered, set its distance to this vertex's distance + 1 and add it to the back of the queue. Repeat until the queue is empty.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the BFS by hand. It will make more sense.</p>
+        <pre><code class="language-c">void bfs(int adj[][5], int n, int s, int dist[]) {
+    int queue[100];
+    int head = 0, tail = 0;
+    for (int i = 0; i &lt; n; i++) dist[i] = -1;      /* -1 = not discovered */
+    dist[s] = 0;
+    queue[tail++] = s;
+    while (head &lt; tail) {
+        int u = queue[head++];                     /* oldest discovered vertex */
+        for (int v = 0; v &lt; n; v++)
+            if (adj[u][v] &amp;&amp; dist[v] == -1) {      /* undiscovered neighbour */
+                dist[v] = dist[u] + 1;
+                queue[tail++] = v;
+            }
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>breadth-first search</strong> explores a graph layer by layer from a start vertex, using a queue, and finds the fewest-edges distance to every reachable vertex.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph LR
+  0((0)) --- 1((1))
+  0 --- 2((2))
+  1 --- 3((3))
+  2 --- 3
+  3 --- 4((4))
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: starting BFS at 4 instead, what is the distance to 0? (Answer: 3, via 4–3–1–0 or 4–3–2–0.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: on adjacency lists, how many times is each edge examined in total?</p>
+          <details><summary>Check your answer</summary>
+            <p>Twice in an undirected graph, once from each endpoint, so the work is $O(V + E)$.</p>
+          </details>
+        </div>
+        <p>Each vertex is enqueued and dequeued once, and each adjacency list is scanned once when its vertex is dequeued:</p>
+        $$O\Big(V + \sum_{v} \deg(v)\Big) \;=\; O(V + 2E) \;=\; O(V + E)$$
+        <p>With an adjacency matrix, as in the code above, each dequeue scans a whole row, giving $O(V^2)$.</p>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Time (adjacency lists)</td><td>$O(V + E)$</td><td>Each vertex and edge handled once</td></tr>
+            <tr><td>Time (adjacency matrix)</td><td>$O(V^2)$</td><td>Each dequeue scans a full row</td></tr>
+            <tr><td>Extra space</td><td>$O(V)$</td><td>Queue, distances, visited flags</td></tr>
+            <tr><td>Shortest path (unweighted)</td><td>Yes</td><td>Layers are reached in order of distance</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Marking a vertex as visited only when it is <em>dequeued</em> lets it be enqueued several times; on dense graphs the queue can then hold $O(E)$ entries instead of $O(V)$.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>BFS gives shortest paths in an <strong>unweighted</strong> graph; DFS does not. If edges have different weights, the answer is Dijkstra, not BFS.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using a stack instead of a queue, which turns BFS into DFS and loses the shortest-path property.</li>
+          <li>Marking vertices on dequeue instead of on enqueue.</li>
+          <li>Using BFS distances on a weighted graph.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>In the graph 0–1, 0–2, 1–3, 2–3, 3–4, run BFS from vertex 2. Give the distances of 0, 1, 3, 4.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>2's neighbours are 0 and 3.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>d(0) = 1, d(3) = 1, d(1) = 2, d(4) = 2.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A 3 × 3 grid maze: you start in the top-left cell and can move up, down, left and right; the centre cell is a wall. What is the BFS distance to the bottom-right cell, and how many shortest paths are there? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Distance 4 (two moves right and two down, around the wall). There are 2 shortest paths: along the top row then down the right column, or down the left column then along the bottom row.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>BFS was first described by Konrad Zuse in 1945 and rediscovered by Edward Moore in 1959 to find the shortest path out of a maze.</p>
+          <p>"Six degrees of separation" and LinkedIn's "2nd-degree connection" are BFS distances in a social graph.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>BFS explores in layers <strong>because</strong> its queue processes vertices in the order they were discovered.</li>
+          <li>It finds shortest unweighted paths <strong>because</strong> every vertex is first reached from the layer just before it.</li>
+          <li>It runs in $O(V + E)$ on lists <strong>because</strong> each vertex is enqueued once and each edge is checked a constant number of times.</li>
+          <li>Vertices are marked on enqueue <strong>because</strong> that stops duplicates from entering the queue.</li>
+          <li>Parents give the actual path <strong>because</strong> each parent is one step closer to the start.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is BFS like ripples on a pond?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It reaches everything one step away, then two steps, then three, in rings around the start.</p></details></li>
+          <li><strong>Walk through BFS from 0 on the graph 0–1, 0–2, 1–3, 2–3, 3–4.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Visit 0; enqueue 1 and 2 (distance 1); 1 adds 3 (distance 2); 2 adds nothing new; 3 adds 4 (distance 3). Order 0, 1, 2, 3, 4.</p></details></li>
+          <li><strong>Why does the code set <code>dist[v]</code> when enqueuing rather than when dequeuing?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions vertex 3 in the example.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Setting it at enqueue marks v as discovered at once, so when 2 also sees 3, it is skipped and 3 enters the queue only once.</p></details></li>
+          <li><strong>So what is BFS, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A queue-based traversal that explores a graph layer by layer from a start vertex.</p></details></li>
+          <li><strong>Why does BFS give shortest paths in unweighted graphs but not in weighted ones?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what a "layer" counts.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Layers count edges. With weights, a path with more edges can be cheaper, so the first time BFS reaches a vertex is not necessarily the cheapest way.</p></details></li>
+          <li><strong>What are BFS's time and space costs?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(V + E)$ time on adjacency lists ($O(V^2)$ on a matrix) and $O(V)$ extra space.</p></details></li>
+          <li><strong>How do you recover the actual shortest path, not just its length?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Store each vertex's parent when it is discovered, then follow parents from the target back to the start and reverse.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the matrix-versus-list cost and the marking detail. I'd keep the ripple analogy, the 5-vertex example with layers, and "queue, layers, shortest path in edges, $O(V + E)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/dfsbfs" target="_blank" rel="noopener">VisuAlgo: DFS and BFS</a>: run BFS on your own graph and watch the queue.</li>
+          <li><a href="https://www.geeksforgeeks.org/breadth-first-search-or-bfs-for-a-graph/" target="_blank" rel="noopener">GeeksforGeeks: BFS</a>: code and applications.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Breadth-first_search" target="_blank" rel="noopener">Wikipedia: Breadth-first search</a>: history, analysis and uses.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: lecture on BFS.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=breadth+first+search+explained" target="_blank" rel="noopener">YouTube search: BFS explained</a>: pick a walkthrough with the queue drawn.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

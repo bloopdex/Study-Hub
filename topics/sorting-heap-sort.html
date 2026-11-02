@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heap sort · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="sorting-heap-sort" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="sorting.html" class="hover:text-indigo-500">Sorting</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Sorting</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Heap sort</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>[3, 1, 4, 1, 5]</code>. First rearrange it so every parent is at least as big as its children: <code>[5, 3, 4, 1, 1]</code>, a <em>max-heap</em> with the biggest number at the front. Then swap that biggest number to the end, repair the heap, and repeat. That's heap sort.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it guarantees $O(n \log n)$ on every input while using only $O(1)$ extra memory. Neither quick sort nor merge sort offers both.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Binary trees: root, parent, children (see <a href="trees.html">Trees</a>).</li>
+          <li>Storing a tree in an array: the children of index $i$ are $2i+1$ and $2i+2$.</li>
+          <li><a href="sorting-selection-sort.html">Selection sort</a>, since heap sort is a faster version of it.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a knockout tournament: the champion sits at the top of the bracket. Retire the champion, and a quick mini-playoff along one path of the bracket finds the next champion.</p>
+          <p>Heap sort works the same way. The max-heap keeps the biggest number at the root. Retire it to the end of the array, re-run the playoff down one path, and the next biggest rises to the top.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start by building the heap by hand</h3>
+        <p>Take <code>[3, 1, 4, 1, 5]</code>. As a tree: 3 is the root, its children are 1 and 4, and the first 1 has children 1 and 5. Fix parents from the last one back to the root. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: build-heap, predict before you read</p>
+          <p><strong>Step 1.</strong> The last parent is index 1 (value 1), with children 1 and 5. Predict: does it swap, and with whom?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Yes, with 5, the bigger child: <code>[3, 5, 4, 1, 1]</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the root 3 now has children 5 and 4. What happens?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>3 swaps with 5, the bigger child: <code>[5, 3, 4, 1, 1]</code>.</p></details>
+          <p><strong>Step 3.</strong> The 3 sank to index 1, whose children are 1 and 1. Predict: does it keep sinking?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>No, 3 is bigger than both. The heap is built: <code>[5, 3, 4, 1, 1]</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/sorting-heap-sort-1.svg" alt="The max-heap built from 3 1 4 1 5 is 5 3 4 1 1, drawn as a tree and as an array." width="560" height="350">
+          <figcaption>What you just built: the same heap as a tree and as an array. The root, index 0, is the maximum.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does a max-heap guarantee?</p>
+          <details><summary>Check your answer</summary>
+            <p>Every parent is at least as big as its children, so the maximum is always at the root, index 0.</p>
+          </details>
+        </div>
+
+        <h3>Finish the run</h3>
+        <p>Now extract: swap the root with the last heap element, shrink the heap by one, and sift the new root down.</p>
+        <ul>
+          <li><strong>Extract 1.</strong> Swap 5 to the end: <code>[1, 3, 4, 1 | 5]</code>. Predict: where does the new root 1 sink to?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It swaps with 4, the bigger child: <code>[4, 3, 1, 1 | 5]</code>.</p></details></li>
+          <li><strong>Extracts 2 to 4.</strong> Keep going. Predict the final array.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>4 goes to the end, then 3, then 1: <code>[1, 1, 3, 4, 5]</code>. Sorted.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does each extraction put a number in its final place?</p>
+          <details><summary>Check your answer</summary>
+            <p>The root is the largest number still in the heap, and it goes to the last slot of the heap, right before the numbers already extracted, which are all bigger.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Phase 1, build: for each parent from the last one back to the root, let it sink below any bigger child.</p>
+        <p>Phase 2, extract: swap the root (the max) with the last heap slot, shrink the heap, and sink the new root. Repeat until the heap has one element.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of one extraction in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Swap the biggest number at the top with the last number in the heap. 2. Treat that last slot as done. 3. Let the new top sink, swapping with its bigger child, until it's bigger than both children.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have built the heap by hand. It will make more sense.</p>
+        <pre><code class="language-c">void sift_down(int a[], int n, int i) {      /* n = current heap size */
+    for (;;) {
+        int big = i, l = 2 * i + 1, r = 2 * i + 2;
+        if (l &lt; n &amp;&amp; a[l] &gt; a[big]) big = l;
+        if (r &lt; n &amp;&amp; a[r] &gt; a[big]) big = r;
+        if (big == i) return;                    /* bigger than both children */
+        int t = a[i]; a[i] = a[big]; a[big] = t;
+        i = big;                                 /* keep sinking */
+    }
+}</code></pre>
+        <pre><code class="language-c">void heap_sort(int a[], int n) {
+    for (int i = n / 2 - 1; i &gt;= 0; i--) sift_down(a, n, i);   /* build: O(n) */
+    for (int end = n - 1; end &gt; 0; end--) {
+        int t = a[0]; a[0] = a[end]; a[end] = t;                 /* max to the end */
+        sift_down(a, end, 0);                                    /* heap shrinks */
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>heap sort</strong> turns the array into a <strong>max-heap</strong> (every parent ≥ its children), then repeatedly swaps the root to the end of the shrinking heap and sifts the new root down.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["Build max-heap: sift down each parent, last to first"] --> B["Swap root (max) with last heap slot"]
+  B --> C["Shrink heap by one"]
+  C --> D["Sift new root down"]
+  D --> E{"Heap size &gt; 1 ?"}
+  E -->|yes| B
+  E -->|no| F["Done: the array is sorted"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: on <code>[5, 3, 4, 1, 1]</code>, what is the array after the first trip round the loop? (Answer: <code>[4, 3, 1, 1, 5]</code>.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many levels can a number sink through in a heap of $n$ elements?</p>
+          <details><summary>Check your answer</summary>
+            <p>At most the height of the tree, about $\log_2 n$, because each level doubles the number of slots.</p>
+          </details>
+        </div>
+        <p>Building the heap costs $O(n)$, because most parents are near the bottom and barely sink. Then come $n-1$ extractions, each sinking at most $\log_2 n$ levels:</p>
+        $$\underbrace{O(n)}_{\text{build}} + \underbrace{(n-1) \cdot O(\log n)}_{\text{extractions}} \;=\; O(n \log n).$$
+        <p>The index rules, with no pointers needed: children of $i$ are at $2i+1$ and $2i+2$, and the parent is at $\lfloor (i-1)/2 \rfloor$.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable</th><th>In-place</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(1)$</td><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Heap sort is <strong>not stable</strong>, and our example shows it. Label the input <code>[3, 1a, 4, 1b, 5]</code>: the output is <code>[1b, 1a, 3, 4, 5]</code>, so the two 1s swapped order.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Building a heap bottom-up is $O(n)$, not $O(n \log n)$. Also learn the index rules $2i+1$, $2i+2$ and $\lfloor (i-1)/2 \rfloor$; exams ask for them directly.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Sifting down with the full size <code>n</code> instead of the shrinking heap size, which pulls sorted numbers back into the heap.</li>
+          <li>Building a <em>min</em>-heap for an ascending sort. With this method, a min-heap produces descending order.</li>
+          <li>Starting the build loop at index 0 and going up, so a parent is fixed before the subtrees below it are heaps.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Is <code>[9, 7, 8, 3, 5]</code> a max-heap?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Check every parent: index 0 has children at 1 and 2, and index 1 has children at 3 and 4.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Yes. 9 ≥ 7 and 8, and 7 ≥ 3 and 5.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Build a max-heap from <code>[2, 8, 5, 3, 9]</code> using the bottom-up method. Write the array down before you open the answer.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p><code>[9, 8, 5, 3, 2]</code>. Index 1 (8) swaps with 9, giving <code>[2, 9, 5, 3, 8]</code>. Then the root 2 swaps with 9 and then with 8.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The Linux kernel's general-purpose <code>sort()</code> is a heap sort. A kernel can't risk quick sort's $O(n^2)$ worst case or merge sort's extra memory.</p>
+          <p>And C++'s <code>std::sort</code> (introsort) switches to heap sort when quick sort's recursion gets too deep. So heap sort is the safety net under the fast sorts.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The root is always the maximum <strong>because</strong> every parent is at least as big as its children.</li>
+          <li>Building the heap is $O(n)$ <strong>because</strong> most nodes are near the bottom and sink only a level or two.</li>
+          <li>The sort is $O(n \log n)$ in every case <strong>because</strong> each of the $n-1$ extractions sinks at most $\log_2 n$ levels.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> the heap lives inside the array itself, with index arithmetic instead of pointers.</li>
+          <li>It is not stable <strong>because</strong> swapping the root to the end jumps over equal values.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is heap sort like a knockout tournament?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The champion, the biggest number, sits at the top. Retire it, run a short playoff down one path, and the next biggest rises to the top.</p></details></li>
+          <li><strong>Build a max-heap from [3, 1, 4, 1, 5]. What do you get?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Index 1 swaps 1 with 5, then the root 3 swaps with 5, giving [5, 3, 4, 1, 1].</p></details></li>
+          <li><strong>Why does the build loop start at <code>n/2 - 1</code> and go down to 0?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what the indices above <code>n/2 - 1</code> are.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Indices above <code>n/2 - 1</code> are leaves, which are already tiny heaps. Going backwards means both subtrees of a parent are heaps before we sift that parent.</p></details></li>
+          <li><strong>So what is heap sort, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It builds a max-heap in the array, then repeatedly moves the root to the end of the shrinking heap and sifts the new root down.</p></details></li>
+          <li><strong>What happens in one extraction step?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The root swaps with the last heap element, the heap shrinks by one, and the new root sinks, swapping with its bigger child, until the heap rule holds again.</p></details></li>
+          <li><strong>Why is building the heap only $O(n)$ when one sift can cost $O(\log n)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says where most nodes are.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Half the nodes are leaves and don't sink at all, a quarter sink at most one level, and so on. Only a few nodes near the top can sink far, so the total is $O(n)$.</p></details></li>
+          <li><strong>What are its time and space complexity?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n \log n)$ in the best, average and worst case, with $O(1)$ extra space.</p></details></li>
+          <li><strong>Is heap sort stable? Use the example to show it.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>No. Starting from [3, 1a, 4, 1b, 5], the output is [1b, 1a, 3, 4, 5]: the two 1s ended up in reverse order.</p></details></li>
+          <li><strong>When would you choose heap sort over quick sort?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When you need a guaranteed $O(n \log n)$ worst case with no extra memory, as in a kernel or embedded system. Quick sort is usually faster on average, though.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the proof that building is $O(n)$ and the parent-index formula. I'd keep the tournament analogy, the heap on [3, 1, 4, 1, 5], the "swap root to the end, sift down" loop, and "$O(n \log n)$ always, $O(1)$ memory, not stable".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/heap" target="_blank" rel="noopener">VisuAlgo: Binary heap</a>: build a heap and watch sift-down step by step.</li>
+          <li><a href="https://www.geeksforgeeks.org/heap-sort/" target="_blank" rel="noopener">GeeksforGeeks: Heap sort</a>: an article with code and diagrams.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Heapsort" target="_blank" rel="noopener">Wikipedia: Heapsort</a>: history, the $O(n)$ build proof, and variants.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006 Introduction to Algorithms</a>: lectures on binary heaps and heap sort.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=heap+sort+explained" target="_blank" rel="noopener">YouTube search: heap sort explained</a>: pick a walkthrough with a tree drawing.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

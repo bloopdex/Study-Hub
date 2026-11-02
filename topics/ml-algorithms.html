@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ML algorithms · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/review-bank.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-hub="ml-algorithms" data-slug="ml-algorithms" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <main id="content" class="max-w-6xl mx-auto px-4 py-8">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+    <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+      <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Hub</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight">ML algorithms</h1>
+      <p class="mt-3 text-slate-700 dark:text-slate-300">Fourteen classic machine-learning algorithms: linear and logistic regression, KNN, Naive Bayes, trees and their ensembles (random forest, AdaBoost, gradient boosting), SVMs, four clustering methods (k-means, hierarchical, GMM, DBSCAN) and PCA for dimensionality reduction.</p>
+      <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> knowing what each algorithm assumes, what it costs and where it shines lets you pick a strong model in minutes instead of trying everything.</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button id="mixed-review" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Mixed review</button>
+        <span class="text-sm text-slate-500 dark:text-slate-400">5 random questions mixed from all fourteen algorithms.</span>
+      </div>
+    </section>
+
+    <section id="mixed-review-panel" hidden class="mt-6 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+      <h2 class="text-xl font-semibold">Mixed review</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Answer each one out loud before opening the sample answer.</p>
+      <ol id="mixed-review-list" class="mt-4 list-decimal space-y-4 pl-5"></ol>
+    </section>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Quick comparison</h2>
+      <table>
+        <thead>
+          <tr><th>Algorithm</th><th>Task</th><th>Key idea</th><th>Main hyperparameters</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Linear regression</td><td>Regression</td><td>Least-squares line</td><td>Regularization λ</td></tr>
+          <tr><td>Logistic regression</td><td>Classification</td><td>Sigmoid of a linear score</td><td>Regularization λ, threshold</td></tr>
+          <tr><td>KNN</td><td>Both</td><td>Vote of nearest points</td><td>$k$, distance</td></tr>
+          <tr><td>Naive Bayes</td><td>Classification</td><td>Bayes' rule, independent features</td><td>Smoothing</td></tr>
+          <tr><td>Decision tree</td><td>Both</td><td>Purest splits</td><td>Max depth, min samples per leaf</td></tr>
+          <tr><td>Random forest</td><td>Both</td><td>Average of de-correlated trees</td><td>Number of trees, features per split</td></tr>
+          <tr><td>AdaBoost</td><td>Classification</td><td>Re-weight mistakes</td><td>Rounds, learner depth</td></tr>
+          <tr><td>Gradient boosting / XGBoost</td><td>Both</td><td>Trees fit residuals</td><td>Rounds, learning rate, depth, λ</td></tr>
+          <tr><td>SVM</td><td>Classification</td><td>Maximum margin</td><td>C, kernel, gamma</td></tr>
+          <tr><td>k-means</td><td>Clustering</td><td>Nearest centroid</td><td>$k$</td></tr>
+          <tr><td>Hierarchical</td><td>Clustering</td><td>Merge closest clusters</td><td>Linkage, cut height</td></tr>
+          <tr><td>GMM</td><td>Clustering / density</td><td>Soft Gaussian components (EM)</td><td>$K$, covariance type</td></tr>
+          <tr><td>DBSCAN</td><td>Clustering</td><td>Dense regions + noise</td><td>ε, minPts</td></tr>
+          <tr><td>PCA</td><td>Dimensionality reduction</td><td>Directions of max variance</td><td>Number of components</td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <h2 class="mt-10 text-xl font-semibold">The fourteen algorithms</h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-linear-regression">Linear regression</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Fit the least-squares line.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">best for: linear numeric targets · closed form</p>
+        <a href="mla-linear-regression.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-logistic-regression">Logistic regression</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Turn a linear score into a probability.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">best for: binary classification with probabilities</p>
+        <a href="mla-logistic-regression.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-knn">KNN</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Let the k nearest points vote.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">no training · O(nd) per prediction · needs scaling</p>
+        <a href="mla-knn.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-naive-bayes">Naive Bayes</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Multiply prior and per-feature likelihoods.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">training = counting · great for text</p>
+        <a href="mla-naive-bayes.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-decision-tree">Decision tree</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Ask the question with the most information gain.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">interpretable · overfits if unpruned</p>
+        <a href="mla-decision-tree.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-random-forest">Random forest</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Average many de-correlated trees.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">strong default · cuts variance</p>
+        <a href="mla-random-forest.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-adaboost">AdaBoost</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Weak learners that fix earlier mistakes.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">sequential · sensitive to label noise</p>
+        <a href="mla-adaboost.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-xgboost">Gradient boosting / XGBoost</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Each tree fits the remaining error.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">top accuracy on tabular data · tune carefully</p>
+        <a href="mla-xgboost.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-svm">SVM</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Widest street between the classes.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">max margin · kernels · scale features</p>
+        <a href="mla-svm.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-k-means">k-means</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Assign to nearest centroid, move centroids.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">O(nkd) per iteration · choose k</p>
+        <a href="mla-k-means.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-hierarchical-clustering">Hierarchical clustering</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Merge the closest clusters into a dendrogram.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">no k upfront · O(n²) memory</p>
+        <a href="mla-hierarchical-clustering.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-gmm">Gaussian mixture model</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Soft clusters fitted with EM.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">probabilities · elliptical clusters</p>
+        <a href="mla-gmm.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-dbscan">DBSCAN</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Clusters are dense regions; the rest is noise.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">any shape · finds outliers</p>
+        <a href="mla-dbscan.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="mla-pca">PCA</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Keep the directions with the most variance.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">eigenvalues 4, 2, 1, 0.5 → 80% in 2</p>
+        <a href="mla-pca.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+    </div>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Which one to pick?</h2>
+      <pre class="mermaid">
+flowchart TD
+  A{"Do you have labels?"} --&gt;|"no"| U{"Goal?"}
+  U --&gt;|"fewer features"| PCA["PCA"]
+  U --&gt;|"groups, k known, round"| KM["k-means"]
+  U --&gt;|"groups of any shape + outliers"| DB["DBSCAN"]
+  U --&gt;|"soft, overlapping groups"| GMM["GMM"]
+  U --&gt;|"structure at every scale"| HC["Hierarchical"]
+  A --&gt;|"yes"| T{"Number or category?"}
+  T --&gt;|number| R{"Linear enough?"}
+  R --&gt;|yes| LR["Linear regression"]
+  R --&gt;|no| GB["Gradient boosting / random forest"]
+  T --&gt;|category| C{"What matters most?"}
+  C --&gt;|"probabilities, interpretability"| LOG["Logistic regression"]
+  C --&gt;|"text, many sparse features"| NB["Naive Bayes"]
+  C --&gt;|"top accuracy on tables"| GB2["Gradient boosting / XGBoost"]
+  C --&gt;|"small data, clear margin"| SVM["SVM"]
+  C --&gt;|"readable rules"| DT["Decision tree"]
+      </pre>
+
+      <h2>Key points</h2>
+      <ul>
+        <li>Linear models are fast and interpretable <strong>because</strong> they are weighted sums of the features.</li>
+        <li>Distance-based methods need scaling <strong>because</strong> large-valued features dominate distances.</li>
+        <li>Forests reduce variance and boosting reduces bias <strong>because</strong> one averages parallel trees and the other adds trees that fix errors.</li>
+        <li>Clustering methods differ in shape assumptions <strong>because</strong> k-means uses centres, GMM Gaussians, DBSCAN density and hierarchical a linkage rule.</li>
+        <li>PCA compresses features <strong>because</strong> correlated features share directions of variance.</li>
+      </ul>
+
+      <h2>External resources</h2>
+      <ul>
+        <li><a href="https://scikit-learn.org/stable/supervised_learning.html" target="_blank" rel="noopener">scikit-learn: Supervised learning</a>: every supervised algorithm here, with code.</li>
+        <li><a href="https://scikit-learn.org/stable/unsupervised_learning.html" target="_blank" rel="noopener">scikit-learn: Unsupervised learning</a>: clustering and decomposition.</li>
+        <li><a href="https://www.statlearning.com/" target="_blank" rel="noopener">An Introduction to Statistical Learning</a>: free textbook covering most of these models.</li>
+        <li><a href="https://scikit-learn.org/stable/machine_learning_map.html" target="_blank" rel="noopener">scikit-learn: Choosing the right estimator</a>: a flowchart for picking a model.</li>
+      </ul>
+      <p><strong>Videos</strong></p>
+      <ul>
+        <li><a href="https://www.youtube.com/results?search_query=StatQuest+machine+learning+playlist" target="_blank" rel="noopener">YouTube search: StatQuest machine learning</a>: a video for nearly every algorithm on this hub.</li>
+      </ul>
+    </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+  </main>
+</body>
+</html>

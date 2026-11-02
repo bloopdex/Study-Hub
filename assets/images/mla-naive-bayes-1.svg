@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="230" viewBox="0 0 640 230" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Naive Bayes scores</title>
+  <rect width="640" height="230" rx="16" fill="#f8fafc"/>
+  <text x="320" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Sunny + weak wind: multiply the evidence</text>
+  <text x="75" y="66" text-anchor="middle" font-size="13" fill="#475569">prior</text>
+  <text x="157" y="66" text-anchor="middle" font-size="13" fill="#475569">P(sunny|c)</text>
+  <text x="239" y="66" text-anchor="middle" font-size="13" fill="#475569">P(weak|c)</text>
+  <text x="321" y="66" text-anchor="middle" font-size="13" fill="#475569">score</text>
+  <rect x="40" y="76" width="70" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="75" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.5</text>
+  <rect x="122" y="76" width="70" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="157" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.4</text>
+  <rect x="204" y="76" width="70" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="239" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.8</text>
+  <rect x="286" y="76" width="70" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="321" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.16</text>
+  <text x="380" y="104" font-size="15" font-weight="700" fill="#15803d">play → 57%</text>
+  <text x="198" y="146" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="156" width="70" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="75" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.5</text>
+  <rect x="122" y="156" width="70" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="157" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.6</text>
+  <rect x="204" y="156" width="70" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="239" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.4</text>
+  <rect x="286" y="156" width="70" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="321" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8">0.12</text>
+  <text x="380" y="184" font-size="15" fill="#334155">no play → 43%</text>
+</svg>

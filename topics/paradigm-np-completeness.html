@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NP-completeness · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="paradigm-np-completeness" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="paradigms.html" class="hover:text-indigo-500">Paradigms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Paradigms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">NP-completeness</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take the formula (x₁ ∨ x₂ ∨ ¬x₃) ∧ (¬x₁ ∨ x₃ ∨ x₂) ∧ (¬x₂ ∨ ¬x₃ ∨ x₁). Someone hands you x₁ = true, x₂ = false, x₃ = true: checking it takes seconds, and every clause is true. But <em>finding</em> such an assignment may mean trying all $2^3 = 8$, and for 100 variables that's $2^{100}$. Easy to check, apparently hard to find: that's the heart of NP, and 3-SAT is NP-complete.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> recognising an NP-complete problem tells you to stop looking for a fast exact algorithm (none is known) and to use heuristics, approximations or small-input methods instead.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Big-O notation and polynomial versus exponential time.</li>
+          <li><a href="paradigm-backtracking.html">Backtracking</a>: exhaustive search with pruning.</li>
+          <li>Boolean logic: AND (∧), OR (∨), NOT (¬).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a jigsaw puzzle: checking that a finished puzzle is correct takes a glance, but assembling it from a pile of pieces takes hours.</p>
+          <p>NP problems are like that: a proposed answer is quick to verify, but nobody knows a quick way to find one. NP-complete problems are the hardest of them: solve any one fast, and you could solve them all fast.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Key words:</strong> <strong>P</strong>: solvable in polynomial time. <strong>NP</strong>: a proposed solution can be <em>checked</em> in polynomial time. <strong>NP-complete</strong>: in NP, and every NP problem reduces to it.</p>
+        <h3>Start with a 3-SAT check by hand</h3>
+        <p>Clauses: C1 = (x₁ ∨ x₂ ∨ ¬x₃), C2 = (¬x₁ ∨ x₃ ∨ x₂), C3 = (¬x₂ ∨ ¬x₃ ∨ x₁). A clause is true if <em>at least one</em> literal is true. Try x₁ = T, x₂ = F, x₃ = T. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Evaluate C1. Predict whether it is true and which literal makes it so.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>True: x₁ is true. (x₂ is false and ¬x₃ is false.)</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: C2 and C3?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>C2 is true thanks to x₃. C3 is true thanks to ¬x₂ (and x₁).</p></details>
+          <p><strong>Step 3.</strong> So is the formula satisfiable, and how long did checking take?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Yes, all three clauses are true. Checking took one look per literal: 9 checks, linear in the formula's size.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/paradigm-np-completeness-1.svg" alt="Three 3-SAT clauses evaluated under x1 true, x2 false, x3 true; true literals highlighted" width="560" height="290">
+          <figcaption>What you just checked: green literals are true under the assignment. Every clause has at least one.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what is the difference between P and NP?</p>
+          <details><summary>Check your answer</summary>
+            <p>P problems can be <em>solved</em> in polynomial time; NP problems can have a proposed answer <em>checked</em> in polynomial time.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the reduction idea</h3>
+        <p>To show a new problem X is NP-complete, show X is in NP, then translate 3-SAT into X in polynomial time.</p>
+        <ul>
+          <li><strong>Direction of the translation.</strong> Predict: do you turn 3-SAT into X, or X into 3-SAT?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>3-SAT into X. Then a fast solver for X would solve 3-SAT fast, so X is at least as hard as 3-SAT.</p></details></li>
+          <li><strong>3-SAT → Clique (sketch).</strong> Predict how a formula with $m$ clauses becomes a graph question.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Make one vertex per literal in each clause, and join compatible literals in different clauses (not x and ¬x). The formula is satisfiable exactly when the graph has a clique of size $m$, one true literal per clause.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: if problem A reduces to problem B, which one is "at least as hard"?</p>
+          <details><summary>Check your answer</summary>
+            <p>B. A fast algorithm for B would give a fast algorithm for A, by translating A's instances into B's.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Show a problem is <strong>in NP</strong> by giving a fast <em>checker</em> for proposed solutions.</p>
+        <p>Show it is <strong>NP-hard</strong> by reducing a known NP-complete problem (such as 3-SAT) <em>to</em> it in polynomial time. Both together make it NP-complete.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to check a 3-SAT assignment, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For each clause, look at its three literals; if none is true under the assignment, the formula is false. If every clause has a true literal, it's satisfied.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have checked the formula by hand. It will make more sense.</p>
+        <pre><code class="language-c">int satisfies(int clause[][3], int m, int x[]) {   /* literal +i = x_i, -i = not x_i */
+    for (int j = 0; j &lt; m; j++) {
+        int ok = 0;
+        for (int k = 0; k &lt; 3; k++) {
+            int lit = clause[j][k], v = x[lit &gt; 0 ? lit : -lit];
+            if ((lit &gt; 0 &amp;&amp; v) || (lit &lt; 0 &amp;&amp; !v)) ok = 1;   /* this literal is true */
+        }
+        if (!ok) return 0;                          /* a clause with no true literal */
+    }
+    return 1;                                       /* polynomial-time check: in NP */
+}</code></pre>
+        <pre><code class="language-c">int brute_force_sat(int clause[][3], int m, int n, int x[]) {   /* tries all 2^n */
+    for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++) {
+        for (int i = 1; i &lt;= n; i++) x[i] = (mask &gt;&gt; (i - 1)) &amp; 1;
+        if (satisfies(clause, m, x)) return 1;
+    }
+    return 0;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a problem is <strong>NP-complete</strong> if proposed solutions can be checked in polynomial time (it is in NP) and every problem in NP can be reduced to it in polynomial time (it is NP-hard). <strong>3-SAT</strong> was among the first proved NP-complete.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  A["3-SAT formula"] --&gt;|"polynomial-time translation"| B["Clique instance"]
+  B --&gt; C["hypothetical fast Clique solver"]
+  C --&gt;|"yes / no"| D["answer for the formula"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if the fast Clique solver existed, what would that prove about 3-SAT? (Answer: 3-SAT would be solvable in polynomial time too, and so would all of NP.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many assignments must brute force try for 50 variables?</p>
+          <details><summary>Check your answer</summary>
+            <p>$2^{50} \approx 10^{15}$: about 30 years at a million checks per second.</p>
+          </details>
+        </div>
+        <p>Checking an assignment is linear in the formula; brute-force solving tries every assignment of $n$ variables:</p>
+        $$\text{check} = O(m), \qquad \text{brute force} = O(2^n \cdot m)$$
+        <p>Nobody knows a polynomial-time algorithm for 3-SAT, and nobody has proved one can't exist: that is the P versus NP question.</p>
+        <table>
+          <thead>
+            <tr><th>Class</th><th>Meaning</th><th>Examples</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>P</td><td>Solvable in polynomial time</td><td>Sorting, shortest paths, MST</td></tr>
+            <tr><td>NP</td><td>A solution can be checked in polynomial time</td><td>Everything in P, plus SAT, Sudoku</td></tr>
+            <tr><td>NP-complete</td><td>In NP and every NP problem reduces to it</td><td>3-SAT, Clique, graph colouring, TSP (decision version)</td></tr>
+            <tr><td>NP-hard</td><td>At least as hard as NP-complete; may not be in NP</td><td>TSP (optimisation version), halting problem</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>NP does <strong>not</strong> mean "not polynomial". It means "nondeterministic polynomial": checkable in polynomial time. Every problem in P is also in NP.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>For a reduction question, state the direction clearly: "to prove X is NP-hard, reduce a known NP-complete problem <em>to</em> X". Reducing X to 3-SAT proves nothing about X's hardness.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Reducing in the wrong direction (new problem → 3-SAT).</li>
+          <li>Saying NP-complete problems "can't be solved"; they can, just (as far as we know) not in polynomial time.</li>
+          <li>Confusing NP-complete with NP-hard: NP-hard problems need not be in NP.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Is the 3-SAT formula (x₁ ∨ x₁ ∨ x₁) ∧ (¬x₁ ∨ ¬x₁ ∨ ¬x₁) satisfiable?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Try both values of x₁.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>No. x₁ = T makes the second clause false; x₁ = F makes the first false.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Sudoku generalised to $n^2 \times n^2$ boards is NP-complete. Explain in two sentences why it is in NP, and what a polynomial-time algorithm for it would imply. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Given a filled board, checking every row, column and box takes polynomial time, so it is in NP. A polynomial-time Sudoku solver would, through reductions, give polynomial-time algorithms for every NP problem, proving P = NP.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>In 1971 Stephen Cook proved that SAT is NP-complete; a year later Richard Karp showed 21 classic problems are NP-complete too. P versus NP is one of the seven Millennium Prize problems, worth one million dollars.</p>
+          <p>Modern SAT solvers handle formulas with millions of variables from chip verification and planning, because real-world instances are usually far easier than the worst case.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>3-SAT is in NP <strong>because</strong> checking an assignment takes one pass over the clauses.</li>
+          <li>Brute force is exponential <strong>because</strong> $n$ variables have $2^n$ assignments.</li>
+          <li>Reductions show hardness <strong>because</strong> a fast solver for the target would give a fast solver for the source.</li>
+          <li>All NP-complete problems stand or fall together <strong>because</strong> each reduces to every other.</li>
+          <li>P ⊆ NP <strong>because</strong> if you can solve a problem fast, you can check an answer by solving it.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is NP like a jigsaw puzzle?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Checking a finished puzzle is quick, but putting it together from scratch can take very long; NP problems are quick to check, with no known quick way to solve.</p></details></li>
+          <li><strong>Check the assignment x₁ = T, x₂ = F, x₃ = T on the three clauses.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>C1 is true via x₁, C2 via x₃, C3 via ¬x₂, so the formula is satisfied.</p></details></li>
+          <li><strong>Why does <code>satisfies</code> return 0 as soon as one clause has no true literal?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says how clauses are combined.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The clauses are joined by AND, so a single false clause makes the whole formula false; there's no need to check the rest.</p></details></li>
+          <li><strong>So what does NP-complete mean, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A problem whose solutions can be checked in polynomial time, and to which every problem in NP can be reduced in polynomial time.</p></details></li>
+          <li><strong>Why does a reduction from 3-SAT to X show that X is hard?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer imagines a fast solver for X.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If X had a fast solver, you could translate any 3-SAT formula into X quickly and solve it, which would make 3-SAT, and hence all of NP, fast.</p></details></li>
+          <li><strong>What do checking and brute-force solving cost for 3-SAT?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Checking is $O(m)$ for $m$ clauses; brute force is $O(2^n \cdot m)$ for $n$ variables.</p></details></li>
+          <li><strong>What do you do in practice when a problem is NP-complete?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Use approximation algorithms, heuristics, solvers tuned for real instances, or exact methods only on small inputs.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the clique construction and NP-hard versus NP-complete. I'd keep the jigsaw analogy, the 3-SAT check, and "easy to check, no known fast way to solve; reductions show hardness".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://en.wikipedia.org/wiki/NP-completeness" target="_blank" rel="noopener">Wikipedia: NP-completeness</a>: definitions, history and examples.</li>
+          <li><a href="https://en.wikipedia.org/wiki/P_versus_NP_problem" target="_blank" rel="noopener">Wikipedia: P versus NP problem</a>: the open question and its consequences.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-046j-design-and-analysis-of-algorithms-spring-2015/" target="_blank" rel="noopener">MIT OCW 6.046J</a>: lectures on complexity and reductions.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=P+vs+NP+explained" target="_blank" rel="noopener">YouTube search: P vs NP explained</a>: pick an accessible introduction.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

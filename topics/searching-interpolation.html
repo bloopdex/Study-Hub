@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interpolation search · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="searching-interpolation" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="searching.html" class="hover:text-indigo-500">Searching</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Searching</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Interpolation search</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Look for 60 in <code>[10, 20, 30, 40, 50, 60, 70]</code>. 60 is 5/6 of the way from 10 to 70, so look 5/6 of the way along the array: index 5. It's 60, found in one look. That's interpolation search: guess the position from the value.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> on sorted, evenly spread values it needs only about $\log_2 \log_2 n$ probes, around 5 for a billion elements. On badly spread values it can fall back to $O(n)$.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="searching-binary.html">Binary search</a>: interpolation search changes only how the probe is chosen.</li>
+          <li>Proportions: "60 is 5/6 of the way from 10 to 70".</li>
+          <li>Integer division in C.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Looking up "Williams" in a paper phone book, you don't open it in the middle. You open it near the end, because W is near the end of the alphabet.</p>
+          <p>Interpolation search does the same with numbers. It estimates where the target should be from its value, and probes there instead of at the middle.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Data requirement:</strong> the array must be <strong>sorted</strong>, and the values should be <strong>roughly uniformly distributed</strong> for the speed-up.</p>
+        <h3>Start with one search by hand</h3>
+        <p>Look for 60 in <code>[10, 20, 30, 40, 50, 60, 70]</code> (indices 0 to 6). Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> How far is 60 from 10 to 70? Predict the fraction.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$(60 - 10) / (70 - 10) = 50/60 = 5/6$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: 5/6 of the way along indices 0..6 is which index?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0 + \frac{5}{6} \times 6 = 5$. Probe index 5.</p></details>
+          <p><strong>Step 3.</strong> a[5] is 60. Predict: how many probes did binary search need here?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Binary search probes 40, then 60: 2 probes. Interpolation used 1.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/searching-interpolation-1.svg" alt="Interpolation search estimates position 5 and finds 60 in one probe, where binary search would start at 40." width="780" height="290">
+          <figcaption>What you just did by hand: the estimate lands right on 60. The last row shows binary search's first probe for comparison.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what is the only difference between interpolation search and binary search?</p>
+          <details><summary>Check your answer</summary>
+            <p>How the probe position is picked: from the target's value instead of always the middle. Shrinking the range afterwards works the same way.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a bad case</h3>
+        <p>Now look for 6 in <code>[1, 2, 3, 4, 5, 6, 1000]</code>. The values are not evenly spread.</p>
+        <ul>
+          <li><strong>First probe.</strong> 6 is $5/999$ of the way from 1 to 1000. Predict the index.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$0 + 5 \cdot 6 / 999 \approx 0.03$, so index 0. a[0] = 1 is too small, so <code>lo</code> becomes 1.</p></details></li>
+          <li><strong>Next probes.</strong> The 1000 keeps dragging the estimate to the left edge. Predict how many probes in total.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It probes index 0, 1, 2, 3, 4, then 5: 6 probes, one step at a time, like linear search.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why did the 1000 make the search so slow?</p>
+          <details><summary>Check your answer</summary>
+            <p>The estimate assumes values grow evenly. One huge value makes every small target look like it's at the very start, so each probe only moves one step.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Estimate where the target should be: as far along the range as the target is between the first and last values. Probe there.</p>
+        <p>If it's the target, done. Otherwise shrink the range to the correct side, exactly like binary search, and estimate again.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of one round in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Work out how far the target is between the smallest and largest values in the range. 2. Probe the same fraction of the way along the indices. 3. Stop if found, otherwise keep the side that can still contain it.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one search by hand. It will make more sense.</p>
+        <pre><code class="language-c">int interpolation_search(const int a[], int n, int x) {
+    int lo = 0, hi = n - 1;
+    while (lo &lt;= hi &amp;&amp; x &gt;= a[lo] &amp;&amp; x &lt;= a[hi]) {   /* x must be in range */
+        if (a[hi] == a[lo])                               /* avoid dividing by 0 */
+            return a[lo] == x ? lo : -1;
+        int pos = lo + (int)((long)(x - a[lo]) * (hi - lo) / (a[hi] - a[lo]));
+        if (a[pos] == x) return pos;
+        if (a[pos] &lt; x) lo = pos + 1;
+        else hi = pos - 1;
+    }
+    return -1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>interpolation search</strong> is binary search with the probe placed by linear interpolation between <code>a[lo]</code> and <code>a[hi]</code>, instead of at the middle.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["lo = 0, hi = n - 1"] --> B{"lo &lt;= hi and a[lo] &lt;= x &lt;= a[hi] ?"}
+  B -->|no| F["Return -1"]
+  B -->|yes| C["pos = estimate from the value of x"]
+  C --> D{"compare a[pos] with x"}
+  D -->|equal| E["Return pos"]
+  D -->|"a[pos] &lt; x"| G["lo = pos + 1"]
+  D -->|"a[pos] &gt; x"| H["hi = pos - 1"]
+  G --> B
+  H --> B
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: searching for 60 in our example, how many times do you pass through "compare"? (Answer: once; the first estimate is exact.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what happens to the estimate if the values are perfectly evenly spaced?</p>
+          <details><summary>Check your answer</summary>
+            <p>It lands exactly on the target, as with 60 in our example, so one probe is enough.</p>
+          </details>
+        </div>
+        <p>The probe position is a straight-line estimate between the two ends of the range:</p>
+        $$\text{pos} \;=\; lo + \frac{(x - a[lo]) \cdot (hi - lo)}{a[hi] - a[lo]}.$$
+        <p>On uniformly spread values, the expected number of probes is $O(\log \log n)$. On skewed values, like the 1000 example, each probe may move only one step: $O(n)$.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average (uniform)</th><th>Worst</th><th>Extra space</th><th>Data requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(1)$</td><td>$O(\log \log n)$</td><td>$O(n)$</td><td>$O(1)$</td><td>Sorted, roughly uniform</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>If <code>a[hi] == a[lo]</code>, the formula divides by zero. Also check that <code>x</code> lies between <code>a[lo]</code> and <code>a[hi]</code>, or <code>pos</code> can land outside the array.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>The two numbers to remember are $O(\log \log n)$ on uniform data and $O(n)$ in the worst case. Always state the uniformity assumption when you quote the fast one.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the <code>a[hi] == a[lo]</code> check, which divides by zero on runs of equal values.</li>
+          <li>Computing <code>(x - a[lo]) * (hi - lo)</code> in <code>int</code>, which can overflow on large values.</li>
+          <li>Quoting $O(\log \log n)$ without saying it only holds for uniformly distributed data.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>In <code>[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]</code>, where is the first probe for 30?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>30 is 30% of the way from 0 to 100, and the indices run from 0 to 10.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$0 + 30 \cdot 10 / 100 = 3$. a[3] = 30: found in one probe.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Search for 45 in <code>[10, 20, 30, 40, 50, 60, 70]</code>. List every probe until the search ends. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>First probe: $0 + 35 \cdot 6 / 60 = 3.5$, which integer division makes 3. a[3] = 40 &lt; 45, so <code>lo</code> becomes 4. Now 45 &lt; a[4] = 50, so 45 is out of range and the loop ends: −1 after 1 probe.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Interpolation search was described by W. W. Peterson in 1957, almost as early as binary search itself. People already did it by hand with dictionaries.</p>
+          <p>It's worth knowing because real data is often close to uniform, such as IDs, timestamps or sorted random keys. There it can beat binary search, especially when each probe is a slow disk read.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>It probes near the target <strong>because</strong> it assumes values grow evenly from <code>a[lo]</code> to <code>a[hi]</code>.</li>
+          <li>It is $O(\log \log n)$ on uniform data <strong>because</strong> each good estimate shrinks the range far more than halving does.</li>
+          <li>It is $O(n)$ in the worst case <strong>because</strong> skewed values can make every probe move just one step.</li>
+          <li>It needs a zero-division guard <strong>because</strong> equal end values make the denominator zero.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> it only keeps <code>lo</code>, <code>hi</code> and <code>pos</code>.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is interpolation search like using a phone book?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You open the book near where the name should be, near the end for "Williams", instead of in the middle. Interpolation search estimates the position from the value the same way.</p></details></li>
+          <li><strong>Walk through a search for 60 in [10, 20, …, 70].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>60 is 5/6 of the way from 10 to 70, so probe 5/6 of the way along indices 0..6: index 5, which holds 60. One probe.</p></details></li>
+          <li><strong>Why does the code check <code>a[hi] == a[lo]</code> before computing <code>pos</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer names the operation that fails.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The formula divides by <code>a[hi] - a[lo]</code>. If both ends are equal, that's division by zero, so we handle that case separately.</p></details></li>
+          <li><strong>So what is interpolation search, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It's binary search on sorted data where the probe position is estimated from the target's value instead of always being the middle.</p></details></li>
+          <li><strong>Why can it be as slow as linear search?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the [1, 2, 3, 4, 5, 6, 1000] example.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When values are skewed, like one 1000 among small numbers, the estimate keeps landing at the left edge. Each probe then moves only one step, so it degrades to $O(n)$.</p></details></li>
+          <li><strong>What are its best, average and worst cases?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Best $O(1)$, average $O(\log \log n)$ on uniformly distributed data, worst $O(n)$. Extra space $O(1)$.</p></details></li>
+          <li><strong>When would you choose binary search instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When you don't know how the values are distributed, or they are clearly skewed. Binary search guarantees $O(\log n)$ no matter what.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the overflow cast and the $\log \log n$ derivation. I'd keep the phone-book analogy, the one-probe example, the skewed example, and "fast on even data, $O(n)$ on skewed data".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/interpolation-search/" target="_blank" rel="noopener">GeeksforGeeks: Interpolation search</a>: an article with code and the probe formula.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Interpolation_search" target="_blank" rel="noopener">Wikipedia: Interpolation search</a>: history and complexity analysis.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=interpolation+search+explained" target="_blank" rel="noopener">YouTube search: interpolation search explained</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

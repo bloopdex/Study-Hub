@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logistic regression · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-logistic-regression" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Logistic regression</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">An email has features $x = [2, 1]$; the model has weights $w = [0.5, -0.2]$ and bias $b = 0.1$. Compute the score $z = 0.5 \cdot 2 - 0.2 \cdot 1 + 0.1 = 0.9$, then squash it with the sigmoid: $\sigma(0.9) \approx 0.71$. The model says "71% likely to be spam", so it predicts spam. That's logistic regression: a linear score turned into a probability.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it gives calibrated probabilities, not just labels, trains reliably, and its weights are interpretable. It's the standard baseline for binary classification and the building block of a neural network's output layer.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-linear-regression.html">Linear regression</a>.</li>
+          <li>The exponential function $e^x$ and natural log.</li>
+          <li><a href="mlf-classification-metrics.html">Classification</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a judge adding up evidence: some facts point towards "guilty" (positive weights), others away (negative weights). The total can be any number.</p>
+          <p>The sigmoid turns that total into a confidence between 0 and 1: lots of evidence for gives nearly 1, lots against nearly 0, and a balanced case 0.5.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Model:</strong> $z = w^\top x + b$, then $p = \sigma(z) = 1/(1 + e^{-z})$ is the probability of class 1. Predict 1 when $p \ge 0.5$, i.e. when $z \ge 0$.</p>
+        <h3>Start with one prediction by hand</h3>
+        <p>Input $x = [2, 1]$, weights $w = [0.5, -0.2]$, bias $b = 0.1$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the linear score $z = w \cdot x + b$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.5 \cdot 2 + (-0.2) \cdot 1 + 0.1 = 1 - 0.2 + 0.1 = 0.9$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: $\sigma(0.9) = 1/(1 + e^{-0.9})$, with $e^{-0.9} \approx 0.407$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$1/1.407 \approx 0.711$.</p></details>
+          <p><strong>Step 3.</strong> Which class is predicted, and what is the log loss if the true label is 1?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Class 1 (0.711 ≥ 0.5). Loss $= -\ln 0.711 \approx 0.34$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-logistic-regression-1.svg" alt="Sigmoid curve from 0 to 1 with the point z = 0.9, p = 0.71 marked and the 0.5 threshold" width="560" height="330">
+          <figcaption>What you just computed: the sigmoid maps the score 0.9 to the probability 0.71. Scores above 0 land above the 0.5 threshold.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the sigmoid output when $z = 0$?</p>
+          <details><summary>Check your answer</summary>
+            <p>0.5: the decision boundary, where the model is undecided.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: loss and the boundary</h3>
+        <p>Same input and weights, $p = 0.711$.</p>
+        <ul>
+          <li><strong>True label 0.</strong> Predict the log loss.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$-\ln(1 - 0.711) = -\ln 0.289 \approx 1.24$: much larger, because the model was fairly confident and wrong.</p></details></li>
+          <li><strong>Decision boundary.</strong> Predict the set of inputs where $p = 0.5$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Where $0.5 x_1 - 0.2 x_2 + 0.1 = 0$: a straight line in the $(x_1, x_2)$ plane. Logistic regression is a <em>linear</em> classifier.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is the loss so much larger when the true label is 0?</p>
+          <details><summary>Check your answer</summary>
+            <p>The model put only 29% on class 0, and the log loss $-\ln 0.289 \approx 1.24$ punishes confident wrong answers heavily.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>A full training step: predict, measure the loss, compute the gradient, update the weights, and check that the loss went down. Example: $x = [2, 1]$, true label $y = 1$, weights $w = [0.5, -0.2]$, bias $b = 0.1$, learning rate $\eta = 0.5$.</p>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Linear score</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z = w_1 x_1 + w_2 x_2 + b = 0.5 \cdot 2 + (-0.2) \cdot 1 + 0.1 = 0.9$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each feature pushes the score up or down according to its weight. Feature 1 pushes up by 1.0, feature 2 down by 0.2, and the bias adds 0.1.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Probability with the sigmoid</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$p = \sigma(0.9) = \frac{1}{1 + e^{-0.9}} = \frac{1}{1 + 0.4066} \approx 0.7109$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The sigmoid squashes any score into (0, 1). A score of 0.9 becomes a 71% belief that the email is spam (class 1).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Loss (log loss)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L = -\ln p = -\ln 0.7109 \approx 0.3412$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Because the true label is 1, the loss is minus the log of the probability given to class 1. It would be 0 if $p$ were 1, and it grows quickly as $p$ approaches 0.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Gradient of the loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial L}{\partial z} = p - y = 0.7109 - 1 = -0.2891, \qquad \frac{\partial L}{\partial w} = (p - y)\,x = [-0.5781,\; -0.2891], \qquad \frac{\partial L}{\partial b} = -0.2891$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For sigmoid plus log loss the error signal is simply "prediction minus truth". Each weight's gradient is that signal times its own input, so the feature with the bigger value (2) gets twice the blame.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Update the parameters</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w \leftarrow w - \eta \nabla_w L = [0.5 + 0.289,\; -0.2 + 0.145] = [0.7891,\; -0.0555], \qquad b \leftarrow 0.1 + 0.145 = 0.2445$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The gradients are negative, so subtracting them <em>increases</em> the parameters, which raises the score for this positive example. The learning rate 0.5 sets how big that move is.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Check: predict again</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z' = 0.7891 \cdot 2 - 0.0555 \cdot 1 + 0.2445 = 1.7672, \qquad p' = \sigma(1.7672) \approx 0.8541, \qquad L' = -\ln 0.8541 \approx 0.1577$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One step raised the probability of the correct class from 0.71 to 0.85 and more than halved the loss (0.341 → 0.158). Training repeats this over many examples until the loss stops improving.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Training logistic regression is a loop of four lines: score, sigmoid, error $p - y$, update $w \leftarrow w - \eta (p - y) x$.</p>
+          <p>The update moves weights in proportion to both the error and the input value, so features that were large for a misclassified example change the most.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Compute $z = w^\top x + b$ and $p = \sigma(z)$. Predict class 1 if $p \ge 0.5$ (or another threshold chosen for precision/recall).</p>
+        <p>Train by minimising the log loss (cross-entropy) with gradient descent; its gradient per example is simply $(p - y)\,x$.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute a prediction, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Multiply each feature by its weight, add them up with the bias, and pass the total through $1/(1 + e^{-z})$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the prediction by hand. It will make more sense.</p>
+        <pre><code class="language-c">double sigmoid(double z) { return 1 / (1 + exp(-z)); }
+
+double predict_proba(double w[], double b, double x[], int d) {   /* P(class 1 | x) */
+    double z = b;
+    for (int j = 0; j &lt; d; j++) z += w[j] * x[j];                 /* linear score */
+    return sigmoid(z);                                            /* squash to (0, 1) */
+}
+
+double log_loss(double p, int y) { return y ? -log(p) : -log(1 - p); }</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>logistic regression</strong> predicts the probability of the positive class as $\sigma(w^\top x + b)$, trained by minimising the log loss.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X["x = [2, 1]"] --&gt; Z["z = w·x + b = 0.9"]
+  Z --&gt; S["p = sigmoid(z) = 0.71"]
+  S --&gt; D{"p &gt;= 0.5 ?"}
+  D --&gt;|yes| C1["predict class 1"]
+  D --&gt;|no| C0["predict class 0"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if the bias were −1.0 instead of 0.1, which class would be predicted? (Answer: $z = -0.2$, $p \approx 0.45$, so class 0.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what loss does a perfect prediction ($p = 1$ for a true 1) get?</p>
+          <details><summary>Check your answer</summary>
+            <p>0, because $-\ln 1 = 0$.</p>
+          </details>
+        </div>
+        <p>Training minimises the average log loss (binary cross-entropy):</p>
+        $$J(w, b) = -\frac{1}{n}\sum_{i=1}^{n} \Big[y_i \ln p_i + (1 - y_i)\ln(1 - p_i)\Big], \qquad \frac{\partial J}{\partial w} = \frac{1}{n}\sum_i (p_i - y_i)\,x_i$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training, per gradient-descent epoch</td><td>$O(nd)$</td><td>One prediction and gradient per example</td></tr>
+            <tr><td>Prediction</td><td>$O(d)$</td><td>One dot product and a sigmoid</td></tr>
+            <tr><td>Memory</td><td>$O(d)$</td><td>Just the weights</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> binary classification with roughly linear boundaries, when you need probabilities and interpretable weights.</p>
+        <ul>
+          <li><strong>Pro:</strong> Outputs well-calibrated probabilities.</li>
+          <li><strong>Pro:</strong> Fast, simple, interpretable (log-odds per feature).</li>
+          <li><strong>Con:</strong> Linear decision boundary only, unless you engineer features.</li>
+          <li><strong>Con:</strong> Struggles with strongly correlated or unscaled features without regularization.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Despite its name, logistic regression is a <strong>classification</strong> method. It predicts a probability, then a class; it does not predict a continuous target.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Show the two steps explicitly: linear score $z$, then sigmoid. Exams often give $w$, $b$, $x$ and ask for $p$ and the predicted class; $z \ge 0$ is the quick check for class 1.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the bias $b$ in the score.</li>
+          <li>Using MSE instead of log loss to train, which makes optimisation harder.</li>
+          <li>Calling it a regression model because of its name.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>$w = [1, 1]$, $b = -3$, $x = [1, 1]$. Compute $z$, $p$ and the predicted class.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$e^{1} \approx 2.718$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$z = -1$, $p = 1/(1 + e^{1}) \approx 0.269$, class 0.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>With $w = [0.5, -0.2]$, $b = 0.1$, find the value of $x_1$ (with $x_2 = 1$) where the model is exactly 50/50. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Set $z = 0$: $0.5 x_1 - 0.2 + 0.1 = 0$, so $x_1 = 0.2$. Above it the model predicts class 1, below it class 0.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The logistic function was introduced by Pierre-François Verhulst in the 1840s to model population growth that levels off.</p>
+          <p>A neural network for binary classification ends with exactly this: a linear layer followed by a sigmoid, trained with the same log loss.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The output is a probability <strong>because</strong> the sigmoid maps any score into (0, 1).</li>
+          <li>The boundary is linear <strong>because</strong> $p = 0.5$ exactly when $w^\top x + b = 0$.</li>
+          <li>Log loss punishes confident mistakes <strong>because</strong> $-\ln p$ grows without limit as $p \to 0$.</li>
+          <li>Training is easy <strong>because</strong> the log loss is convex, with a simple gradient $(p - y)x$.</li>
+          <li>It is a classifier <strong>because</strong> the probability is turned into a class with a threshold.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is logistic regression like a judge weighing evidence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Facts add or subtract from a total score, and the sigmoid turns that total into a confidence between 0 and 1.</p></details></li>
+          <li><strong>Compute the prediction for $x = [2, 1]$, $w = [0.5, -0.2]$, $b = 0.1$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$z = 0.9$, $p = \sigma(0.9) \approx 0.71$, so class 1.</p></details></li>
+          <li><strong>Why does <code>log_loss</code> use $-\ln(1 - p)$ when $y = 0$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what probability the true class got.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>For a true 0, the probability the model gave to the correct class is $1 - p$; the loss is minus its log, small when that probability is high.</p></details></li>
+          <li><strong>So what is logistic regression, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A linear classifier that turns a weighted sum of features into a probability with the sigmoid, trained with log loss.</p></details></li>
+          <li><strong>Why is the decision boundary of logistic regression a straight line (or plane)?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer starts from $p = 0.5$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$p = 0.5$ exactly when $z = w^\top x + b = 0$, which is a linear equation in $x$.</p></details></li>
+          <li><strong>What do training and prediction cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(nd)$ per gradient-descent epoch; $O(d)$ per prediction.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: calibrated probabilities, fast and interpretable. Cons: only linear boundaries, and needs scaling or regularization with correlated features.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the gradient formula and the loss derivation. I'd keep the judge analogy, the $z = 0.9 \to 0.71$ example, and "linear score, sigmoid, threshold at 0.5".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression" target="_blank" rel="noopener">scikit-learn: Logistic regression</a>: the model, solvers and regularization.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/logistic-regression" target="_blank" rel="noopener">Google ML Crash Course: Logistic regression</a>: sigmoid and log loss explained.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Logistic_regression" target="_blank" rel="noopener">Wikipedia: Logistic regression</a>: theory and interpretation of weights.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+logistic+regression" target="_blank" rel="noopener">YouTube search: StatQuest logistic regression</a>: StatQuest's series on logistic regression.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Convolutional neural networks (CNN) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-cnn" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Convolutional neural networks (CNN)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Slide a small 2 × 2 filter $\begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}$ over a 3 × 3 image. At each position, multiply the overlapping numbers and add them up: the top-left patch gives $1 \cdot 1 + 1 \cdot (-1) = 0$. Four positions give a 2 × 2 output $\begin{bmatrix} 0 & -1 \\ -1 & 1 \end{bmatrix}$. The same few weights are reused everywhere. Stack such filters in layers and you have a convolutional neural network.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> images have local structure (edges, corners, textures) that appears anywhere in the picture. Sharing one small filter across all positions finds those patterns with far fewer weights than a dense layer, which made modern computer vision possible.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-mlp.html">The MLP</a>: weighted sums and activations.</li>
+          <li>Matrices and element-wise products.</li>
+          <li>Images as grids of pixel values.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine scanning a page with a small magnifying glass that only recognises one shape, say a vertical edge. You slide it over every spot and note how strongly the shape appears there.</p>
+          <p>A convolutional filter is that magnifying glass, and its output is a map of where the shape appears. A CNN learns many such filters, and later layers combine edges into eyes, wheels and faces.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Output size:</strong> for input width $W$, filter size $F$, padding $P$ and stride $S$: $\text{out} = \frac{W - F + 2P}{S} + 1$.</p>
+        <h3>Start with one convolution by hand</h3>
+        <p>Image $\begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 3 \\ 2 & 1 & 0 \end{bmatrix}$, filter $\begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}$, stride 1, no padding. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Top-left patch $\begin{bmatrix} 1 & 2 \\ 0 & 1 \end{bmatrix}$: multiply element-wise with the filter and sum.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$1 \cdot 1 + 2 \cdot 0 + 0 \cdot 0 + 1 \cdot (-1) = 0$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: top-right patch $\begin{bmatrix} 2 & 0 \\ 1 & 3 \end{bmatrix}$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$2 - 3 = -1$.</p></details>
+          <p><strong>Step 3.</strong> Bottom row of patches. Predict the full output.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Bottom-left $\begin{bmatrix} 0 & 1 \\ 2 & 1 \end{bmatrix} \to 0 - 1 = -1$; bottom-right $\begin{bmatrix} 1 & 3 \\ 1 & 0 \end{bmatrix} \to 1 - 0 = 1$. Output $\begin{bmatrix} 0 & -1 \\ -1 & 1 \end{bmatrix}$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-cnn-1.svg" alt="3 by 3 image with the top-left 2 by 2 patch highlighted, the 2 by 2 filter, and the 2 by 2 output" width="720" height="310">
+          <figcaption>What you just did: the yellow patch times the filter gives the green output cell. Slide the patch to fill the rest.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does one output cell of a convolution compute?</p>
+          <details><summary>Check your answer</summary>
+            <p>The sum of the element-wise products between the filter and the image patch under it (plus a bias).</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: sizes and parameters</h3>
+        <p>A real layer: input 32 × 32 × 3 (RGB), 16 filters of size 5 × 5, padding 2, stride 1.</p>
+        <ul>
+          <li><strong>Output size.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(32 - 5 + 2 \cdot 2)/1 + 1 = 32$, so 32 × 32 × 16 (one channel per filter).</p></details></li>
+          <li><strong>Parameters, compared with a dense layer.</strong> Predict both.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Conv: $(5 \cdot 5 \cdot 3 + 1) \cdot 16 = 1{,}216$. A dense layer from 3,072 inputs to 16,384 outputs would need about 50 million weights.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what output size does a 32 × 32 input give with a 5 × 5 filter, padding 2, stride 1?</p>
+          <details><summary>Check your answer</summary>
+            <p>$(32 - 5 + 4)/1 + 1 = 32$: padding 2 keeps the size.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's convolution, the 3 × 3 image $\begin{bmatrix} 1 & 2 & 0 \\ 0 & 1 & 3 \\ 2 & 1 & 0 \end{bmatrix}$ with the 2 × 2 filter $\begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}$, computed at every position, then bias and ReLU, output sizes with padding and stride, and the parameter count.</p>
+        <table>
+          <thead>
+            <tr><th>Position (row, col)</th><th>Patch</th><th>Products</th><th>Sum</th><th>After ReLU</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>(0, 0)</td><td>[[1, 2], [0, 1]]</td><td>1·1 + 2·0 + 0·0 + 1·(−1)</td><td>0</td><td>0</td></tr>
+            <tr><td>(0, 1)</td><td>[[2, 0], [1, 3]]</td><td>2·1 + 0·0 + 1·0 + 3·(−1)</td><td>−1</td><td>0</td></tr>
+            <tr><td>(1, 0)</td><td>[[0, 1], [2, 1]]</td><td>0·1 + 1·0 + 2·0 + 1·(−1)</td><td>−1</td><td>0</td></tr>
+            <tr><td>(1, 1)</td><td>[[1, 3], [1, 0]]</td><td>1·1 + 3·0 + 1·0 + 0·(−1)</td><td>1</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Place the filter at the top-left</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\begin{bmatrix} 1 & 2 \\ 0 & 1 \end{bmatrix} \odot \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix} \;\Rightarrow\; \text{sum} = 0$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Multiply element by element and add. This filter computes "top-left minus bottom-right", a diagonal edge detector: 0 means no change along the diagonal here.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Slide one step right</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{patch } \begin{bmatrix} 2 & 0 \\ 1 & 3 \end{bmatrix}: \; 2 - 3 = -1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Only the two diagonal corners matter for this filter. The bottom-right is brighter than the top-left, so the response is negative.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Finish the grid</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{output} = \begin{bmatrix} 0 & -1 \\ -1 & 1 \end{bmatrix}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Four positions fit (two across, two down), so the output is 2 × 2. Each output number says how strongly the pattern is present at that place.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Bias and ReLU</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{bias } 0, \;\; \text{ReLU} \;\Rightarrow\; \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Like any neuron, the filter has one bias added at every position, then an activation. ReLU keeps only the place where the pattern clearly appears: bottom-right.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Output size formula</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{out} = \frac{W - F + 2P}{S} + 1: \quad \frac{3 - 2 + 0}{1} + 1 = 2, \qquad \text{with } P = 1: \; \frac{3 - 2 + 2}{1} + 1 = 4$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$W$ input width, $F$ filter size, $P$ padding, $S$ stride. Padding with zeros lets the filter also sit on the borders. For a 32-wide image, a 5 × 5 filter with $P = 2$ and $S = 1$ keeps the size: $(32 - 5 + 4) + 1 = 32$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Count the parameters</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{conv: } 2 \cdot 2 + 1 = 5, \qquad \text{dense layer } 9 \to 4: \; 9 \cdot 4 + 4 = 40$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The same 5 numbers are reused at every position (weight sharing). A dense layer producing 4 outputs from 9 pixels needs 8 times more, and the gap grows enormously with real image sizes.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>A convolution slides one small filter over the image: multiply, add, add the bias, apply ReLU. Here it found the diagonal pattern only at the bottom-right.</p>
+          <p>Because the filter is shared, a CNN has few parameters and detects a pattern wherever it appears in the image.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>A convolutional layer slides each small filter over the input (with a stride, after optional zero padding) and computes a weighted sum at every position, producing one feature map per filter.</p>
+        <p>Stack conv layers (with ReLU and pooling) to detect increasingly complex patterns, then finish with dense layers for the prediction.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe a valid 2-D convolution in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For every position where the filter fits inside the image, multiply each filter weight by the pixel under it, add them up, and write the sum to the matching output cell.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have convolved the 3 × 3 image by hand. It will make more sense.</p>
+        <pre><code class="language-c">int conv_out_size(int w, int f, int pad, int stride) {   /* integer division rounds down */
+    return (w - f + 2 * pad) / stride + 1;
+}</code></pre>
+        <pre><code class="language-c">void conv2d(double img[][3], int n, double k[][2], int f, double out[][2]) {   /* valid, stride 1 */
+    for (int r = 0; r + f &lt;= n; r++)
+        for (int c = 0; c + f &lt;= n; c++) {
+            double s = 0;
+            for (int i = 0; i &lt; f; i++)
+                for (int j = 0; j &lt; f; j++) s += img[r + i][c + j] * k[i][j];   /* patch × filter */
+            out[r][c] = s;
+        }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>convolutional neural network</strong> uses layers that slide small learned filters over the input, computing a weighted sum at each position, so the same weights detect a pattern anywhere in the image.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  I["image 32×32×3"] --&gt; C1["conv 5×5, 16 filters + ReLU"]
+  C1 --&gt; P1["pool 2×2 → 16×16×16"]
+  P1 --&gt; C2["conv + ReLU"]
+  C2 --&gt; P2["pool"]
+  P2 --&gt; F["flatten → dense → softmax"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: with padding 2, what is the width after the first conv layer? (Answer: 32; the pooling then halves it to 16.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many weights does a layer of 16 filters of size 5 × 5 on an RGB image have?</p>
+          <details><summary>Check your answer</summary>
+            <p>$(5 \cdot 5 \cdot 3 + 1) \cdot 16 = 1{,}216$, whatever the image size.</p>
+          </details>
+        </div>
+        <p>The two numbers to know for every conv layer:</p>
+        $$\text{out} = \frac{W - F + 2P}{S} + 1 = \frac{32 - 5 + 4}{1} + 1 = 32, \qquad \#\text{params} = (F \cdot F \cdot C_{\text{in}} + 1) \cdot C_{\text{out}} = 1{,}216$$
+        <table>
+          <thead>
+            <tr><th>Input</th><th>Filter</th><th>Padding</th><th>Stride</th><th>Output width</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>3</td><td>2</td><td>0</td><td>1</td><td>2 (our example)</td></tr>
+            <tr><td>32</td><td>5</td><td>2</td><td>1</td><td>32 ("same" padding)</td></tr>
+            <tr><td>32</td><td>5</td><td>0</td><td>1</td><td>28</td></tr>
+            <tr><td>32</td><td>3</td><td>1</td><td>2</td><td>16</td></tr>
+            <tr><td>224</td><td>7</td><td>3</td><td>2</td><td>112</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>The output-size formula must give a whole number. If $(W - F + 2P)/S$ isn't an integer, the filter doesn't fit evenly; libraries silently drop the leftover border, which can surprise you.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams almost always ask for an output size and a parameter count. Write both formulas first, then plug in; remember the $+1$ bias per filter and the input channels $C_{\text{in}}$.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the input channels when counting parameters (a 5 × 5 filter on RGB has 75 weights, not 25).</li>
+          <li>Forgetting the $+1$ in the output-size formula.</li>
+          <li>Thinking the parameter count depends on the image size; it doesn't, because the filter is shared.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Input 28 × 28, filter 3 × 3, no padding, stride 1. Output size?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$(28 - 3)/1 + 1$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>26 × 26.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Input 64 × 64 × 3, 32 filters of 3 × 3, padding 1, stride 2. Give the output shape and the number of parameters. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Width $(64 - 3 + 2)/2 + 1 = 32$ (31.5 rounded down, plus 1): output 32 × 32 × 32. Parameters $(3 \cdot 3 \cdot 3 + 1) \cdot 32 = 896$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Yann LeCun's LeNet read handwritten cheque amounts for US banks in the 1990s; AlexNet (2012) scaled the same idea up on GPUs and started the deep-learning boom.</p>
+          <p>Filters in the first layer of a trained CNN look like edge and colour-blob detectors, much like cells in the visual cortex that Hubel and Wiesel discovered in the 1960s.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Convolution finds patterns anywhere <strong>because</strong> the same filter is applied at every position.</li>
+          <li>CNNs need few parameters <strong>because</strong> a filter's weights are shared across the whole image.</li>
+          <li>Padding preserves size <strong>because</strong> extra border pixels let the filter cover the edges.</li>
+          <li>Stride shrinks the output <strong>because</strong> the filter skips positions.</li>
+          <li>Deeper layers see bigger patterns <strong>because</strong> each layer combines features from a wider area of the input.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a convolutional filter like a magnifying glass that recognises one shape?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It slides over every spot of the image and reports how strongly its shape appears there, producing a map of matches.</p></details></li>
+          <li><strong>Convolve the 3 × 3 image with the filter [[1, 0], [0, −1]].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The four patches give 0, −1, −1, 1, so the output is [[0, −1], [−1, 1]].</p></details></li>
+          <li><strong>Why does the loop run while <code>r + f &lt;= n</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions where the filter fits.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The filter of size $f$ must fit entirely inside the image; the last valid top-left row is $n - f$, which gives $n - f + 1$ output rows.</p></details></li>
+          <li><strong>So what is a CNN, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A neural network whose layers slide small learned filters over the input, sharing weights across positions to detect local patterns.</p></details></li>
+          <li><strong>Why does a conv layer have far fewer parameters than a dense layer on images?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions sharing.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A dense layer connects every pixel to every output; a conv layer reuses the same small filter everywhere, so its weights don't grow with the image size.</p></details></li>
+          <li><strong>Give the output-size and parameter formulas.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Output $= (W - F + 2P)/S + 1$; parameters $= (F \cdot F \cdot C_{\text{in}} + 1) \cdot C_{\text{out}}$.</p></details></li>
+          <li><strong>Compute the output size for 32 × 32 input, 5 × 5 filter, padding 2, stride 1.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$(32 - 5 + 4)/1 + 1 = 32$.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out stride and the parameter formula. I'd keep the magnifying-glass analogy, the 3 × 3 convolution, and "shared small filters find local patterns anywhere".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://cs231n.github.io/convolutional-networks/" target="_blank" rel="noopener">Stanford CS231n: Convolutional networks</a>: the standard explanation, with an animated demo.</li>
+          <li><a href="https://poloclub.github.io/cnn-explainer/" target="_blank" rel="noopener">CNN Explainer</a>: an interactive visualisation of a small CNN.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html" target="_blank" rel="noopener">PyTorch docs: nn.Conv2d</a>: shape formulas and parameters.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=KuXjwB4LzSA" target="_blank" rel="noopener">3Blue1Brown: But what is a convolution?</a>: convolution explained visually.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

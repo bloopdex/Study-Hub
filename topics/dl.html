@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deep learning · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/review-bank.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-hub="dl" data-slug="dl" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <main id="content" class="max-w-6xl mx-auto px-4 py-8">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+    <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+      <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Hub</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight">Deep learning</h1>
+      <p class="mt-3 text-slate-700 dark:text-slate-300">Twenty-five pages, in learning order: the neuron and its activations, how networks are trained (forward pass, backpropagation, losses, optimisers), how they are regularized, and the main architectures: CNNs, RNNs, LSTMs, GRUs, attention and Transformers, transfer learning, autoencoders, GANs and VAEs.</p>
+      <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> every modern AI system, from image recognition to language models, is built from these pieces. Knowing what each one computes, with real numbers, makes the big models far less mysterious.</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button id="mixed-review" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Mixed review</button>
+        <span class="text-sm text-slate-500 dark:text-slate-400">5 random questions mixed from all twenty-five deep-learning pages.</span>
+      </div>
+    </section>
+
+    <section id="mixed-review-panel" hidden class="mt-6 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+      <h2 class="text-xl font-semibold">Mixed review</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Answer each one out loud before opening the sample answer.</p>
+      <ol id="mixed-review-list" class="mt-4 list-decimal space-y-4 pl-5"></ol>
+    </section>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Quick comparison</h2>
+      <table>
+        <thead>
+          <tr><th>Group</th><th>Pages</th><th>Key idea</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Neurons and activations</td><td>Neuron, activation functions, MLP</td><td>$a = g(w^\top x + b)$, stacked in layers</td></tr>
+          <tr><td>Training</td><td>Forward prop, backprop, losses, GD, SGD, momentum, Adam, RMSProp</td><td>$w \leftarrow w - \eta \nabla L$</td></tr>
+          <tr><td>Regularization</td><td>Dropout, batch norm, early stopping</td><td>Generalise, don't memorise</td></tr>
+          <tr><td>Convolutional</td><td>CNN, pooling</td><td>Shared small filters over images</td></tr>
+          <tr><td>Recurrent</td><td>RNN, LSTM, GRU</td><td>A hidden state carried through time</td></tr>
+          <tr><td>Attention</td><td>Attention, Transformer</td><td>$\text{softmax}(QK^\top/\sqrt{d})V$</td></tr>
+          <tr><td>Reuse and generation</td><td>Transfer learning, autoencoder, GAN, VAE</td><td>Reuse features; learn to generate data</td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <h2 class="mt-10 text-xl font-semibold">The twenty-five pages</h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-neuron">The artificial neuron</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Weighted sum, bias, activation.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">x = [2, 3] → z = 0.2 → σ = 0.55</p>
+        <a href="dl-neuron.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-activation-functions">Activation functions</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Sigmoid, tanh, ReLU, Leaky ReLU, softmax.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">ReLU inside · sigmoid/softmax at the output</p>
+        <a href="dl-activation-functions.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-mlp">Multi-layer perceptron</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Fully connected layers with a hidden layer.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">params = n_in·n_out + n_out per layer</p>
+        <a href="dl-mlp.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-forward-propagation">Forward propagation</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Compute layer by layer, cache everything.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">z → a → … → ŷ → loss</p>
+        <a href="dl-forward-propagation.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-backpropagation">Backpropagation</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Chain rule backwards through the network.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">∂L/∂w = (a − y)·x for sigmoid + CE</p>
+        <a href="dl-backpropagation.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-loss-functions">Loss functions</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">MSE for numbers, cross-entropy for probabilities.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">CE = −ln p(true class)</p>
+        <a href="dl-loss-functions.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-gradient-descent">Gradient descent</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Step against the slope.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">w ← w − η∇L · η too big → diverges</p>
+        <a href="dl-gradient-descent.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-sgd">SGD and mini-batches</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Cheap, noisy gradient estimates.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">n/m updates per epoch</p>
+        <a href="dl-sgd.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-momentum">Momentum</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">A velocity that accumulates gradients.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">v ← βv + g · up to 10× speed-up</p>
+        <a href="dl-momentum.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-adam">Adam</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Momentum + per-weight scaling + bias correction.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">default optimiser · lr 0.001</p>
+        <a href="dl-adam.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-rmsprop">RMSProp</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Divide by the RMS of recent gradients.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">per-weight step sizes</p>
+        <a href="dl-rmsprop.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-dropout">Dropout</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Randomly switch neurons off in training.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">scale kept by 1/(1 − p) · off at test</p>
+        <a href="dl-dropout.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-batch-normalization">Batch normalization</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Normalize per batch, learned γ and β.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">running stats at test time</p>
+        <a href="dl-batch-normalization.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-early-stopping">Early stopping</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Stop at the validation minimum.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">patience · restore best weights</p>
+        <a href="dl-early-stopping.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-cnn">Convolutional networks</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Shared filters slide over the image.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">out = (W − F + 2P)/S + 1</p>
+        <a href="dl-cnn.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-pooling">Pooling</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Keep the strongest value per block.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">2×2 max pool: 4× fewer values · 0 params</p>
+        <a href="dl-pooling.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-rnn">Recurrent networks</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">A hidden state carried through a sequence.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">h_t = tanh(W h_{t−1} + U x_t) · gradients vanish</p>
+        <a href="dl-rnn.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-lstm">LSTM</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Gated, additive long-term memory.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">forget, input, output gates</p>
+        <a href="dl-lstm.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-gru">GRU</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Two gates, no separate cell state.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">update + reset · ~3/4 of an LSTM</p>
+        <a href="dl-gru.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-attention">Attention</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Weighted mix of values by query–key match.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">softmax(QKᵀ/√d)V · O(n²)</p>
+        <a href="dl-attention.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-transformer">Transformer</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Attention + feed-forward blocks, stacked.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">4d² + 2d·d_ff weights per block</p>
+        <a href="dl-transformer.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-transfer-learning">Transfer learning</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Reuse a pretrained network, retrain the head.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">1,026 trainable weights on a frozen ResNet</p>
+        <a href="dl-transfer-learning.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-autoencoder">Autoencoder</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Reconstruct the input through a bottleneck.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">no labels · error flags anomalies</p>
+        <a href="dl-autoencoder.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-gan">GAN</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">A generator and a discriminator compete.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">equilibrium: D = 0.5</p>
+        <a href="dl-gan.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="dl-vae">Variational autoencoder</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Encode a distribution; reconstruction + KL.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">z = μ + σε · sample N(0, 1) to generate</p>
+        <a href="dl-vae.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+    </div>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Which one to pick?</h2>
+      <pre class="mermaid">
+flowchart TD
+  A{"What is your data?"} --&gt;|"images"| C["CNN + pooling (or transfer learning if data is small)"]
+  A --&gt;|"sequences: text, audio, time series"| S{"Long sequences, lots of data?"}
+  S --&gt;|yes| T["Transformer (attention)"]
+  S --&gt;|"no, small and simple"| R["LSTM / GRU"]
+  A --&gt;|"tables of features"| M["MLP (or gradient boosting)"]
+  A --&gt;|"want to generate new data"| G{"Sharp samples or a smooth latent space?"}
+  G --&gt;|sharp| GAN["GAN"]
+  G --&gt;|smooth latent space| VAE["VAE"]
+  A --&gt;|"unlabelled, want compression or anomalies"| AE["Autoencoder"]
+      </pre>
+
+      <h2>Key points</h2>
+      <ul>
+        <li>A network is layers of neurons <strong>because</strong> each layer computes $g(Wx + b)$ on the previous layer's output.</li>
+        <li>Training is gradient descent <strong>because</strong> backpropagation gives the gradient of the loss for every weight.</li>
+        <li>Adam is the usual default <strong>because</strong> it combines momentum with per-weight step sizes.</li>
+        <li>Dropout, batch norm and early stopping fight overfitting <strong>because</strong> each stops the network from memorising its training data.</li>
+        <li>Architectures match data shapes <strong>because</strong> CNNs exploit local image structure, RNNs and Transformers sequence order.</li>
+      </ul>
+
+      <h2>External resources</h2>
+      <ul>
+        <li><a href="https://www.3blue1brown.com/topics/neural-networks" target="_blank" rel="noopener">3Blue1Brown: Neural networks</a>: the visual series from neurons to Transformers.</li>
+        <li><a href="http://neuralnetworksanddeeplearning.com/" target="_blank" rel="noopener">Neural Networks and Deep Learning</a>: Michael Nielsen's free online book.</li>
+        <li><a href="https://www.deeplearningbook.org/" target="_blank" rel="noopener">Deep Learning (Goodfellow, Bengio, Courville)</a>: the standard textbook, free online.</li>
+        <li><a href="https://pytorch.org/tutorials/" target="_blank" rel="noopener">PyTorch tutorials</a>: build and train every model on this hub.</li>
+      </ul>
+      <p><strong>Videos</strong></p>
+      <ul>
+        <li><a href="https://www.youtube.com/watch?v=aircAruvnKk" target="_blank" rel="noopener">3Blue1Brown: But what is a neural network?</a>: chapter 1 of the deep learning series.</li>
+      </ul>
+    </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+  </main>
+</body>
+</html>

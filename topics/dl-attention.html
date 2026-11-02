@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attention (Q, K, V) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-attention" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Attention (Q, K, V)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">A query $q = [1, 0]$ looks at three keys: $k_1 = [1, 0]$, $k_2 = [0, 1]$, $k_3 = [1, 1]$. Score each by a dot product scaled by $\sqrt{2}$: 0.71, 0, 0.71. A softmax turns the scores into weights 0.40, 0.20, 0.40. The output is the weighted mix of the values: $0.40 \cdot [1, 0] + 0.20 \cdot [0, 1] + 0.40 \cdot [0.5, 0.5] = [0.60, 0.40]$. That's attention: look everywhere, focus on what matches.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> attention lets every position in a sequence pull information directly from any other position, in one step and in parallel. It is the core of Transformers and therefore of modern language models.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Dot products and vectors.</li>
+          <li><a href="dl-activation-functions.html">Softmax</a>.</li>
+          <li><a href="dl-rnn.html">RNNs</a>, to see what attention replaces.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of searching a library. Your question is the <strong>query</strong>; each book's catalogue entry is a <strong>key</strong>; each book's content is a <strong>value</strong>. You compare your question with every entry, then read mostly from the books that match best.</p>
+          <p>Attention does exactly that with vectors: query–key similarity decides the weights, and the answer is a weighted blend of the values.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Formula:</strong> $\text{Attention}(Q, K, V) = \text{softmax}\big(QK^\top / \sqrt{d_k}\big)\,V$, where $d_k$ is the key dimension (here 2).</p>
+        <h3>Start with one query by hand</h3>
+        <p>$q = [1, 0]$; keys $k_1 = [1, 0]$, $k_2 = [0, 1]$, $k_3 = [1, 1]$; values $v_1 = [1, 0]$, $v_2 = [0, 1]$, $v_3 = [0.5, 0.5]$; $d_k = 2$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Raw scores $q \cdot k_i$, then divide by $\sqrt{2} \approx 1.414$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Dot products 1, 0, 1; scaled 0.707, 0, 0.707.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: softmax of $[0.707, 0, 0.707]$ (use $e^{0.707} \approx 2.03$).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Exponentials 2.03, 1, 2.03; sum 5.06; weights $\approx [0.401, 0.198, 0.401]$.</p></details>
+          <p><strong>Step 3.</strong> Weighted sum of the values.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.401 \cdot [1, 0] + 0.198 \cdot [0, 1] + 0.401 \cdot [0.5, 0.5] \approx [0.60, 0.40]$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-attention-1.svg" alt="Query compared with three keys giving scores, softmax weights 0.40, 0.20, 0.40, and the weighted sum of values [0.60, 0.40]" width="660" height="390">
+          <figcaption>What you just computed: scores → softmax weights → weighted mix of values. Keys matching the query (1 and 3) get the most weight.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what roles do the query, keys and values play?</p>
+          <details><summary>Check your answer</summary>
+            <p>The query says what we are looking for, keys are compared with it to get the weights, and values are what gets mixed into the output.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a sharper query</h3>
+        <p>Now the query is $q = [4, 0]$, pointing the same way but longer.</p>
+        <ul>
+          <li><strong>Scaled scores.</strong> Predict them.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$[4, 0, 4]/\sqrt{2} \approx [2.83, 0, 2.83]$.</p></details></li>
+          <li><strong>Weights and output.</strong> Predict them, and what changed.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Softmax $\approx [0.49, 0.03, 0.49]$; output $\approx [0.73, 0.27]$. Larger scores make attention more focused, ignoring $k_2$ almost entirely.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why scale the scores by $1/\sqrt{d_k}$?</p>
+          <details><summary>Check your answer</summary>
+            <p>Dot products grow with the dimension; without scaling, softmax becomes extremely peaked and its gradients tiny.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Full self-attention over three tokens. Each token's query and key are the vectors from the page, $[1, 0]$, $[0, 1]$, $[1, 1]$, and their values are $[1, 0]$, $[0, 1]$, $[0.5, 0.5]$. Every token attends to every token, so we compute a whole 3 × 3 table of weights.</p>
+        <table>
+          <thead>
+            <tr><th>Query</th><th>Scores $q\cdot k_j/\sqrt 2$</th><th>Weights (softmax)</th><th>Output</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>token 1 [1, 0]</td><td>0.707, 0, 0.707</td><td>0.401, 0.198, 0.401</td><td>[0.602, 0.398]</td></tr>
+            <tr><td>token 2 [0, 1]</td><td>0, 0.707, 0.707</td><td>0.198, 0.401, 0.401</td><td>[0.398, 0.602]</td></tr>
+            <tr><td>token 3 [1, 1]</td><td>0.707, 0.707, 1.414</td><td>0.248, 0.248, 0.504</td><td>[0.5, 0.5]</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Dot products (similarity)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$q_1 \cdot k_1 = 1, \quad q_1 \cdot k_2 = 0, \quad q_1 \cdot k_3 = 1 \cdot 1 + 0 \cdot 1 = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A dot product is large when two vectors point the same way. Token 1 matches itself and token 3 equally, and not token 2 at all.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Scale by √d</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{[1, 0, 1]}{\sqrt 2} = [0.707,\; 0,\; 0.707]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With $d$-dimensional vectors, dot products grow like $\sqrt d$. Dividing keeps the scores in a range where softmax is not saturated, so gradients stay useful.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Softmax into weights</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$e^{[0.707, 0, 0.707]} = [2.028,\; 1,\; 2.028], \quad \sum = 5.056 \;\Rightarrow\; [0.401,\; 0.198,\; 0.401]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The weights are positive and sum to 1. Even the non-matching token 2 gets some attention (0.198), because softmax never gives exactly 0.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Weighted sum of the values</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$o_1 = 0.401 \cdot [1, 0] + 0.198 \cdot [0, 1] + 0.401 \cdot [0.5, 0.5] = [0.602,\; 0.398]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The output is a blend of the value vectors, mostly from the tokens that matched. Token 1's new representation now contains information from token 3.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Token 3: matches both</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{scores } [0.707, 0.707, 1.414] \;\Rightarrow\; [0.248, 0.248, 0.504], \quad o_3 = [0.5, 0.5]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Token 3's query $[1, 1]$ is most similar to its own key, so it keeps half its attention for itself and splits the rest evenly.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>All at once in matrix form</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{Q K^\top}{\sqrt{d}}\right) V$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$QK^\top$ is the 3 × 3 score table, softmax is applied row by row, and multiplying by $V$ gives all three outputs. This is three matrix products: fast on a GPU, and every token sees every other token in a single step.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Each token asks a question (query), compares it with every key, turns the scores into weights with a scaled softmax, and takes the weighted mix of the values.</p>
+          <p>The cost is a score for every pair of tokens: $n^2$ for $n$ tokens, which is why very long inputs are expensive.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>For each query: score every key with a scaled dot product, turn the scores into weights with softmax, and output the weighted sum of the values.</p>
+        <p>In <strong>self-attention</strong>, queries, keys and values all come from the same sequence, via three learned projections of each token.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe attention for one query in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Dot the query with each key and divide by $\sqrt{d}$, softmax the scores into weights, then add up the values weighted by those weights.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the attention weights by hand. It will make more sense.</p>
+        <pre><code class="language-c">void attend(double q[], double K[][2], double V[][2], int n, int d, double out[]) {
+    double w[16];                                             /* softmax numerators */
+    double sum = 0;
+    for (int i = 0; i &lt; n; i++) {
+        double s = 0;
+        for (int j = 0; j &lt; d; j++) s += q[j] * K[i][j];      /* query · key */
+        w[i] = exp(s / sqrt(d));                              /* scaled, unnormalised */
+        sum += w[i];
+    }
+    for (int j = 0; j &lt; d; j++) {
+        out[j] = 0;
+        for (int i = 0; i &lt; n; i++) out[j] += w[i] / sum * V[i][j];   /* softmax-weighted values */
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>attention</strong> computes an output as a weighted average of value vectors, where the weights are the softmax of scaled dot products between a query and the keys: $\text{softmax}(QK^\top/\sqrt{d_k})V$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  Q["query q"] --&gt; S["scores q·k / √d"]
+  K["keys k1..kn"] --&gt; S
+  S --&gt; SM["softmax → weights"]
+  SM --&gt; O["output = Σ weight × value"]
+  V["values v1..vn"] --&gt; O
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if all keys were identical, what would the weights be? (Answer: equal, $1/n$ each; the output is then the plain average of the values.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: in self-attention over $n$ tokens, how many query–key scores are computed?</p>
+          <details><summary>Check your answer</summary>
+            <p>$n^2$: every token attends to every token.</p>
+          </details>
+        </div>
+        <p>Scaled dot-product attention for $n$ queries and keys of dimension $d$:</p>
+        $$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V, \qquad \text{cost } O(n^2 d), \text{ memory } O(n^2)$$
+        <table>
+          <thead>
+            <tr><th>Quantity</th><th>Our example</th><th>In general</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Scores computed</td><td>3 (one query)</td><td>$n^2$ for self-attention</td></tr>
+            <tr><td>Weights</td><td>[0.40, 0.20, 0.40]</td><td>softmax over each row</td></tr>
+            <tr><td>Output</td><td>[0.60, 0.40]</td><td>one vector per query</td></tr>
+            <tr><td>Path between any two positions</td><td>1 step</td><td>1 step (an RNN needs up to $n$)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Attention cost grows with the <strong>square</strong> of the sequence length: doubling a document's length quadruples the work and memory. That is why long-context models need special tricks (sparse or linear attention, memory-efficient kernels).</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Follow the four steps with numbers: dot products, scale by $\sqrt{d_k}$, softmax, weighted sum of values. Then name Q, K, V and say where they come from in self-attention (three learned projections of the same tokens).</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the $\sqrt{d_k}$ scaling.</li>
+          <li>Mixing values and keys: weights come from keys, the output is built from values.</li>
+          <li>Applying softmax over the wrong axis (it must normalise over the keys for each query).</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>With the same keys and values, compute the attention weights for $q = [0, 1]$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Dot products are 0, 1, 1.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Scaled $[0, 0.707, 0.707]$; weights $\approx [0.198, 0.401, 0.401]$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Self-attention over a 1,000-token text versus a 4,000-token text: how many times more query–key scores are needed? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$4{,}000^2 / 1{,}000^2 = 16$ times more: 16 million versus 1 million scores per head.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Bahdanau, Cho and Bengio introduced attention in 2014 to help translation RNNs look back at the source sentence; "Attention Is All You Need" (2017) then dropped the RNN entirely.</p>
+          <p>Visualising attention weights shows, for instance, a pronoun like "it" attending strongly to the noun it refers to.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Attention focuses on matching items <strong>because</strong> softmax turns higher query–key similarity into larger weights.</li>
+          <li>The output is a blend of values <strong>because</strong> it is their weighted average.</li>
+          <li>Scores are scaled by $\sqrt{d_k}$ <strong>because</strong> raw dot products grow with dimension and would saturate softmax.</li>
+          <li>Any two positions are one step apart <strong>because</strong> every query looks at every key directly.</li>
+          <li>Cost grows as $n^2$ <strong>because</strong> every token is compared with every other token.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is attention like searching a library?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Your question (query) is compared with each catalogue entry (key), and you read mostly from the matching books (values).</p></details></li>
+          <li><strong>Compute attention for $q = [1, 0]$ with the three keys and values of the example.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Scaled scores [0.71, 0, 0.71], weights [0.40, 0.20, 0.40], output about [0.60, 0.40].</p></details></li>
+          <li><strong>Why does the code divide each <code>w[i]</code> by <code>sum</code> when mixing the values?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions softmax.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The exponentials are softmax's numerators; dividing by their sum makes the weights add up to 1, so the output is a weighted average.</p></details></li>
+          <li><strong>So what is attention, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A weighted average of value vectors, with weights given by the softmax of scaled query–key dot products.</p></details></li>
+          <li><strong>Why did the longer query $[4, 0]$ make attention more focused?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions softmax and larger scores.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Larger scores make the softmax more peaked: the gap between matching and non-matching keys grows, so the weight on $k_2$ nearly vanishes.</p></details></li>
+          <li><strong>What do self-attention's cost and memory grow with?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The square of the sequence length: $O(n^2 d)$ time and $O(n^2)$ memory.</p></details></li>
+          <li><strong>What advantage does attention have over an RNN for long-range dependencies?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Any two positions interact in one step, instead of passing information through many recurrent steps where it can fade.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the cost analysis and the sharper-query example. I'd keep the library analogy, the four steps on $q = [1, 0]$, and "softmax of $QK^\top/\sqrt{d}$, times $V$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank" rel="noopener">Jay Alammar: The Illustrated Transformer</a>: self-attention with step-by-step pictures.</li>
+          <li><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al.: Attention Is All You Need (arXiv)</a>: the original Transformer paper.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html" target="_blank" rel="noopener">PyTorch docs: scaled_dot_product_attention</a>: the formula as implemented.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=eMlx5fFNoYc" target="_blank" rel="noopener">3Blue1Brown: Attention in transformers, visually explained</a>: queries, keys and values in pictures.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adam optimiser · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-adam" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Adam optimiser</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Minimise $(w - 3)^2$ from $w = 0$ with Adam, learning rate 0.1. The gradient is −6. Adam keeps a running average of gradients ($m = -0.6$) and of squared gradients ($v = 0.036$), corrects both for starting at zero ($\hat m = -6$, $\hat v = 36$), and steps by $0.1 \cdot \hat m / \sqrt{\hat v} = -0.1$. So $w = 0.1$. The step size came out as exactly the learning rate, whatever the gradient's scale. That's Adam.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> Adam combines momentum (average of gradients) with RMSProp's per-weight scaling (average of squared gradients). It works well with little tuning, which makes it the default optimiser for most deep-learning projects.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-momentum.html">Momentum</a>.</li>
+          <li><a href="dl-rmsprop.html">RMSProp</a>.</li>
+          <li>Exponential moving averages.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine a hiker who remembers the general downhill direction of recent steps (momentum) and also how rough the ground has been (squared gradients). On rough, steep ground they take careful steps; on smooth, consistent slopes they stride confidently.</p>
+          <p>Adam adapts each weight's step in exactly this way: direction from the first average, caution from the second.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Update rule:</strong> $m \leftarrow \beta_1 m + (1 - \beta_1) g$; $v \leftarrow \beta_2 v + (1 - \beta_2) g^2$; $\hat m = m/(1 - \beta_1^t)$, $\hat v = v/(1 - \beta_2^t)$; $w \leftarrow w - \eta \, \hat m / (\sqrt{\hat v} + \varepsilon)$. Defaults: $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$.</p>
+        <h3>Start with one Adam step by hand</h3>
+        <p>$f(w) = (w - 3)^2$, start $w = 0$, $m = v = 0$, $\eta = 0.1$, step $t = 1$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Gradient, and the two moving averages $m$ and $v$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = -6$. $m = 0.1 \cdot (-6) = -0.6$. $v = 0.001 \cdot 36 = 0.036$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: bias-corrected $\hat m$ and $\hat v$ for $t = 1$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$\hat m = -0.6 / (1 - 0.9) = -6$; $\hat v = 0.036 / (1 - 0.999) = 36$.</p></details>
+          <p><strong>Step 3.</strong> The update. Predict the step and the new $w$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Step $= 0.1 \cdot (-6)/\sqrt{36} = -0.1$, so $w = 0.1$. The step equals the learning rate.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-adam-1.svg" alt="Rows showing Adam's first step: gradient -6, m and v, bias-corrected values, and the update of size 0.1" width="680" height="310">
+          <figcaption>What you just computed: raw averages start tiny, bias correction rescales them, and the ratio $\hat m/\sqrt{\hat v}$ sets a step of size about the learning rate.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what do $m$ and $v$ estimate?</p>
+          <details><summary>Check your answer</summary>
+            <p>$m$ estimates the average gradient (direction, like momentum); $v$ estimates the average squared gradient (its typical size).</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: step 2</h3>
+        <p>Now $w = 0.1$, $m = -0.6$, $v = 0.036$, $t = 2$.</p>
+        <ul>
+          <li><strong>Gradient and averages.</strong> Predict $g$, $m$ and $v$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = 2(0.1 - 3) = -5.8$. $m = 0.9 \cdot (-0.6) + 0.1 \cdot (-5.8) = -1.12$. $v = 0.999 \cdot 0.036 + 0.001 \cdot 33.64 \approx 0.0696$.</p></details></li>
+          <li><strong>Corrected values and update.</strong> Predict the new $w$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$\hat m = -1.12/0.19 \approx -5.89$, $\hat v = 0.0696/0.002 \approx 34.8$; step $\approx 0.1 \cdot 5.89/5.90 \approx 0.0999$, so $w \approx 0.2$. Steps stay close to the learning rate.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does the first step have size equal to the learning rate?</p>
+          <details><summary>Check your answer</summary>
+            <p>At $t = 1$, $\hat m = g$ and $\hat v = g^2$, so $\hat m/\sqrt{\hat v} = \pm 1$ whatever the gradient's scale.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Three steps of Adam ($\eta = 0.1$, $\beta_1 = 0.9$, $\beta_2 = 0.999$) on $f(w) = (w - 3)^2$ from $w = 0$, with every moving average and every bias correction written out.</p>
+        <table>
+          <thead>
+            <tr><th>Step $t$</th><th>$g$</th><th>$m$</th><th>$v$</th><th>$\hat m$</th><th>$\hat v$</th><th>Step</th><th>$w$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>−6</td><td>−0.6</td><td>0.036</td><td>−6</td><td>36</td><td>+0.1</td><td>0.1</td></tr>
+            <tr><td>2</td><td>−5.8</td><td>−1.12</td><td>0.0696</td><td>−5.895</td><td>34.82</td><td>+0.0999</td><td>0.200</td></tr>
+            <tr><td>3</td><td>−5.6</td><td>−1.568</td><td>0.1009</td><td>−5.786</td><td>33.67</td><td>+0.0997</td><td>0.300</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Step 1: first moment (momentum part)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$m = 0.9 \cdot 0 + 0.1 \cdot (-6) = -0.6$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$m$ is a running average of the gradient. Because it starts at 0, after one step it holds only 10% of the real gradient: it is biased towards 0.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Step 1: second moment (RMSProp part)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$v = 0.999 \cdot 0 + 0.001 \cdot (-6)^2 = 0.036$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$v$ averages the squared gradient, but with a very long memory (0.999), so it is even more biased: only 0.1% of the true value 36.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Step 1: bias correction</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat m = \frac{m}{1 - 0.9^1} = \frac{-0.6}{0.1} = -6, \qquad \hat v = \frac{v}{1 - 0.999^1} = \frac{0.036}{0.001} = 36$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Dividing by $1 - \beta^t$ exactly undoes the "started at zero" bias. Without it, the first step would use $m/\sqrt v = -0.6/0.19 = -3.2$ instead of $-1$: a step more than 3 times too large, at the most fragile moment of training.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Step 1: the update</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w = 0 - 0.1 \cdot \frac{\hat m}{\sqrt{\hat v} + \varepsilon} = 0 - 0.1 \cdot \frac{-6}{6} = 0.1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$\hat m / \sqrt{\hat v}$ is the gradient divided by its own typical size: about ±1. So the step is about $\eta = 0.1$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Step 2</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = -5.8, \; m = 0.9(-0.6) + 0.1(-5.8) = -1.12, \; v = 0.0696 \;\Rightarrow\; \hat m = \frac{-1.12}{0.19} = -5.895, \; \hat v = \frac{0.0696}{0.001999} = 34.82$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The corrections now divide by $1 - 0.9^2 = 0.19$ and $1 - 0.999^2 = 0.001999$. Step $= 0.1 \cdot 5.895 / 5.901 = 0.0999$, so $w = 0.200$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Step 3 and the pattern</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat m = -5.786, \; \hat v = 33.67 \;\Rightarrow\; \text{step} = 0.1 \cdot \frac{5.786}{5.802} = 0.0997, \quad w = 0.300$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Every step is almost exactly $\eta = 0.1$. Adam moves each weight by roughly the learning rate in the direction of its averaged gradient, which makes $\eta$ easy to choose: it is about how far a weight moves per step.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Adam = momentum's averaged gradient $\hat m$ divided by RMSProp's scale $\sqrt{\hat v}$, both corrected for starting at zero. The result is a step of about $\eta$ per weight.</p>
+          <p>The defaults ($\eta = 0.001$, $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$) work for most networks, which is why Adam is the usual first choice.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Keep two moving averages per weight: of the gradient ($m$) and of the squared gradient ($v$). Correct both for their zero start.</p>
+        <p>Step each weight by $\eta \, \hat m / (\sqrt{\hat v} + \varepsilon)$: big where gradients are consistent, small where they are large and noisy.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one Adam update, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Update the running average of the gradient and of its square, correct both for their zero start, then move the weight by the learning rate times the corrected average divided by the square root of the corrected square.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the first step by hand. It will make more sense.</p>
+        <pre><code class="language-c">double adam_run(double w, double lr, int steps) {          /* minimise (w - 3)^2 */
+    double m = 0, v = 0, b1 = 0.9, b2 = 0.999, eps = 1e-8;
+    for (int t = 1; t &lt;= steps; t++) {
+        double g = 2 * (w - 3);
+        m = b1 * m + (1 - b1) * g;                         /* average gradient */
+        v = b2 * v + (1 - b2) * g * g;                     /* average squared gradient */
+        double mh = m / (1 - pow(b1, t)), vh = v / (1 - pow(b2, t));   /* bias correction */
+        w -= lr * mh / (sqrt(vh) + eps);
+    }
+    return w;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>Adam</strong> (adaptive moment estimation) updates each weight using bias-corrected moving averages of its gradient and squared gradient: $w \leftarrow w - \eta \, \hat m / (\sqrt{\hat v} + \varepsilon)$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  G["gradient g"] --&gt; M["m: average of g (momentum)"]
+  G --&gt; V["v: average of g² (scale)"]
+  M --&gt; MC["m̂ = m / (1 - β1^t)"]
+  V --&gt; VC["v̂ = v / (1 - β2^t)"]
+  MC --&gt; U["w -= η · m̂ / (√v̂ + ε)"]
+  VC --&gt; U
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if every gradient were multiplied by 100, how would Adam's step change? (Answer: hardly at all; $\hat m$ and $\sqrt{\hat v}$ both scale by 100.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what would happen without bias correction at step 1?</p>
+          <details><summary>Check your answer</summary>
+            <p>The step would be $0.1 \cdot (-0.6)/\sqrt{0.036} \approx -0.32$, distorted by the zero-initialised averages.</p>
+          </details>
+        </div>
+        <p>The full update and our first step:</p>
+        $$w_{t} = w_{t-1} - \eta \frac{\hat m_t}{\sqrt{\hat v_t} + \varepsilon}, \qquad t = 1:\; w = 0 - 0.1 \cdot \frac{-6}{\sqrt{36}} = 0.1$$
+        <table>
+          <thead>
+            <tr><th>Optimiser</th><th>Uses average of $g$</th><th>Uses average of $g^2$</th><th>Typical defaults</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SGD</td><td>No</td><td>No</td><td>$\eta$ needs tuning</td></tr>
+            <tr><td>Momentum</td><td>Yes</td><td>No</td><td>$\beta = 0.9$</td></tr>
+            <tr><td>RMSProp</td><td>No</td><td>Yes</td><td>$\rho = 0.9$</td></tr>
+            <tr><td>Adam</td><td>Yes</td><td>Yes (+ bias correction)</td><td>$\eta = 0.001$, $\beta_1 = 0.9$, $\beta_2 = 0.999$</td></tr>
+            <tr><td>Memory per weight</td><td>—</td><td>—</td><td>Adam stores 2 extra numbers</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Adam's weight decay (L2) interacts badly with its scaling: the penalty gets divided by $\sqrt{\hat v}$ too. Use <strong>AdamW</strong>, which applies weight decay separately, when you want regularization.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Name the two moments and what each does, and explain bias correction with the $t = 1$ calculation: without it, $m$ and $v$ start biased towards 0.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting bias correction, which makes early steps the wrong size.</li>
+          <li>Adding $\varepsilon$ inside the square root versus outside inconsistently; it only matters when $\hat v$ is tiny.</li>
+          <li>Using plain L2 weight decay with Adam instead of AdamW.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>First Adam step with gradient $g = +0.02$ (any $w$), $\eta = 0.01$. Compute $\hat m$, $\hat v$ and the step.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>At $t = 1$, the corrected values equal $g$ and $g^2$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$\hat m = 0.02$, $\hat v = 0.0004$, step $= 0.01 \cdot 0.02/0.02 = 0.01$: the weight decreases by 0.01, again the learning rate.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Two weights get gradients that are always 10 and always 0.1. Compare the step sizes of SGD and of Adam after many steps. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>SGD steps are $10\eta$ and $0.1\eta$, 100 times apart. Adam: $\hat m/\sqrt{\hat v} \approx g/|g| = 1$ for both, so both step by about $\eta$. Adam equalises step sizes across weights.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Kingma and Ba published Adam in 2014; it became one of the most cited papers in machine learning.</p>
+          <p>Large language models are typically trained with AdamW, with a learning-rate warm-up followed by a slow decay.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Adam combines direction and scale <strong>because</strong> $m$ averages gradients and $v$ averages their squares.</li>
+          <li>Steps are roughly the learning rate in size <strong>because</strong> $\hat m/\sqrt{\hat v}$ is close to ±1 for consistent gradients.</li>
+          <li>Bias correction is needed <strong>because</strong> both averages start at 0 and are too small early on.</li>
+          <li>It is robust to gradient scale <strong>because</strong> scaling all gradients scales $\hat m$ and $\sqrt{\hat v}$ equally.</li>
+          <li>AdamW is preferred for regularization <strong>because</strong> it keeps weight decay out of the adaptive scaling.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Adam like a hiker who remembers direction and roughness?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It follows the recent average direction (momentum) and shortens its steps where the gradient has been large or noisy (squared average).</p></details></li>
+          <li><strong>Do the first Adam step on $(w - 3)^2$ from 0 with $\eta = 0.1$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$g = -6$, $m = -0.6$, $v = 0.036$, $\hat m = -6$, $\hat v = 36$, step $-0.1$, so $w = 0.1$.</p></details></li>
+          <li><strong>Why does the code divide <code>m</code> by <code>1 - pow(b1, t)</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer looks at $t = 1$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>At step 1, $m = 0.1 g$ because it started at 0; dividing by $1 - 0.9 = 0.1$ restores $g$. The correction fades as $t$ grows.</p></details></li>
+          <li><strong>So what is Adam, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An optimiser that steps each weight by its bias-corrected average gradient divided by the square root of its average squared gradient.</p></details></li>
+          <li><strong>Why does Adam give similar step sizes to weights with very different gradient scales?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the ratio $\hat m/\sqrt{\hat v}$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>For a weight with consistent gradient $g$, $\hat m \approx g$ and $\sqrt{\hat v} \approx |g|$, so the ratio is about ±1 whatever $|g|$ is.</p></details></li>
+          <li><strong>What are Adam's default hyperparameters?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Learning rate 0.001, $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$.</p></details></li>
+          <li><strong>When should you use AdamW instead of Adam?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Whenever you want weight decay: AdamW applies it directly to the weights instead of mixing it into the scaled gradient.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out AdamW and step 2. I'd keep the hiker analogy, the first step ($-6 \to$ step $-0.1$), and "momentum + per-weight scaling + bias correction".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener">Kingma and Ba: Adam (arXiv)</a>: the original paper, short and readable.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.optim.Adam.html" target="_blank" rel="noopener">PyTorch docs: torch.optim.Adam</a>: the update rule as implemented.</li>
+          <li><a href="https://cs231n.github.io/neural-networks-3/#ada" target="_blank" rel="noopener">Stanford CS231n: Adaptive methods</a>: Adagrad, RMSProp and Adam compared.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=adam+optimizer+explained" target="_blank" rel="noopener">YouTube search: Adam optimizer explained</a>: pick a step-by-step explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

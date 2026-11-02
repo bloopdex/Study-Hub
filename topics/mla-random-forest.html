@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Random forest · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-random-forest" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Random forest</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Train three decision trees, each on a different random sample of the data and with random subsets of features. For a new patient, tree 1 says "sick", tree 2 says "healthy", tree 3 says "sick". The forest takes the majority: sick, 2 votes to 1. One tree is jumpy; many slightly different trees, averaged, are steady. That's a random forest.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> averaging many de-correlated trees keeps their flexibility (low bias) while cancelling much of their instability (variance). It gives strong accuracy on tabular data with very little tuning.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-decision-tree.html">Decision trees</a>.</li>
+          <li><a href="mlf-bias-variance.html">Bias–variance trade-off</a>.</li>
+          <li>Sampling with replacement.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Ask one friend to guess the number of sweets in a jar and they may be far off. Ask a hundred people who each saw the jar from a different angle and average their guesses, and you're usually very close.</p>
+          <p>A random forest is that crowd. Each tree sees a different sample and different features, so their mistakes differ and largely cancel out in the vote.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Two kinds of randomness:</strong> <strong>Bagging</strong>: each tree trains on a bootstrap sample ($n$ rows drawn with replacement). <strong>Feature sampling</strong>: each split considers only a random subset of features (often $\sqrt{m}$ of $m$).</p>
+        <h3>Start with three trees voting</h3>
+        <p>Three trees, each trained on its own bootstrap sample. A new patient arrives. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Tree votes are sick, healthy, sick. Predict the forest's answer.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Sick, by majority 2 to 1. With probability estimates, the forest would report 2/3 for sick.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: in a bootstrap sample of 10 rows drawn with replacement, are all 10 rows included?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Usually not. Some rows appear twice or more, and on average only about 65% of the distinct rows appear (about 63% for large $n$).</p></details>
+          <p><strong>Step 3.</strong> Why give each tree only some of the features at each split?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Otherwise every tree would split on the same strongest feature first and the trees would be too similar; averaging similar trees cancels little.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-random-forest-1.svg" alt="Three trees trained on different bootstrap samples vote sick, healthy, sick; the forest outputs sick" width="640" height="320">
+          <figcaption>What you just did: three different trees, one majority vote.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what two sources of randomness make the trees different?</p>
+          <details><summary>Check your answer</summary>
+            <p>Each tree trains on its own bootstrap sample, and each split considers only a random subset of features.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why averaging helps</h3>
+        <p>Suppose each tree's prediction has variance $\sigma^2 = 1$, and any two trees have correlation $\rho$.</p>
+        <ul>
+          <li><strong>100 completely independent trees ($\rho = 0$).</strong> Predict the variance of their average.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$1/100 = 0.01$: averaging independent errors cancels them.</p></details></li>
+          <li><strong>100 trees with $\rho = 0.3$.</strong> Predict the variance, and what that tells you.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.3 + 0.7/100 = 0.307$. Correlation sets a floor, so random feature sampling, which lowers $\rho$, matters as much as the number of trees.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what are out-of-bag rows used for?</p>
+          <details><summary>Check your answer</summary>
+            <p>About a third of the rows are left out of each tree's sample; predicting them with the trees that didn't see them gives a free validation estimate.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>One forest of three trees on a tiny dataset of 5 rows, followed through every stage: drawing a bootstrap sample, the rows left out, the vote, and why averaging many trees lowers the error.</p>
+        <table>
+          <thead>
+            <tr><th>Tree</th><th>Bootstrap draw (row numbers)</th><th>Distinct rows</th><th>Out-of-bag rows</th><th>Vote for the new email</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>2, 4, 4, 1, 5</td><td>4 of 5</td><td>3</td><td>spam (1)</td></tr>
+            <tr><td>2</td><td>1, 1, 3, 5, 3</td><td>3 of 5</td><td>2, 4</td><td>not spam (0)</td></tr>
+            <tr><td>3</td><td>5, 2, 3, 2, 4</td><td>4 of 5</td><td>1</td><td>spam (1)</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Draw a bootstrap sample</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{tree 1: rows } 2, 4, 4, 1, 5 \quad (5 \text{ draws with replacement})$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each tree gets its own dataset of the same size $n = 5$, drawn <em>with replacement</em>. Row 4 is picked twice, row 3 not at all. Every tree therefore sees a slightly different version of the data.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>How many distinct rows on average?</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$P(\text{row never picked}) = \left(1 - \tfrac{1}{5}\right)^5 = 0.8^5 = 0.328 \;\Rightarrow\; \text{distinct share} = 1 - 0.328 = 0.672$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each of the 5 draws misses a given row with probability 4/5. On average a tree sees 67% of the rows; for large $n$ this tends to $1 - 1/e \approx 63.2\%$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Out-of-bag rows give a free test set</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{OOB}(\text{tree 1}) = \{3\}, \quad \text{OOB}(\text{tree 2}) = \{2, 4\}, \quad \text{OOB}(\text{tree 3}) = \{1\}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The rows a tree never saw can test that tree honestly. Averaging these out-of-bag predictions over all trees estimates the forest's accuracy without a separate validation set.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Random features at every split</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d = 9 \text{ features} \;\Rightarrow\; \text{try } \sqrt{9} = 3 \text{ random features per split}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Bootstrapping alone still lets every tree start with the same strong feature. Restricting each split to a random subset forces the trees to differ, which is what makes their errors less correlated.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Vote</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{votes} = [1, 0, 1] \;\Rightarrow\; \text{spam with } \tfrac{2}{3} \approx 0.67$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For classification each tree votes and the majority wins. The vote share doubles as a probability estimate. For regression the trees' outputs are averaged instead.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Why more trees help: variance of the average</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\operatorname{Var} = \rho\sigma^2 + \frac{1 - \rho}{B}\sigma^2, \quad \sigma^2 = 1, \rho = 0.3: \quad B = 1 \to 1, \quad B = 10 \to 0.37, \quad B = 100 \to 0.307$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each tree has variance $\sigma^2$ and the trees are correlated by $\rho$. The second term shrinks as $1/B$, the first does not: going from 1 to 10 trees cuts the variance by 63%, from 10 to 100 only by another 6%. Lowering $\rho$ (random features) lowers the floor.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>A random forest is many deep trees, each trained on a bootstrap sample (about 63–67% distinct rows) with random features per split, combined by a vote.</p>
+          <p>More trees never hurt accuracy, but the gain flattens quickly; the floor $\rho\sigma^2$ can only be lowered by making the trees more different.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>For each of $B$ trees: draw a bootstrap sample, grow a deep tree, and at each split choose among a random subset of features.</p>
+        <p>Predict by majority vote (classification) or average (regression) across the trees.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how a forest combines its trees' answers, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For classification, count the votes for each class and return the class with the most; for regression, average the trees' predictions.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the vote by hand. It will make more sense.</p>
+        <pre><code class="language-c">int majority_vote(int votes[], int t) {          /* votes are 0 or 1 */
+    int ones = 0;
+    for (int i = 0; i &lt; t; i++) ones += votes[i];
+    return 2 * ones &gt; t ? 1 : 0;
+}
+
+double unique_fraction(int n) {                  /* expected share of distinct rows in a bootstrap sample */
+    return 1 - pow(1 - 1.0 / n, n);              /* tends to 1 - 1/e = 0.632 */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>random forest</strong> is an ensemble of decision trees, each trained on a bootstrap sample with random feature subsets at each split, combined by majority vote or averaging.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  D["training data"] --&gt; S1["bootstrap sample 1"] --&gt; T1["tree 1"]
+  D --&gt; S2["bootstrap sample 2"] --&gt; T2["tree 2"]
+  D --&gt; S3["bootstrap sample B"] --&gt; T3["tree B"]
+  T1 --&gt; V["vote / average"]
+  T2 --&gt; V
+  T3 --&gt; V
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: can the trees be trained at the same time on different computers? (Answer: yes; they are independent, unlike boosting.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does adding more trees make a random forest overfit?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. More trees only make the average more stable; the error levels off rather than rising.</p>
+          </details>
+        </div>
+        <p>The variance of an average of $B$ trees, each with variance $\sigma^2$ and pairwise correlation $\rho$:</p>
+        $$\operatorname{Var}\Big(\frac{1}{B}\sum_{b=1}^{B} T_b\Big) \;=\; \rho\,\sigma^2 + \frac{1 - \rho}{B}\,\sigma^2$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training</td><td>$B$ × (one tree)</td><td>Trees are independent, so training parallelises</td></tr>
+            <tr><td>Prediction</td><td>$O(B \cdot \text{depth})$</td><td>Every tree is evaluated</td></tr>
+            <tr><td>Out-of-bag estimate</td><td>free</td><td>Uses the rows each tree didn't see</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> tabular data, as a strong default with little tuning, for both classification and regression.</p>
+        <ul>
+          <li><strong>Pro:</strong> Much more accurate and stable than a single tree.</li>
+          <li><strong>Pro:</strong> Little tuning, no scaling, gives feature importances and a free out-of-bag score.</li>
+          <li><strong>Con:</strong> Less interpretable than one tree.</li>
+          <li><strong>Con:</strong> Large and slower to predict than a single model; can be beaten by tuned boosting.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Feature importances from a random forest can mislead: they favour features with many distinct values and split importance between correlated features. Check with permutation importance.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Name both randomness sources (bootstrap rows, random features per split) and say what they do: they make the trees less correlated so that averaging cuts variance.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Thinking more trees cause overfitting; they don't, they just cost more.</li>
+          <li>Forgetting feature sampling, which leaves the trees highly correlated.</li>
+          <li>Confusing random forests (parallel, averaging) with boosting (sequential, correcting errors).</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Five trees vote 1, 0, 1, 1, 0. What does the forest predict, and with what estimated probability?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Count the ones.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Class 1, with 3/5 = 0.6.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Each tree has variance $\sigma^2 = 4$ and correlation $\rho = 0.5$. Compute the variance of the average for $B = 10$ and $B = 1000$. What does it show? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$B = 10$: $2 + 0.2 = 2.2$. $B = 1000$: $2 + 0.002 \approx 2.0$. Beyond a point more trees barely help; only lowering $\rho$ can reduce the floor of 2.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Leo Breiman introduced random forests in 2001, building on his own bagging (1996) and Tin Kam Ho's random subspace method.</p>
+          <p>Microsoft's original Kinect estimated body pose from depth images with a random forest, deciding for each pixel which body part it belongs to.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Averaging trees reduces variance <strong>because</strong> their different errors partly cancel.</li>
+          <li>Bootstrap samples make trees differ <strong>because</strong> each sees a different mix of rows.</li>
+          <li>Feature sampling matters <strong>because</strong> it lowers the correlation between trees, which sets the variance floor.</li>
+          <li>More trees don't overfit <strong>because</strong> they only make the average more stable.</li>
+          <li>Out-of-bag rows give a free test score <strong>because</strong> each tree never saw about a third of the data.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a random forest like a crowd guessing sweets in a jar?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each guess is noisy, but the average of many independent guesses is close, because their errors cancel.</p></details></li>
+          <li><strong>Three trees vote sick, healthy, sick. What does the forest say?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sick, by majority 2 to 1, with an estimated probability of 2/3.</p></details></li>
+          <li><strong>Why does <code>unique_fraction</code> tend to about 0.632?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer gives the chance a row is never picked.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each draw misses a given row with probability $1 - 1/n$; after $n$ draws that's $(1 - 1/n)^n \to 1/e \approx 0.368$, so about 63.2% of rows appear.</p></details></li>
+          <li><strong>So what is a random forest, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An ensemble of decision trees trained on bootstrap samples with random feature subsets, combined by voting or averaging.</p></details></li>
+          <li><strong>Why does lowering the correlation between trees matter more than adding trees?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the variance formula.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The variance is $\rho\sigma^2 + (1 - \rho)\sigma^2/B$; more trees only shrink the second term, while $\rho\sigma^2$ stays as a floor.</p></details></li>
+          <li><strong>What do training and prediction cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Training is $B$ independent trees (parallelisable); prediction runs every tree, $O(B \cdot \text{depth})$.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: accurate and stable, little tuning. Cons: less interpretable, and larger and slower than one tree.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the variance formula and out-of-bag details. I'd keep the crowd analogy, the three-tree vote, and "bootstrap rows + random features, then vote".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/ensemble.html#forest" target="_blank" rel="noopener">scikit-learn: Forests of randomized trees</a>: parameters, out-of-bag scores and importances.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Random_forest" target="_blank" rel="noopener">Wikipedia: Random forest</a>: history and theory.</li>
+          <li><a href="https://developers.google.com/machine-learning/decision-forests/random-forests" target="_blank" rel="noopener">Google: Random forests</a>: bagging and feature sampling explained.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+random+forests" target="_blank" rel="noopener">YouTube search: StatQuest random forests</a>: StatQuest builds a forest step by step.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

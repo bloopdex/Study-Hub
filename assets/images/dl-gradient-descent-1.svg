@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="580" height="350" viewBox="0 0 580 350" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Gradient descent steps on a parabola</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="580" height="350" rx="16" fill="#f8fafc"/>
+  <text x="290" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Gradient descent on (w − 3)², η = 0.1</text>
+  <rect x="80" y="55" width="440" height="230" fill="#ffffff" stroke="#cbd5e1"/>
+  <line x1="111.42857142857143" y1="285" x2="111.42857142857143" y2="290" stroke="#94a3b8"/>  <text x="111.42857142857143" y="304" text-anchor="middle" font-size="12" fill="#64748b">0</text>
+  <line x1="174.28571428571428" y1="285" x2="174.28571428571428" y2="290" stroke="#94a3b8"/>  <text x="174.28571428571428" y="304" text-anchor="middle" font-size="12" fill="#64748b">1</text>
+  <line x1="237.14285714285714" y1="285" x2="237.14285714285714" y2="290" stroke="#94a3b8"/>  <text x="237.14285714285714" y="304" text-anchor="middle" font-size="12" fill="#64748b">2</text>
+  <line x1="300" y1="285" x2="300" y2="290" stroke="#94a3b8"/>  <text x="300" y="304" text-anchor="middle" font-size="12" fill="#64748b">3</text>
+  <line x1="362.8571428571429" y1="285" x2="362.8571428571429" y2="290" stroke="#94a3b8"/>  <text x="362.8571428571429" y="304" text-anchor="middle" font-size="12" fill="#64748b">4</text>
+  <line x1="425.7142857142857" y1="285" x2="425.7142857142857" y2="290" stroke="#94a3b8"/>  <text x="425.7142857142857" y="304" text-anchor="middle" font-size="12" fill="#64748b">5</text>
+  <line x1="488.5714285714286" y1="285" x2="488.5714285714286" y2="290" stroke="#94a3b8"/>  <text x="488.5714285714286" y="304" text-anchor="middle" font-size="12" fill="#64748b">6</text>
+  <line x1="75" y1="285" x2="80" y2="285" stroke="#94a3b8"/>  <text x="71" y="289" text-anchor="end" font-size="12" fill="#64748b">0</text>
+  <line x1="75" y1="229.8" x2="80" y2="229.8" stroke="#94a3b8"/>  <text x="71" y="233.8" text-anchor="end" font-size="12" fill="#64748b">3</text>
+  <line x1="75" y1="174.60000000000002" x2="80" y2="174.60000000000002" stroke="#94a3b8"/>  <text x="71" y="178.60000000000002" text-anchor="end" font-size="12" fill="#64748b">6</text>
+  <line x1="75" y1="119.4" x2="80" y2="119.4" stroke="#94a3b8"/>  <text x="71" y="123.4" text-anchor="end" font-size="12" fill="#64748b">9</text>
+  <line x1="75" y1="64.20000000000002" x2="80" y2="64.20000000000002" stroke="#94a3b8"/>  <text x="71" y="68.20000000000002" text-anchor="end" font-size="12" fill="#64748b">12</text>
+  <text x="300" y="323" text-anchor="middle" font-size="13" fill="#475569">w</text>
+  <text x="44" y="170" text-anchor="middle" font-size="13" fill="#475569" transform="rotate(-90 44 170)">loss</text>
+  <polyline points="80.0,59.6 91.0,81.6 102.0,102.4 113.0,122.1 124.0,140.7 135.0,158.2 146.0,174.6 157.0,189.8 168.0,203.9 179.0,216.8 190.0,228.7 201.0,239.4 212.0,248.9 223.0,257.4 234.0,264.7 245.0,270.9 256.0,276.0 267.0,279.9 278.0,282.7 289.0,284.4 300.0,285.0 311.0,284.4 322.0,282.7 333.0,279.9 344.0,276.0 355.0,270.9 366.0,264.7 377.0,257.4 388.0,248.9 399.0,239.4 410.0,228.7 421.0,216.8 432.0,203.9 443.0,189.8 454.0,174.6 465.0,158.2 476.0,140.7 487.0,122.1 498.0,102.4 509.0,81.6 520.0,59.6" fill="none" stroke="#94a3b8" stroke-width="2.5"/>
+  <polyline points="111.4,119.4 149.1,179.0 179.3,217.2 203.5,241.6" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <circle cx="111.4" cy="119.4" r="6" fill="#6366f1" stroke="#0f172a" stroke-width="1"/>
+  <text x="125.4" y="108.4" text-anchor="middle" font-size="12" fill="#334155">w₀</text>
+  <circle cx="149.1" cy="179.0" r="6" fill="#6366f1" stroke="#0f172a" stroke-width="1"/>
+  <text x="163.1" y="168.0" text-anchor="middle" font-size="12" fill="#334155">w₁</text>
+  <circle cx="179.3" cy="217.2" r="6" fill="#6366f1" stroke="#0f172a" stroke-width="1"/>
+  <text x="193.3" y="206.2" text-anchor="middle" font-size="12" fill="#334155">w₂</text>
+  <circle cx="203.5" cy="241.6" r="6" fill="#6366f1" stroke="#0f172a" stroke-width="1"/>
+  <text x="217.5" y="230.6" text-anchor="middle" font-size="12" fill="#334155">w₃</text>
+  <circle cx="300.0" cy="285.0" r="6" fill="#22c55e" stroke="#0f172a" stroke-width="1"/>
+  <text x="300.0" y="268.0" text-anchor="middle" font-size="12" fill="#334155">minimum</text>
+</svg>

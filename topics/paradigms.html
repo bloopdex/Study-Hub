@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Algorithm paradigms · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/review-bank.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-hub="paradigms" data-slug="paradigms" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <main id="content" class="max-w-6xl mx-auto px-4 py-8">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+    <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+      <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Hub</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight">Algorithm paradigms</h1>
+      <p class="mt-3 text-slate-700 dark:text-slate-300">Five ways of <em>thinking</em> about a problem rather than five algorithms: split it (divide and conquer), grab the best option (greedy), remember sub-answers (dynamic programming), try and undo (backtracking), and recognise when no fast method is known (NP-completeness).</p>
+      <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> most new problems are solved by recognising which paradigm fits. The paradigm tells you the shape of the algorithm and roughly what it will cost.</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button id="mixed-review" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Mixed review</button>
+        <span class="text-sm text-slate-500 dark:text-slate-400">5 random questions mixed from all five paradigms.</span>
+      </div>
+    </section>
+
+    <section id="mixed-review-panel" hidden class="mt-6 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+      <h2 class="text-xl font-semibold">Mixed review</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Answer each one out loud before opening the sample answer.</p>
+      <ol id="mixed-review-list" class="mt-4 list-decimal space-y-4 pl-5"></ol>
+    </section>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Quick comparison</h2>
+      <table>
+        <thead>
+          <tr><th>Paradigm</th><th>Core idea</th><th>Typical cost</th><th>Classic example</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Divide and conquer</td><td>Split into independent smaller copies, combine</td><td>$O(n \log n)$ often</td><td>Merge sort</td></tr>
+          <tr><td>Greedy</td><td>Take the best choice now, never undo</td><td>$O(n \log n)$ (sort + pass)</td><td>Activity selection</td></tr>
+          <tr><td>Dynamic programming</td><td>Solve overlapping subproblems once, store them</td><td>subproblems × work each</td><td>Fibonacci, coin change</td></tr>
+          <tr><td>Backtracking</td><td>Choose, explore, undo; prune bad branches</td><td>Exponential worst case</td><td>N-queens</td></tr>
+          <tr><td>NP-completeness</td><td>Easy to check, no known fast way to solve</td><td>$O(2^n)$ known exact methods</td><td>3-SAT</td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <h2 class="mt-10 text-xl font-semibold">The five paradigms</h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="paradigm-divide-and-conquer">Divide and conquer</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Split, solve the parts, combine.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">Merge sort O(n log n) · binary search O(log n)</p>
+        <a href="paradigm-divide-and-conquer.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="paradigm-greedy">Greedy</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Always take the best-looking option.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">Fast · optimal only with a proof</p>
+        <a href="paradigm-greedy.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="paradigm-dynamic-programming">Dynamic programming</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Store each sub-answer, reuse it.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">Fibonacci O(1.618ⁿ) → O(n)</p>
+        <a href="paradigm-dynamic-programming.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="paradigm-backtracking">Backtracking</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Try a choice, undo it at a dead end.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">Exponential worst case · pruning helps</p>
+        <a href="paradigm-backtracking.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h3 class="font-semibold" data-review-slugs="paradigm-np-completeness">NP-completeness</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Quick to check, no known quick solve.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">P ⊆ NP · reductions show hardness</p>
+        <a href="paradigm-np-completeness.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      </article>
+    </div>
+
+    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+      <h2>Which one to pick?</h2>
+      <pre class="mermaid">
+flowchart TD
+  A{"Does the problem split into smaller copies?"} --&gt;|"yes, independent parts"| DC["Divide and conquer"]
+  A --&gt;|"yes, but parts repeat"| DP["Dynamic programming"]
+  A --&gt;|no| B{"Is there a provably safe 'best next choice'?"}
+  B --&gt;|yes| G["Greedy"]
+  B --&gt;|no| C{"Is it a known NP-complete problem?"}
+  C --&gt;|yes| NP["Use approximation, heuristics, or exact search on small inputs"]
+  C --&gt;|no| BT["Backtracking with pruning"]
+      </pre>
+
+      <h2>Key points</h2>
+      <ul>
+        <li>Divide and conquer works <strong>because</strong> independent subproblems can be solved separately and combined.</li>
+        <li>Dynamic programming beats plain recursion <strong>because</strong> it never solves the same subproblem twice.</li>
+        <li>Greedy is only correct with a proof <strong>because</strong> a locally best choice can block a better overall answer.</li>
+        <li>Backtracking is practical <strong>because</strong> pruning removes whole branches of the search early.</li>
+        <li>NP-completeness changes the goal <strong>because</strong> no polynomial exact algorithm is known for those problems.</li>
+      </ul>
+
+      <h2>External resources</h2>
+      <ul>
+        <li><a href="https://ocw.mit.edu/courses/6-046j-design-and-analysis-of-algorithms-spring-2015/" target="_blank" rel="noopener">MIT OCW 6.046J Design and Analysis of Algorithms</a>: lectures on every paradigm here.</li>
+        <li><a href="https://www.geeksforgeeks.org/fundamentals-of-algorithms/" target="_blank" rel="noopener">GeeksforGeeks: Algorithm paradigms</a>: tutorials grouped by paradigm.</li>
+        <li><a href="https://en.wikipedia.org/wiki/Algorithmic_paradigm" target="_blank" rel="noopener">Wikipedia: Algorithmic paradigm</a>: an overview of design approaches.</li>
+      </ul>
+      <p><strong>Videos</strong></p>
+      <ul>
+        <li><a href="https://www.youtube.com/results?search_query=algorithm+design+paradigms+greedy+dynamic+programming+divide+and+conquer" target="_blank" rel="noopener">YouTube search: algorithm design paradigms</a>: compare the paradigms side by side.</li>
+      </ul>
+    </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+  </main>
+</body>
+</html>

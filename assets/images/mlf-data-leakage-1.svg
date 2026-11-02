@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="330" viewBox="0 0 700 330" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Leaky versus correct preprocessing pipelines</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="700" height="330" rx="16" fill="#f8fafc"/>
+  <text x="350" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Leaky pipeline vs correct pipeline</text>
+  <line x1="245.0" y1="90.0" x2="275.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="445.0" y1="90.0" x2="485.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="245.0" y1="194.2" x2="275.0" y2="187.9" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="245.0" y1="225.8" x2="275.0" y2="232.1" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="445.0" y1="186.2" x2="495.0" y2="195.7" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="445.0" y1="233.8" x2="495.0" y2="224.3" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="30" y="95" text-anchor="start" font-size="15" font-weight="700" fill="#b91c1c">leaky</text>
+  <rect x="95" y="70" width="150" height="40" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="170" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">all data</text>
+  <rect x="275" y="70" width="170" height="40" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="360" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">fit scaler on ALL</text>
+  <rect x="485" y="70" width="150" height="40" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="560" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">then split</text>
+  <text x="30" y="215" text-anchor="start" font-size="15" font-weight="700" fill="#15803d">correct</text>
+  <rect x="95" y="190" width="150" height="40" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="170" y="216" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">split first</text>
+  <rect x="275" y="150" width="170" height="40" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="360" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">fit scaler on train</text>
+  <rect x="275" y="230" width="170" height="40" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="360" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">test (untouched)</text>
+  <rect x="495" y="190" width="150" height="40" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="570" y="216" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">transform both</text>
+</svg>

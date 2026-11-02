@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-layer perceptron (MLP) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-mlp" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Multi-layer perceptron (MLP)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Input $x = [1, 2]$ goes into a hidden layer of 2 ReLU neurons: their sums are −1.5 and 2.5, so their outputs are 0 and 2.5. Those feed one sigmoid output neuron: $z = 1 \cdot 0 - 0.4 \cdot 2.5 + 0.2 = -0.8$, giving $\sigma(-0.8) \approx 0.31$. Three layers (input, hidden, output), fully connected: that's a multi-layer perceptron.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> one hidden layer with enough neurons can approximate almost any function, and it solves problems a single neuron can't, like XOR. MLPs are the "dense" layers inside nearly every deep network.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-neuron.html">The artificial neuron</a>.</li>
+          <li><a href="dl-activation-functions.html">Activation functions</a> (ReLU, sigmoid).</li>
+          <li>Matrix–vector multiplication.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a company: front-line staff (the hidden neurons) each look at the raw facts and report a simple summary; the manager (the output neuron) combines those summaries into a decision.</p>
+          <p>Each hidden neuron learns its own useful feature, and the next layer builds on those features instead of on the raw input.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Network:</strong> 2 inputs → 2 hidden ReLU neurons → 1 sigmoid output. Hidden weights $W_1 = \begin{bmatrix} 0.5 & -1 \\ 1 & 0.5 \end{bmatrix}$, $b_1 = [0, 0.5]$; output weights $w_2 = [1, -0.4]$, $b_2 = 0.2$.</p>
+        <h3>Start with one forward pass by hand</h3>
+        <p>Input $x = [1, 2]$. Each row of $W_1$ belongs to one hidden neuron. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Hidden neuron 1: $0.5 \cdot 1 - 1 \cdot 2 + 0$. And neuron 2: $1 \cdot 1 + 0.5 \cdot 2 + 0.5$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$-1.5$ and $2.5$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: apply ReLU to both.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$h = [0, 2.5]$: the negative sum is cut to 0.</p></details>
+          <p><strong>Step 3.</strong> Output neuron: $z = 1 \cdot 0 - 0.4 \cdot 2.5 + 0.2$, then sigmoid. Predict.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = -0.8$; $\sigma(-0.8) \approx 0.31$. The network gives a 31% probability.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-mlp-1.svg" alt="MLP with two inputs, two hidden ReLU neurons with outputs 0 and 2.5, and one sigmoid output 0.31" width="640" height="320">
+          <figcaption>What you just computed: values flow left to right, layer by layer. The grey hidden neuron output 0 (ReLU cut it).</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does "fully connected" mean?</p>
+          <details><summary>Check your answer</summary>
+            <p>Every neuron in one layer receives input from every neuron in the previous layer.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why the hidden layer matters</h3>
+        <p>XOR: output 1 when exactly one input is 1. A single neuron can't do it.</p>
+        <ul>
+          <li><strong>Two hidden step-neurons: OR ($x_1 + x_2 - 0.5$) and AND ($x_1 + x_2 - 1.5$).</strong> Predict their outputs for the four inputs.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>OR: 0, 1, 1, 1. AND: 0, 0, 0, 1 (for 00, 01, 10, 11).</p></details></li>
+          <li><strong>Output neuron: OR − AND − 0.5, step.</strong> Predict the outputs.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0, 1, 1, 0: exactly XOR. The hidden layer created new features (OR, AND) that make the problem linearly separable.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how many parameters does the 2 → 2 → 1 network have?</p>
+          <details><summary>Check your answer</summary>
+            <p>9: $2 \times 2$ weights + 2 biases in the hidden layer, plus 2 weights + 1 bias at the output.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's 2 → 2 → 1 network with $W_1 = \begin{bmatrix} 0.5 & -1 \\ 1 & 0.5 \end{bmatrix}$, $b_1 = [0, 0.5]$, output weights $[1, -0.4]$, output bias $0.2$. Two inputs go through it neuron by neuron, then we see what the hidden ReLU actually contributes.</p>
+        <table>
+          <thead>
+            <tr><th>Input $x$</th><th>Hidden sums $z_1$</th><th>Hidden outputs $h$</th><th>Output sum $z_2$</th><th>$\hat y = \sigma(z_2)$</th><th>Class (≥ 0.5)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>[1, 2]</td><td>[−1.5, 2.5]</td><td>[0, 2.5]</td><td>−0.8</td><td>0.310</td><td>0</td></tr>
+            <tr><td>[2, 0]</td><td>[1, 2.5]</td><td>[1, 2.5]</td><td>0.2</td><td>0.550</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Hidden neuron 1 for x = [1, 2]</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_{1,1} = 0.5 \cdot 1 + (-1) \cdot 2 + 0 = -1.5 \;\Rightarrow\; h_1 = \text{ReLU}(-1.5) = 0$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Row 1 of $W_1$ holds this neuron's weights. Its sum is negative, so ReLU switches it off: it contributes nothing for this input.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Hidden neuron 2</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_{1,2} = 1 \cdot 1 + 0.5 \cdot 2 + 0.5 = 2.5 \;\Rightarrow\; h_2 = 2.5$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">This neuron is active and passes its sum unchanged.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Output neuron</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_2 = 1 \cdot 0 + (-0.4) \cdot 2.5 + 0.2 = -0.8, \qquad \hat y = \sigma(-0.8) = \frac{1}{1 + e^{0.8}} \approx 0.310$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The output neuron treats the hidden outputs as its inputs. Only hidden neuron 2 matters here, and its negative weight pulls the score down: 31%, so class 0.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Second input x = [2, 0]</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_1 = [0.5 \cdot 2 - 1 \cdot 0 + 0,\; 1 \cdot 2 + 0.5 \cdot 0 + 0.5] = [1, 2.5], \quad z_2 = 1 - 1 + 0.2 = 0.2, \quad \hat y \approx 0.550$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Now both hidden neurons are active, and neuron 1's positive weight lifts the output above 0.5: class 1. Different inputs switch different hidden neurons on, which is how the network builds different "rules" for different regions.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Count the parameters</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\underbrace{2 \cdot 2 + 2}_{\text{layer 1}} + \underbrace{2 \cdot 1 + 1}_{\text{layer 2}} = 6 + 3 = 9$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each fully connected layer has (inputs × outputs) weights plus one bias per output. Large MLPs have millions of these, computed by exactly the same rule.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Without ReLU the hidden layer is useless</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_2^\top (W_1 x + b_1) + b_2 = [0.1, -1.2]\,x + 0 \;\Rightarrow\; x = [1, 2]: \; 0.1 - 2.4 = -2.3$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">If the hidden layer had no activation, the two layers would collapse into one linear function, $[0.1, -1.2]\,x$, and the network could only draw straight boundaries. The ReLU zeroing $h_1$ is what changed the answer from −2.3 to −0.8.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>An MLP is neurons in layers: every hidden neuron sees all inputs, every output neuron sees all hidden outputs. Here [1, 2] → 0.31 (class 0) and [2, 0] → 0.55 (class 1).</p>
+          <p>The non-linear activation between layers is essential: it lets different neurons switch on for different inputs, so the network can represent curved boundaries such as XOR.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>A layer computes $h = g(Wx + b)$: a weight matrix times the input, plus a bias vector, through an activation. Layers are stacked, each feeding the next.</p>
+        <p>Hidden layers use non-linear activations (ReLU); the output activation matches the task (sigmoid, softmax or linear).</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one dense layer in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For each output neuron, start from its bias, add each input times the matching weight, then apply the activation.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the forward pass by hand. It will make more sense.</p>
+        <pre><code class="language-c">void dense(double W[][2], double b[], double x[], int n_in, int n_out, int use_relu, double out[]) {
+    for (int i = 0; i &lt; n_out; i++) {               /* one output neuron per row of W */
+        double z = b[i];
+        for (int j = 0; j &lt; n_in; j++) z += W[i][j] * x[j];
+        out[i] = use_relu &amp;&amp; z &lt; 0 ? 0 : z;          /* ReLU, or linear */
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>multi-layer perceptron</strong> is a feed-forward network of fully connected layers, each computing $g(Wx + b)$, with at least one hidden layer between input and output.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  I["input x (2)"] --&gt;|"W1 x + b1, ReLU"| H["hidden h (2)"]
+  H --&gt;|"w2 · h + b2, sigmoid"| O["output (1)"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if the input were $[0, 0]$, what would the hidden layer output? (Answer: ReLU of $b_1 = [0, 0.5]$, so $[0, 0.5]$.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many weights does a dense layer from 784 inputs to 128 neurons have?</p>
+          <details><summary>Check your answer</summary>
+            <p>$784 \times 128 = 100{,}352$ weights, plus 128 biases.</p>
+          </details>
+        </div>
+        <p>Each layer is a matrix–vector product plus activation, and its parameter count follows directly:</p>
+        $$h = \text{ReLU}(W_1 x + b_1), \quad \hat y = \sigma(w_2^\top h + b_2), \qquad \#\text{params of a layer} = n_{\text{in}} \cdot n_{\text{out}} + n_{\text{out}}$$
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Shape</th><th>Parameters</th><th>Compute</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Hidden (ours)</td><td>2 → 2</td><td>$2 \cdot 2 + 2 = 6$</td><td>4 multiply-adds</td></tr>
+            <tr><td>Output (ours)</td><td>2 → 1</td><td>$2 + 1 = 3$</td><td>2 multiply-adds</td></tr>
+            <tr><td>MNIST hidden layer</td><td>784 → 128</td><td>100,480</td><td>100,352 multiply-adds</td></tr>
+            <tr><td>Any dense layer</td><td>$n_{\text{in}} \to n_{\text{out}}$</td><td>$n_{\text{in}} n_{\text{out}} + n_{\text{out}}$</td><td>$O(n_{\text{in}} n_{\text{out}})$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Dense layers on images explode in size: a 1000 × 1000 RGB image into just 100 neurons needs 300 million weights, and ignores the fact that nearby pixels belong together. That's why images use convolutional layers.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Count parameters layer by layer with $n_{\text{in}} \times n_{\text{out}} + n_{\text{out}}$, and show a forward pass as a sequence of $z$, activation, $z$, activation.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the biases when counting parameters.</li>
+          <li>Applying the hidden activation (ReLU) to the output of a classifier instead of sigmoid/softmax.</li>
+          <li>Mixing up the shape of $W$: here each <em>row</em> belongs to one output neuron.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Count the parameters of a network 4 → 8 → 3.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Two layers, each weights + biases.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$4 \cdot 8 + 8 = 40$ and $8 \cdot 3 + 3 = 27$: 67 parameters.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Run the example network on $x = [2, 0]$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Hidden sums: $0.5 \cdot 2 = 1$ and $1 \cdot 2 + 0.5 = 2.5$, so ReLU gives $[1, 2.5]$. Output $z = 1 - 1 + 0.2 = 0.2$, $\sigma(0.2) \approx 0.55$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The universal approximation theorem (Cybenko 1989, Hornik 1991) says one hidden layer with enough neurons can approximate any continuous function, but it may need astronomically many; depth makes it far more efficient.</p>
+          <p>The feed-forward block inside every Transformer layer is a two-layer MLP applied to each token separately.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Hidden layers learn new features <strong>because</strong> each neuron combines the inputs in its own way.</li>
+          <li>An MLP can solve XOR <strong>because</strong> its hidden features make the classes linearly separable.</li>
+          <li>Each layer has $n_{\text{in}} n_{\text{out}} + n_{\text{out}}$ parameters <strong>because</strong> every connection has a weight and every neuron a bias.</li>
+          <li>Non-linear hidden activations are required <strong>because</strong> stacked linear layers collapse into one.</li>
+          <li>Dense layers are costly on images <strong>because</strong> every pixel connects to every neuron.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is an MLP like a company with staff and a manager?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Staff (hidden neurons) each summarise the raw facts; the manager (output) combines their summaries into a decision.</p></details></li>
+          <li><strong>Do a forward pass of the 2 → 2 → 1 network on $x = [1, 2]$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Hidden sums −1.5 and 2.5, ReLU gives [0, 2.5]; output $z = -0.8$, $\sigma(-0.8) \approx 0.31$.</p></details></li>
+          <li><strong>Why does <code>dense</code> start <code>z</code> at <code>b[i]</code> inside the outer loop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what each iteration computes.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each outer iteration computes one neuron's sum, which starts from that neuron's own bias and then adds its weighted inputs.</p></details></li>
+          <li><strong>So what is a multi-layer perceptron, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A feed-forward network of fully connected layers with non-linear activations and at least one hidden layer.</p></details></li>
+          <li><strong>Why can an MLP solve XOR when one neuron can't?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the OR and AND hidden neurons.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The hidden layer computes new features, like OR and AND, in which XOR becomes linearly separable: OR minus AND.</p></details></li>
+          <li><strong>How many parameters does a dense layer have?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$n_{\text{in}} \cdot n_{\text{out}}$ weights plus $n_{\text{out}}$ biases.</p></details></li>
+          <li><strong>Why aren't MLPs used directly on large images?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Every pixel would connect to every neuron, giving huge numbers of weights and ignoring local structure; convolutional layers share small filters instead.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the universal approximation theorem and the MNIST numbers. I'd keep the company analogy, the forward pass on [1, 2], and "layers of $g(Wx + b)$, hidden features solve XOR".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.3blue1brown.com/lessons/neural-networks" target="_blank" rel="noopener">3Blue1Brown: Neural networks</a>: layers, weights and biases, visually.</li>
+          <li><a href="https://playground.tensorflow.org/" target="_blank" rel="noopener">TensorFlow Playground</a>: train small MLPs in the browser and watch the hidden features.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.Linear.html" target="_blank" rel="noopener">PyTorch docs: nn.Linear</a>: the dense layer in practice.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=aircAruvnKk" target="_blank" rel="noopener">3Blue1Brown: But what is a neural network?</a>: builds an MLP for digit recognition.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

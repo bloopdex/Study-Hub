@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>B-tree · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="tree-b-tree" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="trees.html" class="hover:text-indigo-500">Trees</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Trees</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">B-tree</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Insert 10, 20, 30 into one node: <code>[10 | 20 | 30]</code>. It's now full (3 keys max here). Insert 40: the node splits, the middle key 20 moves up into a new root, and 10 and <code>[30 | 40]</code> become its children. That's a B-tree: fat nodes with several sorted keys, which grow upwards by splitting.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> each node holds many keys, so the tree is extremely short. With hundreds of keys per node, a billion records fit in 4 or 5 levels, which means 4 or 5 disk reads per lookup. That's why databases and file systems use B-trees.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="tree-binary-search-tree.html">Binary search tree</a>.</li>
+          <li><a href="searching-binary.html">Binary search</a> or a scan inside a sorted array.</li>
+          <li>Logarithms in other bases: $\log_{100} n$.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a library catalogue: a top drawer says "A–F, G–M, N–Z", each of those drawers splits further, and only a few drawers stand between you and any card.</p>
+          <p>A B-tree node is one drawer with several sorted keys and a pointer between each pair. Because every drawer splits into many, the catalogue is wide and very shallow.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with insertions by hand</h3>
+        <p>Here each node holds at most 3 keys (a 2-3-4 tree). A full node <strong>splits</strong>: its middle key moves up into the parent. Insert 10, 20, 30, 40, 50, 60. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Insert 10, 20, 30. Predict the tree.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>One node holding <code>[10 | 20 | 30]</code>, kept in sorted order. It is now full.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: what happens when 40 arrives?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The full node splits: 20 goes up into a new root; 10 is the left child and <code>[30 | 40]</code> the right child. The tree grew one level at the <em>top</em>.</p></details>
+          <p><strong>Step 3.</strong> Insert 50 and then 60. Predict the final tree.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>50 joins <code>[30 | 40 | 50]</code>, which is full. When 60 arrives, it splits: 40 moves up, so the root is <code>[20 | 40]</code> with children <code>[10]</code>, <code>[30]</code>, <code>[50 | 60]</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/tree-b-tree-1.svg" alt="B-tree with root 20 and 40, and three children 10, 30, and 50 and 60" width="600" height="280">
+          <figcaption>What you just built: the root's two keys split the values into three ranges, one child per range. All leaves are at the same depth.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: when a node splits, where does its middle key go?</p>
+          <details><summary>Check your answer</summary>
+            <p>Up into the parent. If there is no parent, it becomes a new root, so the tree grows at the top.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why all leaves stay level</h3>
+        <p>Look at what splitting does to the shape.</p>
+        <ul>
+          <li><strong>Splitting a leaf.</strong> Predict: does it make that branch deeper than the others?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No. The two halves stay at the same depth; only the parent gains a key.</p></details></li>
+          <li><strong>Splitting the root.</strong> Predict what happens to the depth of every leaf.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Every leaf gets one level deeper at the same time, because the new root sits above them all. So all leaves are always at the same depth.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: searching for 50 in the final tree, which nodes do you read?</p>
+          <details><summary>Check your answer</summary>
+            <p>The root <code>[20 | 40]</code>; 50 &gt; 40, so the third child <code>[50 | 60]</code>, where 50 is found. Two nodes.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>A node holds sorted keys, and between each pair of keys there is a child pointer to the values in that range. Every node except the root is at least half full.</p>
+        <p><strong>Search</strong>: find the right range in the node, go down. <strong>Insert</strong>: add to a leaf; if it overflows, split it and push the middle key up, which may split the parent too.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write how to search inside one B-tree node in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Walk the node's sorted keys until you reach the first key ≥ the target. 2. If it equals the target, you're done. 3. Otherwise, if not a leaf, go down the child pointer just before that key.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the insertions by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct BNode { int n; int key[3]; struct BNode *child[4]; int leaf; } BNode;
+
+BNode *btree_search(BNode *x, int k) {          /* returns the node holding k, or NULL */
+    while (x) {
+        int i = 0;
+        while (i &lt; x-&gt;n &amp;&amp; k &gt; x-&gt;key[i]) i++;   /* first key &gt;= k */
+        if (i &lt; x-&gt;n &amp;&amp; k == x-&gt;key[i]) return x;
+        if (x-&gt;leaf) return NULL;
+        x = x-&gt;child[i];                        /* go down between keys */
+    }
+    return NULL;
+}</code></pre>
+        <pre><code class="language-c">void split_child(BNode *x, int i) {             /* x-&gt;child[i] is full (3 keys) */
+    BNode *y = x-&gt;child[i];
+    BNode *z = malloc(sizeof(BNode));
+    z-&gt;leaf = y-&gt;leaf; z-&gt;n = 1;
+    z-&gt;key[0] = y-&gt;key[2];                       /* right key moves to new node z */
+    z-&gt;child[0] = y-&gt;child[2]; z-&gt;child[1] = y-&gt;child[3];
+    y-&gt;n = 1;                                    /* y keeps its left key */
+    for (int j = x-&gt;n; j &gt; i; j--) {             /* make room in x */
+        x-&gt;child[j + 1] = x-&gt;child[j]; x-&gt;key[j] = x-&gt;key[j - 1];
+    }
+    x-&gt;child[i + 1] = z;
+    x-&gt;key[i] = y-&gt;key[1];                       /* middle key moves up */
+    x-&gt;n++;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>B-tree</strong> is a balanced search tree whose nodes hold many sorted keys and children; it stays balanced by <strong>splitting</strong> full nodes and pushing the middle key up, so all leaves are at the same depth.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  R["20 | 40"] --&gt; A["10"]
+  R --&gt; B["30"]
+  R --&gt; C["50 | 60"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: insert 70, then 80. Which key moves up into the root? (Answer: 60, when [50 | 60 | 70] splits as 80 arrives; the root becomes [20 | 40 | 60].)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: with up to 200 children per node, how many levels hold a billion keys?</p>
+          <details><summary>Check your answer</summary>
+            <p>About 4–5, because $200^4 = 1.6 \times 10^9$.</p>
+          </details>
+        </div>
+        <p>If every node (except the root) has at least $t$ children, the height of a B-tree with $n$ keys is at most:</p>
+        $$h \;\le\; \log_t \frac{n + 1}{2}$$
+        <p>With $t = 100$ and $n = 10^9$: $\log_{100} (5 \times 10^8) \approx 4.4$, so at most 4 levels below the root. Each level is one disk read.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Search</td><td>$O(\log n)$, $O(\log_t n)$ disk reads</td><td>One node per level</td></tr>
+            <tr><td>Insert</td><td>$O(\log n)$</td><td>Find a leaf, maybe split up to the root</td></tr>
+            <tr><td>Delete</td><td>$O(\log n)$</td><td>Borrow from or merge with siblings</td></tr>
+            <tr><td>Split a node</td><td>$O(t)$</td><td>Move about half the keys</td></tr>
+            <tr><td>Height</td><td>$O(\log_t n)$</td><td>Every node branches $t$ ways or more</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>B-tree conventions differ: some books count the maximum number of <em>children</em> (the order $m$), others the minimum degree $t$. A "B-tree of order 4" and "minimum degree 2" are the same 2-3-4 tree. Check the definition before answering.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Explain <em>why</em> B-trees suit disks: a disk read fetches a whole block (e.g. 4 KB), so a node is sized to one block and filled with hundreds of keys. Fewer, fatter levels mean fewer slow reads.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Splitting by moving the middle key down into a child, instead of up into the parent.</li>
+          <li>Thinking the tree grows at the leaves; a B-tree only gets taller when the root splits.</li>
+          <li>Forgetting that keys inside a node are kept sorted, which is what makes the range choice work.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>In the tree with root <code>[20 | 40]</code> and children <code>[10]</code>, <code>[30]</code>, <code>[50 | 60]</code>, which child do you visit when searching for 35?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Find the range between the root's keys.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>The middle child, <code>[30]</code>, because 20 &lt; 35 &lt; 40. 35 isn't there, so the search ends: not found.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Continue from that tree and insert 70, 80, 90 (max 3 keys per node, split when a 4th key arrives). What does the tree look like? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>70 → [50 | 60 | 70]. 80 overflows it: 60 goes up, root [20 | 40 | 60], children [10], [30], [50], [70 | 80]. 90 joins [70 | 80 | 90]. The root is now full, so the next overflow there would split it and grow the tree a level.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>B-trees were invented in 1970 by Bayer and McCreight at Boeing; nobody is quite sure what the "B" stands for.</p>
+          <p>Almost every relational database index (MySQL InnoDB, PostgreSQL, SQLite) and file systems such as NTFS, Btrfs and APFS use B-trees or their B+ tree variant, where all values live in the leaves.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>A B-tree is very short <strong>because</strong> every node has many children, so the height is $O(\log_t n)$.</li>
+          <li>All leaves are at the same depth <strong>because</strong> the tree only grows when the root splits.</li>
+          <li>Splits push the middle key up <strong>because</strong> it separates the two halves in the parent.</li>
+          <li>It suits disks <strong>because</strong> one node fits one disk block, and each level costs one read.</li>
+          <li>Search picks one child per node <strong>because</strong> the node's sorted keys define the ranges.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a B-tree like a library catalogue with labelled drawers?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each drawer covers a range and points to smaller drawers, so only a few drawers stand between you and any card; B-tree nodes hold several keys and split the range many ways.</p></details></li>
+          <li><strong>Walk through inserting 10, 20, 30, 40 into a B-tree with at most 3 keys per node.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>10, 20, 30 fill one node. 40 overflows it: the middle key 20 moves up into a new root, with [10] on the left and [30 | 40] on the right.</p></details></li>
+          <li><strong>Why does <code>split_child</code> move <code>y-&gt;key[1]</code> into the parent?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what that key separates.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It is the middle key: everything in y's left half is smaller and everything in the new node z is bigger, so in the parent it marks exactly the boundary between y and z.</p></details></li>
+          <li><strong>So what is a B-tree, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A balanced search tree with many sorted keys per node that stays balanced by splitting full nodes and pushing the middle key up.</p></details></li>
+          <li><strong>Why are all the leaves of a B-tree at the same depth?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says where the tree grows.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Splits keep halves at the same level, and the tree only gets taller when the root splits, which pushes every leaf down together.</p></details></li>
+          <li><strong>What do search and insert cost, and how many disk reads does a search need?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Both are $O(\log n)$ overall, and a search reads one node per level, $O(\log_t n)$ disk reads, about 4 for a billion keys.</p></details></li>
+          <li><strong>Why do databases use B-trees rather than binary search trees?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A BST of a billion keys is about 30 levels deep, 30 disk reads. A B-tree node fills a disk block with hundreds of keys, so it needs about 4.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the order-versus-degree conventions and deletion. I'd keep the catalogue analogy, the 10–40 split example, and "fat nodes, very short, one disk read per level".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.cs.usfca.edu/~galles/visualization/BTree.html" target="_blank" rel="noopener">USFCA: B-tree visualization</a>: insert keys and watch nodes split, with adjustable max degree.</li>
+          <li><a href="https://www.geeksforgeeks.org/introduction-of-b-tree-2/" target="_blank" rel="noopener">GeeksforGeeks: B-tree</a>: definitions, search and insert.</li>
+          <li><a href="https://en.wikipedia.org/wiki/B-tree" target="_blank" rel="noopener">Wikipedia: B-tree</a>: history, variants and database use.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=B-tree+insertion+split+explained" target="_blank" rel="noopener">YouTube search: B-tree insertion and splitting</a>: pick a walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Singly linked list · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="structure-singly-linked-list" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="linear-structures.html" class="hover:text-indigo-500">Linear structures</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Linear structures</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Singly linked list</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Start with the list <code>5 → 3</code>. Add 7 at the front: make a node 7 that points to 5, and make it the new head: <code>7 → 5 → 3</code>. No element moved. Now delete 5: walk from 7, find the node before 5, and point it past 5: <code>7 → 3</code>. That's a singly linked list: nodes joined by "next" pointers.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> inserting or removing next to a node you already hold is $O(1)$, because only one or two pointers change. The price is that finding the $k$-th element means walking $k$ steps.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Structs in C: grouping a value and a pointer.</li>
+          <li>Pointers and <code>NULL</code>.</li>
+          <li><a href="structure-array.html">Arrays</a>, to compare against.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a treasure hunt: each clue tells you where the next clue is hidden. You can only follow the clues in order, from the first one.</p>
+          <p>A linked list is that chain of clues. Each node holds a value and the address of the next node. Adding a clue at the start is easy; finding clue number 50 means following 49 clues.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>The list is <code>head → 5 → 3 → NULL</code>. Do each operation and guess which pointers change before opening "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> <code>push_front(7)</code>. Predict: how many existing nodes are touched?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>None. The new node 7 points to the old head 5, and <code>head</code> now points to 7: <code>7 → 5 → 3</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: searching for 3, which nodes do you visit?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>7, then 5, then 3. There is no shortcut: you follow <code>next</code> pointers one at a time.</p></details>
+          <p><strong>Step 3.</strong> <code>remove(5)</code>. Predict: which node's pointer changes?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The node <em>before</em> 5, which is 7. Its <code>next</code> now skips 5 and points to 3: <code>7 → 3</code>. Then 5 is freed.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/structure-singly-linked-list-1.svg" alt="Singly linked list 7 to 5 to 3; after removing 5, node 7 points directly to 3" width="640" height="330">
+          <figcaption>What you just did by hand: removing 5 only changes the arrow out of 7.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: to remove a node from a singly linked list, which node do you need to find?</p>
+          <details><summary>Check your answer</summary>
+            <p>The node just before it, because that node's <code>next</code> pointer is the one that must skip over the removed node.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the back of the list</h3>
+        <p>Now add 9 at the back of <code>7 → 3</code>, first with only a <code>head</code> pointer, then with a <code>tail</code> pointer too.</p>
+        <ul>
+          <li><strong>Only <code>head</code>.</strong> Predict: how many nodes do you walk?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>All of them: 7, then 3, to find the node whose <code>next</code> is <code>NULL</code>. Then 3 points to 9. $O(n)$.</p></details></li>
+          <li><strong>With a <code>tail</code> pointer.</strong> Predict the cost.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>One step: <code>tail-&gt;next = 9</code>, then <code>tail = 9</code>. $O(1)$.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is adding at the back slow without a tail pointer?</p>
+          <details><summary>Check your answer</summary>
+            <p>Only the head is known, so you must walk all $n$ nodes to find the last one before you can link the new node.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Every node stores a value and a <code>next</code> pointer; the last node points to <code>NULL</code>. The list is reached through <code>head</code>.</p>
+        <p>To insert, create a node and rewire one pointer. To remove, make the previous node skip it. To find anything, start at <code>head</code> and follow <code>next</code>.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the steps of <code>push_front</code> in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Create a new node with the value. 2. Point its <code>next</code> at the current head. 3. Make it the new head.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the operations by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct Node { int val; struct Node *next; } Node;
+
+Node *push_front(Node *head, int v) {       /* returns the new head */
+    Node *n = malloc(sizeof(Node));
+    n-&gt;val = v;
+    n-&gt;next = head;
+    return n;
+}</code></pre>
+        <pre><code class="language-c">Node *remove_value(Node *head, int v) {     /* returns the new head */
+    if (head == NULL) return NULL;
+    if (head-&gt;val == v) { Node *rest = head-&gt;next; free(head); return rest; }
+    Node *p = head;
+    while (p-&gt;next &amp;&amp; p-&gt;next-&gt;val != v) p = p-&gt;next;   /* stop before v */
+    if (p-&gt;next) { Node *gone = p-&gt;next; p-&gt;next = gone-&gt;next; free(gone); }
+    return head;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>singly linked list</strong> is a chain of nodes, each holding a value and a pointer to the next node, accessed from a <code>head</code> pointer.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  H["head"] --&gt; A["7 | next"]
+  A --&gt; B["5 | next"]
+  B --&gt; C["3 | next"]
+  C --&gt; N["NULL"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after <code>remove(5)</code>, where does the arrow out of 7 point? (Answer: to 3.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the table, predict: what does reading the 1,000th element cost?</p>
+          <details><summary>Check your answer</summary>
+            <p>Walking 999 <code>next</code> pointers: $O(n)$, compared with $O(1)$ for an array.</p>
+          </details>
+        </div>
+        <p>Reaching position $k$ (counting from 0) means following $k$ pointers. On average, over all positions:</p>
+        $$\frac{1}{n}\sum_{k=0}^{n-1} k \;=\; \frac{n-1}{2} \;=\; O(n)$$
+        <p>Changing links next to a node you already hold is constant work: one or two pointer writes.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>push_front</td><td>$O(1)$</td><td>One new node, one pointer change</td></tr>
+            <tr><td>push_back</td><td>$O(n)$, or $O(1)$ with a tail pointer</td><td>Must find the last node</td></tr>
+            <tr><td>Access $k$-th element</td><td>$O(k)$</td><td>Follow $k$ <code>next</code> pointers</td></tr>
+            <tr><td>Search for a value</td><td>$O(n)$</td><td>May visit every node</td></tr>
+            <tr><td>Insert/delete after a known node</td><td>$O(1)$</td><td>Rewire one pointer</td></tr>
+            <tr><td>Delete by value</td><td>$O(n)$</td><td>Must first find the previous node</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Always handle the head separately. Removing the first node changes <code>head</code> itself, so a function that only rewires <code>p-&gt;next</code> will miss it. That's why <code>remove_value</code> returns the new head.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Draw boxes and arrows for every pointer question. "Insert after a known node: $O(1)$; delete a node when you only have a pointer to it: $O(n)$ in a singly linked list, because you need its predecessor."</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Losing the rest of the list by overwriting <code>head</code> before saving <code>head-&gt;next</code>.</li>
+          <li>Dereferencing <code>p-&gt;next-&gt;val</code> without first checking that <code>p-&gt;next</code> is not <code>NULL</code>.</li>
+          <li>Forgetting to <code>free</code> removed nodes, which leaks memory.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Starting from an empty list, do <code>push_front(1)</code>, <code>push_front(2)</code>, <code>push_front(3)</code>. What is the list?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Each new node becomes the head.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p><code>3 → 2 → 1</code>. push_front reverses the insertion order.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Write the steps to reverse <code>1 → 2 → 3</code> in place using three pointers <code>prev</code>, <code>cur</code>, <code>next</code>. What is the cost? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Start with <code>prev = NULL</code>, <code>cur = head</code>. Repeat: save <code>next = cur-&gt;next</code>, set <code>cur-&gt;next = prev</code>, move <code>prev = cur</code>, <code>cur = next</code>. At the end <code>prev</code> is the new head, <code>3 → 2 → 1</code>. One pass: $O(n)$ time, $O(1)$ extra space.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Linked lists appeared in 1955–56 in the IPL language by Newell, Shaw and Simon, built for early artificial-intelligence programs.</p>
+          <p>They're worth knowing because they hide inside many other structures: sparse matrices, adjacency lists for graphs, free-memory lists in allocators, and the undo history of editors.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Inserting at the front is $O(1)$ <strong>because</strong> only the new node and the head pointer change.</li>
+          <li>Access by position is $O(n)$ <strong>because</strong> nodes are scattered in memory and can only be reached by following <code>next</code>.</li>
+          <li>Deleting needs the previous node <strong>because</strong> its <code>next</code> pointer is what must skip the removed node.</li>
+          <li>A tail pointer makes push_back $O(1)$ <strong>because</strong> it saves the walk to the last node.</li>
+          <li>The head is a special case <strong>because</strong> no node points to it; removing it changes <code>head</code> itself.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a singly linked list like a treasure hunt?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each clue says where the next one is, so you must follow them in order from the start. Each node points to the next node the same way.</p></details></li>
+          <li><strong>Walk through push_front(7) and then remove(5) on 5 → 3.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>push_front makes 7 point to 5 and become the head: 7 → 5 → 3. remove(5) finds 7, the node before 5, and points it to 3: 7 → 3.</p></details></li>
+          <li><strong>Why does <code>remove_value</code> return a pointer instead of <code>void</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the first node.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If the value is in the first node, the head itself changes. Returning the new head lets the caller update its <code>head</code> variable.</p></details></li>
+          <li><strong>So what is a singly linked list, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A chain of nodes, each holding a value and a pointer to the next, reached from a head pointer.</p></details></li>
+          <li><strong>Why is reading the $k$-th element $O(k)$ and not $O(1)$ as in an array?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions memory layout.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Nodes are not stored next to each other, so there's no address formula; the only way to reach node $k$ is to follow $k$ pointers.</p></details></li>
+          <li><strong>What do push_front, push_back, search and delete-after-a-known-node cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>push_front $O(1)$, push_back $O(n)$ or $O(1)$ with a tail pointer, search $O(n)$, delete after a known node $O(1)$.</p></details></li>
+          <li><strong>When would you choose a linked list over an array?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When you insert and delete a lot at the front or next to nodes you already hold, and rarely need access by index.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out <code>malloc</code>/<code>free</code> details and the tail-pointer variant. I'd keep the treasure-hunt analogy, the push_front and remove pictures, and "$O(1)$ to relink, $O(n)$ to find".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/list" target="_blank" rel="noopener">VisuAlgo: Linked list</a>: animate insert, remove and search on your own list.</li>
+          <li><a href="https://www.geeksforgeeks.org/singly-linked-list-tutorial/" target="_blank" rel="noopener">GeeksforGeeks: Singly linked list</a>: operations with code in C.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Linked_list" target="_blank" rel="noopener">Wikipedia: Linked list</a>: history, variants and trade-offs against arrays.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=singly+linked+list+explained" target="_blank" rel="noopener">YouTube search: singly linked list explained</a>: pick a walkthrough with box-and-arrow drawings.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

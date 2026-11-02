@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Selection sort · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="sorting-selection-sort" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="sorting.html" class="hover:text-indigo-500">Sorting</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Sorting</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Selection sort</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>[5, 3, 4, 1]</code>. Scan the whole array for the smallest number, 1, and swap it to the front: <code>[1, 3, 4, 5]</code>. Then scan the rest for the next smallest, and so on. That's selection sort: select the minimum, move it to the front, repeat.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> after pass $k$, the first $k$ positions hold the $k$ smallest values in their final places. The whole sort makes at most $n-1$ swaps, fewer than any other sort on this site.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Arrays and zero-based indexing.</li>
+          <li>Finding the minimum of an array with one loop.</li>
+          <li>Big-O notation (see Complexity analysis).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Picture a teacher lining up a class by height. They look over everyone still waiting, call the shortest child to the next spot in line, and repeat.</p>
+          <p>Selection sort does the same. Each pass scans the unsorted part, picks the smallest, and puts it in the next slot at the front. After $n-1$ picks, the line is in order.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with one pass by hand</h3>
+        <p>Take <code>[5, 3, 4, 1]</code>. Scan from left to right and remember the smallest you've seen. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: pass 1, predict before you read</p>
+          <p><strong>Step 1.</strong> Start with 5 as the smallest so far. Compare with 3. Predict: who is the smallest now?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>3. We only <em>remember</em> its position; nothing moves yet.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: after comparing with 4 and then 1, what is the minimum?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>4 is not smaller than 3, but 1 is. The minimum is 1, at index 3.</p></details>
+          <p><strong>Step 3.</strong> The scan is over. Predict: which two numbers swap?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>1 swaps with the first slot, 5: <code>[1, 3, 4, 5]</code>. One swap, three comparisons. The 1 is final.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/sorting-selection-sort-1.svg" alt="Selection sort on 5 3 4 1: pass 1 swaps 1 to the front, passes 2 and 3 find the minimum already in place." width="640" height="370">
+          <figcaption>What you just did by hand, then the rest of the run: yellow marks the slot being filled and the minimum found. Green is final.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does one pass of selection sort guarantee?</p>
+          <details><summary>Check your answer</summary>
+            <p>The smallest remaining value is placed in the next front slot, in its final position.</p>
+          </details>
+        </div>
+
+        <h3>Finish the run</h3>
+        <p>After pass 1, the array <code>[1, 3, 4, 5]</code> already looks sorted. Does selection sort notice?</p>
+        <ul>
+          <li><strong>Pass 2.</strong> Scan <code>[3, 4, 5]</code>. Predict: how many comparisons, and is there a swap?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>2 comparisons. The minimum, 3, is already in place, so there is no swap.</p></details></li>
+          <li><strong>Pass 3.</strong> Scan <code>[4, 5]</code>. Predict: does the algorithm stop early?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No. It makes 1 more comparison anyway. Total: 6 comparisons, 1 swap.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why did selection sort still run passes 2 and 3 on an array that was already sorted?</p>
+          <details><summary>Check your answer</summary>
+            <p>It has no early-stop check. To be sure 3 is the minimum, it has to look at every remaining number, so it always scans everything.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Scan the unsorted part and remember where the smallest number is. Swap it with the first unsorted slot. That slot is now final. Move the boundary one step right.</p>
+        <p>Repeat until only one number is left; it is automatically the largest.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of one pass in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Look through the unsorted part and note the smallest number's position. 2. Swap that number into the first unsorted slot. 3. Treat that slot as done and move on.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one pass by hand. It will make more sense.</p>
+        <pre><code class="language-c">void selection_sort(int a[], int n) {
+    for (int i = 0; i &lt; n - 1; i++) {
+        int min = i;                             /* index of smallest so far */
+        for (int j = i + 1; j &lt; n; j++)
+            if (a[j] &lt; a[min]) min = j;          /* remember, don't swap yet */
+        if (min != i) {                          /* one swap per pass */
+            int t = a[i]; a[i] = a[min]; a[min] = t;
+        }
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>selection sort</strong> repeatedly selects the minimum of the unsorted part <code>a[i..n-1]</code> and swaps it into position <code>i</code>.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["min = i"] --> B{"a[j] &lt; a[min] ?"}
+  B -->|yes| C["min = j"]
+  B -->|no| D["j = j + 1"]
+  C --> D
+  D --> E{"j reached the end?"}
+  E -->|no| B
+  E -->|yes| F["Swap a[i] and a[min], i = i + 1"]
+  F --> G{"i = n - 1 ?"}
+  G -->|no| A
+  G -->|yes| H["Done: the array is sorted"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: on <code>[5, 3, 4, 1]</code>, how many times does the arrow to "min = j" fire in pass 1? (Answer: twice, for 3 and then for 1.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does the number of comparisons depend on whether the input is sorted?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. Pass $i$ always scans the whole unsorted part, whatever the values are.</p>
+          </details>
+        </div>
+        <p>The passes make $n-1$, $n-2$, …, $1$ comparisons on <em>every</em> input:</p>
+        $$\sum_{i=1}^{n-1} i \;=\; \frac{n(n-1)}{2} \;=\; \Theta(n^2).$$
+        <p>Swaps are a different story: at most one per pass, so at most $n-1$ in total.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable</th><th>In-place</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(n^2)$</td><td>$O(n^2)$</td><td>$O(n^2)$</td><td>$O(1)$</td><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Selection sort is <strong>not stable</strong>. On <code>[2a, 2b, 1]</code>, pass 1 swaps 1 with 2a and throws 2a past 2b: <code>[1, 2b, 2a]</code>.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>"Which sort makes the fewest swaps?" Selection sort: at most $n-1$. Its comparisons are always $\frac{n(n-1)}{2}$, so best case = worst case = $\Theta(n^2)$.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Swapping inside the inner loop every time a smaller value appears, which turns one swap per pass into many.</li>
+          <li>Expecting an $O(n)$ best case on sorted input: there is no early stop.</li>
+          <li>Calling it stable. The long-distance swap can jump an element over an equal one.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Sort <code>[3, 1, 2]</code> by hand. How many comparisons and how many swaps does selection sort make?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Pass 1 scans 3 numbers and pass 2 scans 2. Swap only if the minimum isn't already in place.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>3 comparisons and 2 swaps: <code>[1, 3, 2]</code> after pass 1, then <code>[1, 2, 3]</code> after pass 2.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>An array of 6 numbers is <em>already sorted</em>. How many comparisons and how many swaps does the code above make? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>15 comparisons, which is $\frac{6 \cdot 5}{2}$, and 0 swaps, because the <code>min != i</code> check skips every swap.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Heap sort is selection sort with a smarter "find the minimum" step. A heap finds the extreme value in $O(\log n)$ instead of $O(n)$, which turns $O(n^2)$ into $O(n \log n)$.</p>
+          <p>So the idea you just learned is the backbone of one of the fast sorts. And when writes are expensive, as on flash memory, its few swaps are a real advantage.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>After pass $k$, the first $k$ slots are final, <strong>because</strong> each pass puts the smallest remaining value there.</li>
+          <li>It is always $\Theta(n^2)$ <strong>because</strong> each pass must scan the whole unsorted part to be sure it found the minimum.</li>
+          <li>It makes at most $n-1$ swaps <strong>because</strong> it swaps once per pass, after the scan.</li>
+          <li>It is not stable <strong>because</strong> the swap can carry an element over an equal one far away.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> it only stores the index of the minimum.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is selection sort like a teacher lining up a class?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The teacher repeatedly picks the shortest child still waiting and sends them to the next spot. Selection sort picks the smallest remaining value and puts it in the next front slot.</p></details></li>
+          <li><strong>Walk through pass 1 on [5, 3, 4, 1].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The smallest so far goes 5, then 3, stays 3 at 4, then becomes 1. At the end, 1 swaps with 5, giving [1, 3, 4, 5]: three comparisons, one swap.</p></details></li>
+          <li><strong>Why does the code remember the index and swap only once, after the scan?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what would happen to the number of swaps otherwise.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Until the scan ends, we don't know the true minimum. Swapping every time we see a smaller value would waste many swaps; one swap at the end keeps it to at most $n-1$.</p></details></li>
+          <li><strong>So what is selection sort, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It repeatedly finds the minimum of the unsorted part and swaps it into the first unsorted position.</p></details></li>
+          <li><strong>Why doesn't selection sort stop early on sorted input, like bubble sort can?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what the scan has to do to be sure.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>To know the minimum, it must look at every remaining number, and a scan with no swap tells it nothing about the rest. So every pass is a full scan, whatever the input.</p></details></li>
+          <li><strong>What is its time and space complexity?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$\Theta(n^2)$ in every case, with exactly $\frac{n(n-1)}{2}$ comparisons. Extra space is $O(1)$ and swaps are at most $n-1$.</p></details></li>
+          <li><strong>Is selection sort stable? Give an example.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>No. On [2a, 2b, 1], swapping 1 to the front sends 2a past 2b, giving [1, 2b, 2a].</p></details></li>
+          <li><strong>When would you choose selection sort over insertion sort?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When writes are much more expensive than reads, because it does at most $n-1$ swaps. Otherwise insertion sort wins, since it's adaptive and stable.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the exact comparison formula and the flash-memory use case. I'd keep the line-up analogy, one pass on a small array, and "always $O(n^2)$, few swaps, not stable".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/sorting" target="_blank" rel="noopener">VisuAlgo: Sorting</a>: pick "SEL" and watch the minimum being selected.</li>
+          <li><a href="https://www.toptal.com/developers/sorting-algorithms/selection-sort" target="_blank" rel="noopener">Toptal: Selection sort animation</a>: notice it takes the same time on sorted and random data.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Selection_sort" target="_blank" rel="noopener">Wikipedia: Selection sort</a>: analysis, and a stable variant.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=selection+sort+gypsy+folk+dance" target="_blank" rel="noopener">YouTube: selection sort as a folk dance</a>: the AlgoRythmics video for selection sort.</li>
+          <li><a href="https://www.youtube.com/results?search_query=selection+sort+explained" target="_blank" rel="noopener">YouTube search: selection sort explained</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

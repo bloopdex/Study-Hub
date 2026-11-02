@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Number line with emails, threshold and groups</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="640" height="320" rx="16" fill="#f8fafc"/>
+  <text x="320" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Same data: supervised vs unsupervised</text>
+  <rect x="60" y="60" width="520" height="80" fill="#ffffff" stroke="#cbd5e1"/>
+  <line x1="117.77777777777777" y1="140" x2="117.77777777777777" y2="145" stroke="#94a3b8"/>  <text x="117.77777777777777" y="159" text-anchor="middle" font-size="12" fill="#64748b">0</text>
+  <line x1="175.55555555555554" y1="140" x2="175.55555555555554" y2="145" stroke="#94a3b8"/>  <text x="175.55555555555554" y="159" text-anchor="middle" font-size="12" fill="#64748b">1</text>
+  <line x1="406.66666666666663" y1="140" x2="406.66666666666663" y2="145" stroke="#94a3b8"/>  <text x="406.66666666666663" y="159" text-anchor="middle" font-size="12" fill="#64748b">5</text>
+  <line x1="522.2222222222222" y1="140" x2="522.2222222222222" y2="145" stroke="#94a3b8"/>  <text x="522.2222222222222" y="159" text-anchor="middle" font-size="12" fill="#64748b">7</text>
+  <circle cx="117.8" cy="100.0" r="9" fill="#38bdf8" stroke="#0f172a" stroke-width="1"/>
+  <text x="117.8" y="89.0" text-anchor="middle" font-size="12" fill="#334155">not spam</text>
+  <circle cx="175.6" cy="100.0" r="9" fill="#38bdf8" stroke="#0f172a" stroke-width="1"/>
+  <circle cx="406.7" cy="100.0" r="9" fill="#ef4444" stroke="#0f172a" stroke-width="1"/>
+  <text x="406.7" y="89.0" text-anchor="middle" font-size="12" fill="#334155">spam</text>
+  <circle cx="522.2" cy="100.0" r="9" fill="#ef4444" stroke="#0f172a" stroke-width="1"/>
+  <text x="522.2" y="89.0" text-anchor="middle" font-size="12" fill="#334155">spam</text>
+  <polyline points="377.8,140.0 377.8,60.0" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <text x="383.55555555555554" y="72" text-anchor="start" font-size="13" font-weight="700" fill="#22c55e">threshold</text>
+  <rect x="60" y="200" width="520" height="80" fill="#ffffff" stroke="#cbd5e1"/>
+  <line x1="117.77777777777777" y1="280" x2="117.77777777777777" y2="285" stroke="#94a3b8"/>  <text x="117.77777777777777" y="299" text-anchor="middle" font-size="12" fill="#64748b">0</text>
+  <line x1="175.55555555555554" y1="280" x2="175.55555555555554" y2="285" stroke="#94a3b8"/>  <text x="175.55555555555554" y="299" text-anchor="middle" font-size="12" fill="#64748b">1</text>
+  <line x1="406.66666666666663" y1="280" x2="406.66666666666663" y2="285" stroke="#94a3b8"/>  <text x="406.66666666666663" y="299" text-anchor="middle" font-size="12" fill="#64748b">5</text>
+  <line x1="522.2222222222222" y1="280" x2="522.2222222222222" y2="285" stroke="#94a3b8"/>  <text x="522.2222222222222" y="299" text-anchor="middle" font-size="12" fill="#64748b">7</text>
+  <circle cx="117.8" cy="240.0" r="9" fill="#94a3b8" stroke="#0f172a" stroke-width="1"/>
+  <circle cx="175.6" cy="240.0" r="9" fill="#94a3b8" stroke="#0f172a" stroke-width="1"/>
+  <circle cx="406.7" cy="240.0" r="9" fill="#94a3b8" stroke="#0f172a" stroke-width="1"/>
+  <circle cx="522.2" cy="240.0" r="9" fill="#94a3b8" stroke="#0f172a" stroke-width="1"/>
+  <polyline points="83.1,268.0 83.1,212.0 210.2,212.0 210.2,268.0 83.1,268.0" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+  <text x="88.88888888888889" y="204" text-anchor="start" font-size="13" font-weight="700" fill="#6366f1">group A</text>
+  <polyline points="372.0,268.0 372.0,212.0 556.9,212.0 556.9,268.0 372.0,268.0" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+  <text x="377.7777777777778" y="204" text-anchor="start" font-size="13" font-weight="700" fill="#6366f1">group B</text>
+  <text x="320" y="50" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">supervised: labels known</text>
+  <text x="320" y="190" text-anchor="middle" font-size="15" font-weight="700" fill="#334155">unsupervised: no labels, find structure</text>
+</svg>

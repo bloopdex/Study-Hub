@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autoencoder · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-autoencoder" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Autoencoder</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Squeeze a 4-number input $[1, 0, 1, 0]$ through a 2-number bottleneck and try to rebuild it. The encoder averages pairs: code $z = [1, 0]$. The decoder copies each code number back to two positions: $[1, 0, 1, 0]$, a perfect reconstruction. The input $[1, 1, 0, 0]$, which doesn't fit that pattern, comes back as $[0.5, 0.5, 0.5, 0.5]$, with error 0.25. That's an autoencoder: learn a compact code by reconstructing the input.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it learns compressed representations without any labels. Its bottleneck codes are used for dimensionality reduction, denoising and anomaly detection: inputs that reconstruct badly are unusual.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-mlp.html">Dense layers</a>.</li>
+          <li><a href="dl-loss-functions.html">MSE loss</a>.</li>
+          <li><a href="mla-pca.html">PCA</a>: a linear autoencoder learns the same subspace.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of summarising a long email in two bullet points (the code), then asking a colleague to rewrite the full email from your bullets alone.</p>
+          <p>If the rewritten email is close to the original, your bullets captured what matters. An autoencoder learns both the summariser (encoder) and the rewriter (decoder) by comparing the result with the original.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>This example:</strong> linear encoder $z = W_e x$ with $W_e = \begin{bmatrix} 0.5 & 0 & 0.5 & 0 \\ 0 & 0.5 & 0 & 0.5 \end{bmatrix}$; decoder $\hat x = W_d z$ with $W_d = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 0 \\ 0 & 1 \end{bmatrix}$; loss = MSE between $x$ and $\hat x$.</p>
+        <h3>Start with one input by hand</h3>
+        <p>Input $x = [1, 0, 1, 0]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Encode: $z_1 = 0.5 x_1 + 0.5 x_3$, $z_2 = 0.5 x_2 + 0.5 x_4$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = [1, 0]$: two numbers instead of four.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: decode $\hat x = [z_1, z_2, z_1, z_2]$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$[1, 0, 1, 0]$.</p></details>
+          <p><strong>Step 3.</strong> Reconstruction error (MSE).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>0: this input fits the pattern the autoencoder encodes (positions 1 and 3 equal, 2 and 4 equal).</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-autoencoder-1.svg" alt="Autoencoder with 4 input nodes, a 2-node bottleneck and 4 output nodes; input 1 0 1 0 reconstructed exactly" width="640" height="330">
+          <figcaption>What you just did: 4 numbers squeezed into a 2-number code (middle) and expanded back. The bottleneck forces it to keep only the essential pattern.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why must the code be smaller than the input?</p>
+          <details><summary>Check your answer</summary>
+            <p>Otherwise the network could just copy the input through unchanged; the bottleneck forces it to keep only the most important structure.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: an unusual input</h3>
+        <p>Feed $x = [1, 1, 0, 0]$ to the same autoencoder.</p>
+        <ul>
+          <li><strong>Code and reconstruction.</strong> Predict both.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = [0.5, 0.5]$; $\hat x = [0.5, 0.5, 0.5, 0.5]$.</p></details></li>
+          <li><strong>Error, and what it tells you.</strong> Predict the MSE and its use.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(0.25 \cdot 4)/4 = 0.25$. A high error flags an input unlike the training data: the idea behind autoencoder anomaly detection.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what reconstruction error did $[1, 1, 0, 0]$ get, and why?</p>
+          <details><summary>Check your answer</summary>
+            <p>0.25: it doesn't match the pattern the code keeps, so it comes back as the blur $[0.5, 0.5, 0.5, 0.5]$.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's autoencoder, encoder $W_e = \begin{bmatrix} 0.5 & 0 & 0.5 & 0 \\ 0 & 0.5 & 0 & 0.5 \end{bmatrix}$ and decoder $W_d$ that copies each code value back to two positions, used as an anomaly detector on four inputs with a threshold of 0.1.</p>
+        <table>
+          <thead>
+            <tr><th>Input $x$</th><th>Code $z = W_e x$</th><th>Reconstruction $\hat x = W_d z$</th><th>MSE</th><th>Verdict (> 0.1)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>[1, 0, 1, 0]</td><td>[1, 0]</td><td>[1, 0, 1, 0]</td><td>0</td><td>normal</td></tr>
+            <tr><td>[0, 1, 0, 1]</td><td>[0, 1]</td><td>[0, 1, 0, 1]</td><td>0</td><td>normal</td></tr>
+            <tr><td>[1, 0, 0, 0]</td><td>[0.5, 0]</td><td>[0.5, 0, 0.5, 0]</td><td>0.125</td><td><strong>anomaly</strong></td></tr>
+            <tr><td>[1, 1, 0, 0]</td><td>[0.5, 0.5]</td><td>[0.5, 0.5, 0.5, 0.5]</td><td>0.25</td><td><strong>anomaly</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Encode</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_1 = 0.5 x_1 + 0.5 x_3, \qquad z_2 = 0.5 x_2 + 0.5 x_4 \;\Rightarrow\; [1, 0, 1, 0] \mapsto [1, 0]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The encoder squeezes 4 numbers into 2. Each code value is the average of two positions, so the code can only describe inputs where positions 1 and 3 (and 2 and 4) agree.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Decode</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat x = [z_1,\; z_2,\; z_1,\; z_2] = [1, 0, 1, 0]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The decoder writes each code value back into the two positions it came from. For an input that follows the pattern, nothing is lost.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Reconstruction error</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{MSE} = \frac{1}{4}\sum_i (x_i - \hat x_i)^2 = 0$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The training loss of an autoencoder is exactly this error. A low value means "this input looks like the data I was trained on".</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>An input that breaks the pattern</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$[1, 0, 0, 0] \mapsto z = [0.5, 0] \mapsto \hat x = [0.5, 0, 0.5, 0], \qquad \text{MSE} = \frac{0.25 + 0 + 0.25 + 0}{4} = 0.125$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The bottleneck has no way to say "position 1 but not position 3", so it averages them. The error reveals that this input is unusual.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>The most unusual input</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$[1, 1, 0, 0] \mapsto [0.5, 0.5] \mapsto [0.5, 0.5, 0.5, 0.5], \qquad \text{MSE} = \frac{4 \cdot 0.25}{4} = 0.25$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Every position is off by 0.5. This input contradicts the pattern twice, so its error is twice as large.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Decide with a threshold</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{MSE} > 0.1 \;\Rightarrow\; \text{anomaly}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">In practice the threshold is chosen from the errors on normal validation data, for example their 99th percentile. Here the two pattern-following inputs pass and the two others are flagged.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>An autoencoder compresses (4 → 2 numbers) and rebuilds. Inputs like the training data come back almost perfectly; unusual inputs come back blurred.</p>
+          <p>The reconstruction error therefore works as an anomaly score, with no labelled anomalies needed for training.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Train an encoder $z = f(x)$ to a small code and a decoder $\hat x = g(z)$ back to the input, minimising the reconstruction error between $x$ and $\hat x$.</p>
+        <p>Afterwards, use $z$ as a compact representation, or the reconstruction error as an anomaly score.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the encode–decode–error steps, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Multiply the input by the encoder weights to get the code, multiply the code by the decoder weights to rebuild the input, then average the squared differences with the original.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have encoded and decoded by hand. It will make more sense.</p>
+        <pre><code class="language-c">double reconstruct_mse(double x[], double We[][4], double Wd[][2], double xh[]) {   /* 4 → 2 → 4 */
+    double z[2];
+    for (int k = 0; k &lt; 2; k++) {                       /* encoder */
+        z[k] = 0;
+        for (int j = 0; j &lt; 4; j++) z[k] += We[k][j] * x[j];
+    }
+    double err = 0;
+    for (int j = 0; j &lt; 4; j++) {                       /* decoder + squared error */
+        xh[j] = Wd[j][0] * z[0] + Wd[j][1] * z[1];
+        err += (x[j] - xh[j]) * (x[j] - xh[j]) / 4;
+    }
+    return err;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: an <strong>autoencoder</strong> is a network trained to reproduce its input through a smaller bottleneck code, made of an <strong>encoder</strong> $x \to z$ and a <strong>decoder</strong> $z \to \hat x$, using the reconstruction error as the loss.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X["input x (4)"] --&gt; ENC["encoder"]
+  ENC --&gt; Z["code z (2)"]
+  Z --&gt; DEC["decoder"]
+  DEC --&gt; XH["reconstruction x̂ (4)"]
+  XH --&gt; L["loss = ||x - x̂||²"]
+  X --&gt; L
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for anomaly detection, which value do you look at? (Answer: the loss, the reconstruction error.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what is the training target of an autoencoder?</p>
+          <details><summary>Check your answer</summary>
+            <p>The input itself: it learns to output its own input, through the bottleneck.</p>
+          </details>
+        </div>
+        <p>Training minimises the reconstruction error over the data:</p>
+        $$\min_{f,\, g} \; \frac1n \sum_{i} \lVert x_i - g(f(x_i)) \rVert^2, \qquad [1, 1, 0, 0] \to \hat x = [0.5, 0.5, 0.5, 0.5],\; \text{MSE} = 0.25$$
+        <table>
+          <thead>
+            <tr><th>Variant</th><th>Twist</th><th>Use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Undercomplete (ours)</td><td>Code smaller than input</td><td>Compression, features</td></tr>
+            <tr><td>Denoising</td><td>Input corrupted, target clean</td><td>Removing noise</td></tr>
+            <tr><td>Sparse</td><td>Penalty keeps most code units at 0</td><td>Interpretable features</td></tr>
+            <tr><td>Variational (VAE)</td><td>Code is a probability distribution</td><td>Generating new data</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A plain autoencoder's code space has gaps: decoding a random point between codes often gives garbage. To generate new samples, use a variational autoencoder.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Say what is supervised and what isn't: no labels are needed, because the target is the input itself. Then name one use (compression, denoising, anomaly detection) and its mechanism.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using a code as large as the input without other constraints, which lets the network learn the identity.</li>
+          <li>Expecting a plain autoencoder to generate realistic new samples from random codes.</li>
+          <li>Judging anomalies with a threshold set on test data instead of on normal training data.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Encode and decode $x = [0, 1, 0, 1]$ with the same weights. What is the error?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>It matches the pattern.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$z = [0, 1]$, $\hat x = [0, 1, 0, 1]$, error 0.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Encode and decode $x = [1, 0, 0, 0]$. Compute the reconstruction and MSE, and explain the result. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$z = [0.5, 0]$, $\hat x = [0.5, 0, 0.5, 0]$; errors 0.25, 0, 0.25, 0, MSE $= 0.125$. The code can only say "positions 1 and 3 together", so a lone 1 is smeared across both.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>A linear autoencoder trained with MSE learns the same subspace as PCA; non-linear layers let autoencoders capture curved structure that PCA misses.</p>
+          <p>Image generators such as Stable Diffusion work in the compressed code space of an autoencoder, which makes generation far cheaper than working on raw pixels.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The bottleneck forces compression <strong>because</strong> the code has fewer numbers than the input.</li>
+          <li>No labels are needed <strong>because</strong> the training target is the input itself.</li>
+          <li>Reconstruction error flags anomalies <strong>because</strong> inputs unlike the training data don't fit the learned code.</li>
+          <li>Linear autoencoders match PCA <strong>because</strong> both find the best low-dimensional linear subspace under squared error.</li>
+          <li>Plain autoencoders don't generate well <strong>because</strong> their code space isn't organised for random sampling.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is an autoencoder like summarising an email in two bullet points?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If a colleague can rewrite the email well from just the bullets, the bullets captured what matters; the code plays the bullets' role.</p></details></li>
+          <li><strong>Encode and decode $[1, 0, 1, 0]$ with the given weights.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Code $[1, 0]$, reconstruction $[1, 0, 1, 0]$, error 0.</p></details></li>
+          <li><strong>Why does the code divide each squared difference by 4?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions MSE.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It averages the squared errors over the 4 positions, giving the mean squared error.</p></details></li>
+          <li><strong>So what is an autoencoder, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A network trained to reproduce its input through a smaller code, with an encoder and a decoder.</p></details></li>
+          <li><strong>Why does $[1, 1, 0, 0]$ reconstruct badly?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what the code can express.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The code only stores "average of positions 1 and 3" and "average of 2 and 4", so this input becomes [0.5, 0.5] and decodes to a uniform blur.</p></details></li>
+          <li><strong>What loss is used, and what variants exist?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Reconstruction error, usually MSE; variants include denoising, sparse and variational autoencoders.</p></details></li>
+          <li><strong>How can an autoencoder detect anomalies?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Train it on normal data; inputs with unusually high reconstruction error are flagged as anomalies.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the variants and the PCA link. I'd keep the email-summary analogy, the 4 → 2 → 4 example with a good and a bad input, and "no labels, bottleneck, reconstruction error".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.deeplearningbook.org/contents/autoencoders.html" target="_blank" rel="noopener">Deep Learning book, chapter 14: Autoencoders</a>: Goodfellow, Bengio and Courville, free online.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Autoencoder" target="_blank" rel="noopener">Wikipedia: Autoencoder</a>: variants and applications.</li>
+          <li><a href="https://pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html" target="_blank" rel="noopener">PyTorch tutorial: Build a model</a>: the building blocks for an encoder and decoder.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=autoencoders+explained" target="_blank" rel="noopener">YouTube search: autoencoders explained</a>: pick a short visual explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

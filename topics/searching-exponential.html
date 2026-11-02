@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exponential search · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="searching-exponential" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="searching.html" class="hover:text-indigo-500">Searching</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Searching</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Exponential search</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Look for 14 in <code>[2, 4, 6, …, 20]</code>. Check index 1, then 2, then 4, then 8, doubling each time, until you pass 14 (at index 8, the value 18). Now 14 must be between index 4 and 8, so binary search just that slice. That's exponential search: double to find the range, then halve to find the element.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> its cost depends on where the target <em>is</em>, not on the array size: $O(\log i)$ for a target at index $i$. It even works when you don't know how long the array is.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="searching-binary.html">Binary search</a>, which is the second phase.</li>
+          <li>Powers of two: 1, 2, 4, 8, 16, …</li>
+          <li>Logarithms: $\log_2 i$ doublings reach $i$.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>You're looking for a page in a long scroll whose end you can't see. You jump 1 page, then 2, then 4, then 8, until you overshoot. Then you search back carefully in the last jump.</p>
+          <p>Exponential search does exactly that. Doubling quickly brackets the target, even with no idea how long the array is, and binary search finishes inside the bracket.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Data requirement:</strong> the array must be <strong>sorted</strong>. Its length may be unknown or unbounded.</p>
+        <h3>Start with one search by hand</h3>
+        <p>Look for 14 in <code>[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]</code>. a[0] = 2 is not it, so start doubling at <code>i = 1</code>. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> a[1] = 4 and a[2] = 6 are both &lt; 14. Predict: which index do you check next?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Double again: index 4, where a[4] = 10 &lt; 14.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: at index 8 the value is 18. What now?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>18 ≥ 14, so stop doubling. 14 must be between index 4 (the last value that was too small) and index 8.</p></details>
+          <p><strong>Step 3.</strong> Binary search indices 4..8. Predict: what is the first middle?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Index 6, which holds 14: found. 4 doubling checks plus 1 binary-search probe.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/searching-exponential-1.svg" alt="Exponential search checks indices 1, 2, 4 and 8, overshoots at 18, then binary searches indices 4 to 8 and finds 14 at index 6." width="740" height="450">
+          <figcaption>What you just did by hand: the yellow probe doubles until it passes 14. Then binary search works inside the indigo range.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the doubling phase guarantee when it stops?</p>
+          <details><summary>Check your answer</summary>
+            <p>The target, if present, lies between index $i/2$ and index $i$, a range of about $i/2$ elements.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture</h3>
+        <p>Try two more targets in the same array.</p>
+        <ul>
+          <li><strong>Search for 4.</strong> Predict: how many doubling steps?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>None. At <code>i = 1</code>, a[1] = 4 is not &lt; 4, so doubling stops at once and binary search checks the tiny range 0..1.</p></details></li>
+          <li><strong>Search for 21</strong>, bigger than everything. Predict: where does doubling stop?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>At <code>i = 16</code>, past the end, so <code>hi</code> is clipped to the last index, 9. Binary search on 8..9 then fails: −1.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why was searching for 4 so much cheaper than searching for 14?</p>
+          <details><summary>Check your answer</summary>
+            <p>The cost depends on the target's position: 4 is near the front, so doubling stops almost immediately.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Check the first element. Then check indices 1, 2, 4, 8, … while the value is smaller than the target and you're inside the array.</p>
+        <p>When you stop at index $i$, run binary search on indices $i/2$ to $\min(i, n-1)$.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of exponential search in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Handle the first element. 2. Double the index until the value there is at least the target or you leave the array. 3. Binary search between the last two indices you visited.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one search by hand. It will make more sense.</p>
+        <pre><code class="language-c">int exponential_search(const int a[], int n, int x) {
+    if (n == 0) return -1;
+    if (a[0] == x) return 0;
+    int i = 1;
+    while (i &lt; n &amp;&amp; a[i] &lt; x) i *= 2;         /* double until we pass x */
+    int lo = i / 2, hi = i &lt; n ? i : n - 1;    /* x is in a[lo..hi] if anywhere */
+    while (lo &lt;= hi) {                         /* plain binary search */
+        int mid = lo + (hi - lo) / 2;
+        if (a[mid] == x) return mid;
+        if (a[mid] &lt; x) lo = mid + 1; else hi = mid - 1;
+    }
+    return -1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>exponential search</strong> finds a range $[i/2, i]$ containing the target by doubling $i$, then runs binary search inside it.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"a[0] == x ?"} -->|yes| B["Return 0"]
+  A -->|no| C["i = 1"]
+  C --> D{"i &lt; n and a[i] &lt; x ?"}
+  D -->|yes| E["i = i * 2"]
+  E --> D
+  D -->|no| F["Binary search in a[i/2 .. min(i, n-1)]"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: searching for 14, how many times do you take the "i = i * 2" loop? (Answer: 3 times: 1→2, 2→4, 4→8.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: if the target is at index 1,000, about how many doublings are needed?</p>
+          <details><summary>Check your answer</summary>
+            <p>About 10, since $2^{10} = 1024$, however long the array is.</p>
+          </details>
+        </div>
+        <p>For a target at index $i$, doubling takes about $\log_2 i$ steps and the final range has about $i/2$ elements, so binary search adds another $\log_2 i$:</p>
+        $$\underbrace{\log_2 i}_{\text{doubling}} + \underbrace{\log_2 (i/2)}_{\text{binary search}} \;=\; O(\log i) \;\le\; O(\log n).$$
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Data requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(1)$</td><td>$O(\log i)$</td><td>$O(\log n)$</td><td>$O(1)$</td><td>Sorted, size may be unknown</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Clip the upper end with <code>min(i, n - 1)</code>. The last doubling can jump past the end of the array, and reading <code>a[i]</code> there is out of bounds.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>The key phrase is "$O(\log i)$ where $i$ is the position of the target". That's why it beats binary search when targets are near the front, and why it suits unbounded lists.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Starting the doubling at <code>i = 0</code>: 0 × 2 stays 0 forever.</li>
+          <li>Forgetting to clip <code>hi</code> to <code>n - 1</code> after the last doubling.</li>
+          <li>Searching <code>[0, i]</code> instead of <code>[i/2, i]</code>: still correct, but it throws away what doubling learned.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>In <code>[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]</code>, search for 10. Where does doubling stop, and what range does binary search get?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Doubling continues only while <code>a[i] &lt; x</code>.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>It stops at <code>i = 4</code>, because a[4] = 10 is not &lt; 10. Binary search gets 2..4 and finds 10 at index 4.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>An array has a billion sorted elements and the target is at index 40. Roughly how many comparisons does exponential search need, compared with plain binary search? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Exponential: doubling checks indices 1, 2, 4, …, 64 (7 checks), then binary search on 32..64 takes about 6, so roughly 13. Binary search: about $\log_2 10^9 \approx 30$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Bentley and Yao described this "galloping" idea in 1976. Timsort uses it today when merging runs: it gallops ahead to find where a long block of elements ends.</p>
+          <p>It's worth knowing because many real searches happen in data without a known end: streams, linked pages of results, or a huge file read lazily.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Doubling brackets the target <strong>because</strong> it stops at the first $i$ where $a[i] \ge x$, so $x$ lies in $[i/2, i]$.</li>
+          <li>The cost is $O(\log i)$ <strong>because</strong> both phases depend only on the target's position $i$, not on $n$.</li>
+          <li>It works on unbounded lists <strong>because</strong> it never needs to know $n$ in advance.</li>
+          <li>It needs sorted data <strong>because</strong> both the doubling test and the binary search rely on order.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> it only keeps a few indices.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is exponential search like searching a scroll with no visible end?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You jump 1, 2, 4, 8 pages ahead until you overshoot, then search back carefully in the last jump. That's doubling, then binary search.</p></details></li>
+          <li><strong>Walk through a search for 14 in [2, 4, …, 20].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Indices 1, 2 and 4 hold values below 14; index 8 holds 18, so stop. Binary search on 4..8 checks index 6 first and finds 14.</p></details></li>
+          <li><strong>Why does the code start doubling at <code>i = 1</code> and check <code>a[0]</code> separately?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what doubling 0 gives.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Doubling 0 gives 0 forever, so the loop would never move. Starting at 1 lets it double, and index 0 is handled by its own check.</p></details></li>
+          <li><strong>So what is exponential search, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It doubles an index until it passes the target to find a range, then binary searches inside that range.</p></details></li>
+          <li><strong>Why is its cost $O(\log i)$ and not $O(\log n)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer looks at both phases.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Doubling stops after about $\log_2 i$ steps, and the bracket it finds has about $i/2$ elements, so binary search also takes about $\log_2 i$. Neither phase looks beyond the target's neighbourhood.</p></details></li>
+          <li><strong>What are its best, average and worst cases?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Best $O(1)$ when the target is at index 0, typically $O(\log i)$, worst $O(\log n)$ when the target is near the end. Extra space $O(1)$.</p></details></li>
+          <li><strong>When is it better than plain binary search?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When targets are usually near the front of a big array, or when the array's length is unknown or unbounded, so binary search can't pick a middle.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the clipping detail and the Timsort connection. I'd keep the scroll analogy, the 1-2-4-8 doubling on the example, and "double to bracket, binary search inside, $O(\log i)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/exponential-search/" target="_blank" rel="noopener">GeeksforGeeks: Exponential search</a>: an article with code and its use on unbounded arrays.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Exponential_search" target="_blank" rel="noopener">Wikipedia: Exponential search</a>: history and the $O(\log i)$ analysis.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=exponential+search+algorithm" target="_blank" rel="noopener">YouTube search: exponential search algorithm</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

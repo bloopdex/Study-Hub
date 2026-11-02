@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ternary search · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="searching-ternary" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="searching.html" class="hover:text-indigo-500">Searching</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Searching</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Ternary search</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Look for 11 in <code>[1, 3, 5, 7, 9, 11, 13, 15, 17]</code>. Instead of one middle, check two points that cut the array into thirds: 5 and 13. 11 is between them, so keep the middle third, <code>[7, 9, 11]</code>, and repeat: 11 is found. That's ternary search: split into three, keep one third.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> each round keeps one third of the range, so it takes $O(\log n)$ rounds. Its real strength is finding the maximum of a function that rises and then falls.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="searching-binary.html">Binary search</a>: ternary search is its three-way cousin.</li>
+          <li>Logarithms in different bases: $\log_3 n = \log_2 n / \log_2 3$.</li>
+          <li>Unimodal functions: values go up, then down, like a hill.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Looking for a word in a dictionary, you could put two bookmarks at one third and two thirds of the way through. The word is before the first, after the second, or between them.</p>
+          <p>Ternary search does this on a sorted array. Two probes decide which third the target is in, and the other two thirds are thrown away.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Data requirement:</strong> a <strong>sorted</strong> array to search for a value, or a <strong>unimodal</strong> function (up then down) to find its peak.</p>
+        <h3>Start with one search by hand</h3>
+        <p>Look for 11 in <code>[1, 3, 5, 7, 9, 11, 13, 15, 17]</code>, indices 0 to 8. A third of the range is $(8 - 0) / 3 = 2$. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> The probes are <code>m1 = 0 + 2 = 2</code> and <code>m2 = 8 - 2 = 6</code>. Predict their values.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>a[2] = 5 and a[6] = 13.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: 11 is bigger than 5 and smaller than 13. Which third do you keep?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The middle third, indices 3..5: <code>[7, 9, 11]</code>.</p></details>
+          <p><strong>Step 3.</strong> Now a third of 3..5 is 0, so <code>m1 = 3</code> and <code>m2 = 5</code>. Predict the result.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>a[5] = 11: found at index 5. 2 rounds, 4 probes in total.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/searching-ternary-1.svg" alt="Ternary search probes 5 and 13, keeps the middle third, then probes 7 and 11 and finds 11 at index 5." width="760" height="210">
+          <figcaption>What you just did by hand: two yellow probes per round. Grey thirds are thrown away.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what do the two probes tell you in one round?</p>
+          <details><summary>Check your answer</summary>
+            <p>Whether the target is in the left third, the middle third or the right third, so two thirds can be discarded.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a hilltop</h3>
+        <p>Ternary search shines on a hill-shaped function. Find the peak of $f(x) = -(x - 4)^2$ on $0 \le x \le 9$.</p>
+        <ul>
+          <li><strong>Round 1.</strong> Probes at $x = 3$ and $x = 6$: $f(3) = -1$ and $f(6) = -4$. Predict: which third can't hold the peak?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$f(3) &gt; f(6)$, so the peak is left of 6: drop $(6, 9]$ and keep $[0, 6]$.</p></details></li>
+          <li><strong>Round 2.</strong> Probes at $x = 2$ and $x = 4$: $f(2) = -4$ and $f(4) = 0$. Predict the next range.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$f(2) &lt; f(4)$, so the peak is right of 2: keep $[2, 6]$. The range keeps closing in on 4.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: on a hill, why can comparing $f(m_1)$ and $f(m_2)$ rule out a third?</p>
+          <details><summary>Check your answer</summary>
+            <p>If $f(m_1) &lt; f(m_2)$, you're still climbing at $m_1$, so the peak can't be left of $m_1$. If $f(m_1) &gt; f(m_2)$, you're already descending at $m_2$, so it can't be right of $m_2$.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Place two probes at one third and two thirds of the range. If either one is the target, stop.</p>
+        <p>Otherwise keep the left third if the target is smaller than the first probe, the right third if it's bigger than the second, or else the middle third.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of one round in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Pick two probe points that split the range into thirds. 2. Check whether either is the target. 3. Keep the one third that can still contain it.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one search by hand. It will make more sense.</p>
+        <pre><code class="language-c">int ternary_search(const int a[], int n, int x) {
+    int lo = 0, hi = n - 1;
+    while (lo &lt;= hi) {
+        int third = (hi - lo) / 3;
+        int m1 = lo + third, m2 = hi - third;
+        if (a[m1] == x) return m1;
+        if (a[m2] == x) return m2;
+        if (x &lt; a[m1]) hi = m1 - 1;               /* left third */
+        else if (x &gt; a[m2]) lo = m2 + 1;          /* right third */
+        else { lo = m1 + 1; hi = m2 - 1; }        /* middle third */
+    }
+    return -1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>ternary search</strong> splits the range with two probes into three parts and keeps the one part that can contain the target, or the peak of a unimodal function.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["m1 = lo + third, m2 = hi - third"] --> B{"a[m1] or a[m2] equals x ?"}
+  B -->|yes| C["Return that index"]
+  B -->|no| D{"x &lt; a[m1] ?"}
+  D -->|yes| E["Keep left third"]
+  D -->|no| F{"x &gt; a[m2] ?"}
+  F -->|yes| G["Keep right third"]
+  F -->|no| H["Keep middle third"]
+  E --> A
+  G --> A
+  H --> A
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: searching for 11, which "Keep" box do you reach in round 1? (Answer: "Keep middle third", since 5 &lt; 11 &lt; 13.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: ternary search has fewer rounds than binary search. Does it make fewer comparisons?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. Each round costs 2 comparisons instead of 1, and that more than cancels the saving in rounds.</p>
+          </details>
+        </div>
+        <p>There are $\log_3 n$ rounds of 2 comparisons. Converting to base 2:</p>
+        $$2 \log_3 n \;=\; \frac{2}{\log_2 3} \log_2 n \;\approx\; 1.26 \, \log_2 n.$$
+        <p>Still $O(\log n)$, but about 26% more comparisons than binary search on a sorted array.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Data requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(1)$</td><td>$O(\log n)$</td><td>$O(\log n)$</td><td>$O(1)$</td><td>Sorted array, or unimodal function</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>For finding a value in a sorted array, ternary search is <strong>worse</strong> than binary search, despite the bigger cut per round. Use it for peaks of unimodal functions, where binary search doesn't apply directly.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>A favourite trick question: "Is ternary search faster than binary search?" Answer: same $O(\log n)$, but more comparisons, because $2 \log_3 n &gt; \log_2 n$.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Claiming it beats binary search on sorted arrays because $\log_3 n &lt; \log_2 n$, forgetting the 2 comparisons per round.</li>
+          <li>On a unimodal function, dropping the wrong third: when $f(m_1) &lt; f(m_2)$, drop the <em>left</em> third.</li>
+          <li>Using it on a function with flat parts or several peaks, where equal values can't tell you which side the peak is on.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Search for 3 in <code>[1, 3, 5, 7, 9, 11, 13, 15, 17]</code>. Which third do you keep after round 1?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>The round-1 probes are again 5 and 13.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>3 &lt; 5, so keep the left third, indices 0..1. Round 2 probes indices 0 and 1 and finds 3 at index 1.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>For $n = 3^{10} = 59{,}049$, how many comparisons does ternary search need in the worst case, compared with binary search? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Ternary: about 10 rounds × 2 = 20 comparisons. Binary: $\lfloor \log_2 59049 \rfloor + 1 = 16$. Binary search wins.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>A refined version, golden-section search, places the probes at the golden ratio so one probe can be reused next round. Each round then costs only one new function evaluation.</p>
+          <p>That's why ternary search matters: tuning one setting to maximise a score, like the best price or the best angle, is a unimodal search problem.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Each round keeps one third <strong>because</strong> two probes split the range into three parts and only one can hold the target.</li>
+          <li>It is $O(\log n)$ <strong>because</strong> shrinking by a factor of 3 each round takes $\log_3 n$ rounds.</li>
+          <li>It loses to binary search on sorted arrays <strong>because</strong> $2 \log_3 n \approx 1.26 \log_2 n$ comparisons.</li>
+          <li>It works on hill-shaped functions <strong>because</strong> comparing $f(m_1)$ and $f(m_2)$ tells you which side you're climbing on.</li>
+          <li>Extra space is $O(1)$ <strong>because</strong> it only keeps the range ends and two probes.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is ternary search like using two bookmarks in a dictionary?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Two bookmarks split the book into thirds. Checking them tells you which third the word is in, and you ignore the other two.</p></details></li>
+          <li><strong>Walk through a search for 11 in [1, 3, 5, …, 17].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Round 1 probes 5 and 13; 11 is between them, so keep [7, 9, 11]. Round 2 probes 7 and 11 and finds 11 at index 5.</p></details></li>
+          <li><strong>Why does the code check <code>x &lt; a[m1]</code> before <code>x &gt; a[m2]</code>, and keep the middle otherwise?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer covers all three cases.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Smaller than the first probe means the left third; bigger than the second means the right third. If neither, the target must be between the probes, so the middle third is the only option left.</p></details></li>
+          <li><strong>So what is ternary search, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It splits the range into thirds with two probes and keeps the third that can contain the target or the peak.</p></details></li>
+          <li><strong>Why is it worse than binary search for finding a value in a sorted array?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares comparisons, not rounds.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It uses 2 comparisons per round for $\log_3 n$ rounds, about $1.26 \log_2 n$ in total. Binary search uses about $\log_2 n$.</p></details></li>
+          <li><strong>What are its best, average and worst cases?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Best $O(1)$ if a first probe hits the target. Average and worst $O(\log n)$. Extra space $O(1)$.</p></details></li>
+          <li><strong>How does ternary search find the peak of a hill-shaped function?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Compare $f(m_1)$ and $f(m_2)$. If $f(m_1)$ is smaller, you're still climbing, so drop the left third; otherwise drop the right third. Repeat until the range is tiny.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the base-change formula and golden-section search. I'd keep the two-bookmark analogy, one search on the example, and "$O(\log n)$, worse than binary for arrays, great for hilltops".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/ternary-search/" target="_blank" rel="noopener">GeeksforGeeks: Ternary search</a>: an article with code for sorted arrays.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Ternary_search" target="_blank" rel="noopener">Wikipedia: Ternary search</a>: the unimodal-function version.</li>
+          <li><a href="https://cp-algorithms.com/num_methods/ternary_search.html" target="_blank" rel="noopener">CP-Algorithms: Ternary search</a>: finding the maximum of a function, with pitfalls.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=ternary+search+unimodal+function" target="_blank" rel="noopener">YouTube search: ternary search on a unimodal function</a>: pick a short explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="230" viewBox="0 0 700 230" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">RMSProp step values</title>
+  <rect width="700" height="230" rx="16" fill="#f8fafc"/>
+  <text x="350" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">RMSProp, two steps on (w − 3)²</text>
+  <text x="82" y="66" text-anchor="middle" font-size="13" fill="#475569">gradient g</text>
+  <text x="178" y="66" text-anchor="middle" font-size="13" fill="#475569">avg of g²</text>
+  <text x="274" y="66" text-anchor="middle" font-size="13" fill="#475569">step</text>
+  <text x="370" y="66" text-anchor="middle" font-size="13" fill="#475569">new w</text>
+  <rect x="40" y="76" width="84" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="82" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−6</text>
+  <rect x="136" y="76" width="84" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="178" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">3.6</text>
+  <rect x="232" y="76" width="84" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="274" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.316</text>
+  <rect x="328" y="76" width="84" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="370" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.316</text>
+  <text x="450" y="104" font-size="15" fill="#334155">step 1</text>
+  <text x="226" y="146" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="156" width="84" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="82" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−5.37</text>
+  <rect x="136" y="156" width="84" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="178" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">6.12</text>
+  <rect x="232" y="156" width="84" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="274" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.217</text>
+  <rect x="328" y="156" width="84" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="370" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.533</text>
+  <text x="450" y="184" font-size="15" font-weight="700" fill="#15803d">step 2</text>
+</svg>

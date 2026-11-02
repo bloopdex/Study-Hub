@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="220" viewBox="0 0 720 220" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Forward propagation chain</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="720" height="220" rx="16" fill="#f8fafc"/>
+  <text x="360" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Forward pass: compute and cache, left to right</text>
+  <line x1="125.0" y1="100.0" x2="135.0" y2="100.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="245.0" y1="100.0" x2="255.0" y2="100.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="365.0" y1="100.0" x2="375.0" y2="100.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="485.0" y1="100.0" x2="495.0" y2="100.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="605.0" y1="100.0" x2="605.0" y2="100.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="15" y="73" width="110" height="54" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="70" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">x</text>
+  <text x="70" y="115" text-anchor="middle" font-size="12" fill="#475569">[1, 2]</text>
+  <rect x="135" y="73" width="110" height="54" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="190" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">z₁</text>
+  <text x="190" y="115" text-anchor="middle" font-size="12" fill="#475569">[−1.5, 2.5]</text>
+  <rect x="255" y="73" width="110" height="54" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="310" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">a₁</text>
+  <text x="310" y="115" text-anchor="middle" font-size="12" fill="#475569">[0, 2.5]</text>
+  <rect x="375" y="73" width="110" height="54" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="430" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">z₂</text>
+  <text x="430" y="115" text-anchor="middle" font-size="12" fill="#475569">−0.8</text>
+  <rect x="495" y="73" width="110" height="54" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="550" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">ŷ</text>
+  <text x="550" y="115" text-anchor="middle" font-size="12" fill="#475569">0.31</text>
+  <rect x="605" y="73" width="110" height="54" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="660" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">loss</text>
+  <text x="660" y="115" text-anchor="middle" font-size="12" fill="#475569">1.17</text>
+  <text x="360" y="180" text-anchor="middle" font-size="15" fill="#475569">W₁x + b₁ → ReLU → w₂·a₁ + b₂ → σ → −ln ŷ</text>
+</svg>

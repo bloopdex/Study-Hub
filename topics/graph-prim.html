@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prim's algorithm · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-prim" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Prim's algorithm</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Same four towns and cable costs as Kruskal: A–B 1, C–D 2, B–C 3, A–C 4, B–D 5. Start at A and grow one tree: the cheapest cable leaving the tree is A–B (1); then from {A, B} the cheapest is B–C (3); then from {A, B, C} it's C–D (2). Total 6. That's Prim's algorithm: grow from one vertex, always adding the cheapest edge out.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it builds a minimum spanning tree by growing a single connected tree, in $O(V^2)$ with an array (ideal for dense graphs) or $O(E \log V)$ with a heap.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="graph-kruskal.html">Kruskal's algorithm</a> and minimum spanning trees.</li>
+          <li><a href="graph-dijkstra.html">Dijkstra</a>: Prim has the same structure.</li>
+          <li><a href="structure-priority-queue.html">Priority queue</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine a mould spreading from one spot. Each day it grows across the cheapest gap from what it already covers, never jumping to a separate patch.</p>
+          <p>Prim's tree spreads the same way. It keeps, for every vertex outside the tree, the cheapest edge connecting it to the tree, and always attaches the vertex with the cheapest such edge.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> an <strong>undirected, connected</strong>, weighted graph. Negative weights are fine.</p>
+        <h3>Start with one run by hand</h3>
+        <p>Start at A. <code>key[v]</code> is the cheapest edge from the tree to v (∞ if none). Each round, add the outside vertex with the smallest key and update its neighbours' keys. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Add A. Predict the keys of B, C, D.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>key[B] = 1, key[C] = 4, key[D] = ∞ (A has no edge to D).</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: which vertex is added next, and which keys change?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>B (key 1). Through B: key[C] = min(4, 3) = 3 and key[D] = min(∞, 5) = 5.</p></details>
+          <p><strong>Step 3.</strong> Add the next vertices. Predict the order and the total weight.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>C (key 3), which lowers key[D] to 2; then D (key 2). Order A, B, C, D; total 1 + 3 + 2 = 6.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-prim-1.svg" alt="Prim from A: tree edges A-B, B-C, C-D added in that order, with order labels" width="560" height="290">
+          <figcaption>What you just did by hand: the numbers show the order in which vertices joined the tree. Same total as Kruskal, 6.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does <code>key[v]</code> store?</p>
+          <details><summary>Check your answer</summary>
+            <p>The weight of the cheapest edge connecting v to the current tree, or ∞ if there is none yet.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a different start</h3>
+        <p>Run Prim again starting from D.</p>
+        <ul>
+          <li><strong>The first two additions.</strong> Predict them.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>From D: C (2) is cheapest. From {D, C}: B (3), since key[A] is 4 via C.</p></details></li>
+          <li><strong>The last addition and total.</strong> Predict both.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>A joins via B (1). Edges C–D, B–C, A–B: total 6 again. The start changes the order, not the tree here.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how is Prim different from Kruskal?</p>
+          <details><summary>Check your answer</summary>
+            <p>Prim grows one connected tree from a start vertex; Kruskal merges many small groups in global edge order.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Start with any vertex in the tree. Set <code>key</code> of each vertex to its edge weight to the tree (∞ if none).</p>
+        <p>Repeat $V - 1$ times: add the outside vertex with the smallest key, then lower its neighbours' keys where its edges are cheaper.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write one round of Prim in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Pick the outside vertex with the smallest key. 2. Add it to the tree and add its key to the total. 3. For each neighbour still outside, lower its key if this new edge is cheaper.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the run by hand. It will make more sense.</p>
+        <pre><code class="language-c">int prim(int w[][4], int n) {                    /* w = 0: no edge; returns MST weight */
+    int key[100];
+    int in_tree[100];
+    int total = 0;
+    for (int i = 0; i &lt; n; i++) { key[i] = i == 0 ? 0 : INT_MAX; in_tree[i] = 0; }   /* start at 0 */
+    for (int round = 0; round &lt; n; round++) {
+        int u = -1;
+        for (int i = 0; i &lt; n; i++)                  /* cheapest edge into the tree */
+            if (!in_tree[i] &amp;&amp; (u == -1 || key[i] &lt; key[u])) u = i;
+        in_tree[u] = 1; total += key[u];
+        for (int v = 0; v &lt; n; v++)                  /* u's edges may be cheaper now */
+            if (w[u][v] &amp;&amp; !in_tree[v] &amp;&amp; w[u][v] &lt; key[v]) key[v] = w[u][v];
+    }
+    return total;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>Prim's algorithm</strong> builds a minimum spanning tree by growing one tree from a start vertex, always adding the cheapest edge that connects the tree to a new vertex.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["tree = start vertex"] --&gt; B["pick the outside vertex with the smallest key"]
+  B --&gt; C["add it and its key edge to the tree"]
+  C --&gt; D["lower the keys of its outside neighbours"]
+  D --&gt; E{"all vertices in the tree?"}
+  E --&gt;|no| B
+  E --&gt;|yes| F["done: minimum spanning tree"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: right after C is added in our example, what is key[D]? (Answer: 2, lowered from 5 by the edge C–D.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how does Prim's code compare with Dijkstra's?</p>
+          <details><summary>Check your answer</summary>
+            <p>Almost identical. The only change: the key is the single edge weight to the tree, not the total distance from the start.</p>
+          </details>
+        </div>
+        <p>The array version scans all vertices each round; the heap version pays $\log V$ per key update:</p>
+        $$O(V^2) \text{ (array)}, \qquad O\big((V + E) \log V\big) \text{ (binary heap)}$$
+        <p>On a dense graph, $E \approx V^2$, so the simple array version is the better choice.</p>
+        <table>
+          <thead>
+            <tr><th>Version</th><th>Time</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Array scan (code above)</td><td>$O(V^2)$</td><td>Dense graphs, adjacency matrix</td></tr>
+            <tr><td>Binary heap</td><td>$O((V + E) \log V)$</td><td>Sparse graphs, adjacency lists</td></tr>
+            <tr><td>Extra space</td><td>$O(V)$</td><td>Keys and in-tree flags</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Don't confuse Prim with Dijkstra. Dijkstra's key is the <em>total distance from the start</em> (dist[u] + w); Prim's key is just the <em>single edge weight</em> w. Using Dijkstra's rule gives a shortest-path tree, which is not the minimum spanning tree in general.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams often ask for the key table after each round, like Dijkstra's. Remember the update is <code>key[v] = min(key[v], w(u, v))</code>.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Updating keys with <code>key[u] + w</code> as in Dijkstra.</li>
+          <li>Updating vertices already in the tree.</li>
+          <li>Choosing the cheapest edge anywhere in the graph, which is Kruskal, instead of the cheapest edge leaving the tree.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Edges P–Q 2, Q–R 2, P–R 3, R–S 1. Run Prim from P: give the order in which vertices are added.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>From P, compare P–Q (2) with P–R (3).</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>P, Q (2), R (2, via Q), S (1, via R). Total 5.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Graph: S–A 1, S–B 4, A–B 2, B–C 1. Compare the shortest-path tree from S (Dijkstra) with the minimum spanning tree (Prim). Are they the same? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Dijkstra: dist A = 1, B = 3 (via A), C = 4, tree S–A, A–B, B–C. Prim from S: A (1), B (2 via A), C (1): same tree here, total 4. They differ in other graphs, e.g. a triangle S–A 2, S–B 2, A–B 1: Dijkstra keeps S–A and S–B (total 4), Prim keeps S–A and A–B (total 3).</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Prim's algorithm was first found by the Czech mathematician Vojtěch Jarník in 1930, then rediscovered by Robert Prim (1957) and Edsger Dijkstra (1959).</p>
+          <p>Jarník's motivation was an electricity network in Moravia: connecting towns with the least total wire.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Prim always adds the cheapest edge leaving the tree <strong>because</strong> that edge is safe to include in a minimum spanning tree.</li>
+          <li>It keeps one connected tree <strong>because</strong> every new vertex attaches to the existing tree.</li>
+          <li>The array version is $O(V^2)$ <strong>because</strong> each of $V$ rounds scans all vertices for the smallest key.</li>
+          <li>It differs from Dijkstra <strong>because</strong> its key is one edge weight, not a total distance.</li>
+          <li>Any start vertex works <strong>because</strong> every vertex must be in the spanning tree anyway.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Prim's algorithm like mould spreading?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It grows from one spot, each time covering the cheapest gap next to what it already covers, never starting a separate patch.</p></details></li>
+          <li><strong>Walk through Prim from A on A–B 1, C–D 2, B–C 3, A–C 4, B–D 5.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Add A; then B (key 1); then C (key 3 via B); then D (key 2 via C). Total 6.</p></details></li>
+          <li><strong>Why does the code compare <code>w[u][v] &lt; key[v]</code> and not <code>key[u] + w[u][v] &lt; key[v]</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what the key means.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The key is the cost of the single edge that would attach v to the tree, not a path length. Adding key[u] would turn the algorithm into Dijkstra.</p></details></li>
+          <li><strong>So what is Prim's algorithm, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It builds a minimum spanning tree by growing one tree from a start vertex, always adding the cheapest edge to a new vertex.</p></details></li>
+          <li><strong>Why does starting from a different vertex still give a minimum spanning tree?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Every vertex ends up in the tree, and at every step the cheapest edge leaving the current tree is safe, whatever the tree started from.</p></details></li>
+          <li><strong>What are Prim's array and heap costs?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Array: $O(V^2)$. Binary heap: $O((V + E) \log V)$. $O(V)$ extra space.</p></details></li>
+          <li><strong>Why can a shortest-path tree differ from a minimum spanning tree?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the triangle S–A 2, S–B 2, A–B 1.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Shortest paths from S keep S–A and S–B (each distance 2), total 4. The MST only needs S–A and A–B, total 3. One minimises distance from S, the other total edge weight.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the heap analysis and the history. I'd keep the mould analogy, the run from A, and "cheapest edge leaving the tree, like Dijkstra but with edge weights, $O(V^2)$ or $O(E \log V)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/mst" target="_blank" rel="noopener">VisuAlgo: Minimum spanning tree</a>: run Prim from any start vertex.</li>
+          <li><a href="https://www.geeksforgeeks.org/prims-minimum-spanning-tree-mst-greedy-algo-5/" target="_blank" rel="noopener">GeeksforGeeks: Prim's algorithm</a>: array and heap versions.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Prim%27s_algorithm" target="_blank" rel="noopener">Wikipedia: Prim's algorithm</a>: history and complexity.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=prim+algorithm+minimum+spanning+tree" target="_blank" rel="noopener">YouTube search: Prim's algorithm</a>: pick a walkthrough with the key table.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

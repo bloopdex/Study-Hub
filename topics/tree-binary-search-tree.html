@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Binary search tree · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="tree-binary-search-tree" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="trees.html" class="hover:text-indigo-500">Trees</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Trees</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Binary search tree</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Insert 8, 3, 10, 1, 6, 14 one by one: each value goes left if it is smaller than the node, right if bigger. Now insert 7: 7 &lt; 8 go left, 7 &gt; 3 go right, 7 &gt; 6 go right: it becomes 6's right child. That's a binary search tree (BST): smaller values on the left, bigger on the right, at every node.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> every comparison picks one side, so search, insert and delete cost $O(h)$, the height. On a balanced tree that's $O(\log n)$, and an in-order traversal gives the values in sorted order for free.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="tree-binary-tree-basics.html">Binary tree basics</a> and in-order traversal.</li>
+          <li><a href="searching-binary.html">Binary search</a>: a BST is binary search turned into a tree.</li>
+          <li>Recursion.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of the "guess my number" game where each answer is "higher" or "lower". Every answer sends you down one branch, and you never look at the other side again.</p>
+          <p>A BST stores the answers in its shape: at each node, smaller values live on the left and bigger ones on the right, so finding a value is a short walk down one path.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with an insertion by hand</h3>
+        <p>The tree was built by inserting 8, 3, 10, 1, 6, 14: root 8; 3 and 10 below it; 1 and 6 under 3; 14 to the right of 10. Insert 7 and 4. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Insert 7. Predict the path from the root.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>8 (go left), 3 (go right), 6 (go right): 7 becomes the right child of 6.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: where does 4 go?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>8 (left), 3 (right), 6 (left): 4 becomes the left child of 6.</p></details>
+          <p><strong>Step 3.</strong> Search for 5. Predict which nodes you compare with, and the result.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>8, 3, 6, then 4 (5 &gt; 4, go right), and the right child of 4 is empty: not found after 4 comparisons.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/tree-binary-search-tree-1.svg" alt="BST with root 8, left 3 (children 1 and 6, and 6 has children 4 and 7), right 10 with right child 14; the path to 7 is highlighted" width="600" height="340">
+          <figcaption>What you just built: the yellow path is the search for 7. Smaller always left, bigger always right.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what is true at <em>every</em> node of a BST?</p>
+          <details><summary>Check your answer</summary>
+            <p>All values in its left subtree are smaller and all values in its right subtree are bigger.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: deleting</h3>
+        <p>Delete from the tree above (with 4 and 7 added). There are three cases.</p>
+        <ul>
+          <li><strong>Delete 3 (two children: 1 and 6).</strong> Predict the replacement value and what happens to it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>The successor is the smallest value right of 3: go to 6, then left as far as possible: 4. Copy 4 into 3's node, then delete the old 4 (a leaf).</p></details></li>
+          <li><strong>Delete 1 (a leaf), then 10 (one child).</strong> Predict the changes.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>1 just disappears. 10 is replaced by its only child, so 8's right child becomes 14. In-order is now 4, 6, 7, 8, 14.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: when you delete a node with two children, which value replaces it?</p>
+          <details><summary>Check your answer</summary>
+            <p>Its in-order successor: the smallest value in its right subtree (or the predecessor, the largest in the left subtree).</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>Search / insert</strong>: compare with the node; go left if smaller, right if bigger, and stop at a match or an empty spot.</p>
+        <p><strong>Delete</strong>: a leaf is removed; a node with one child is replaced by that child; a node with two children takes its successor's value, and the successor is deleted instead.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the steps of insert in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. If the tree is empty, the new node is the tree. 2. If the value is smaller than the node, insert into the left subtree; if bigger, into the right. 3. Return the (possibly new) subtree root.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the insertions and deletions by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct Node { int val; struct Node *left, *right; } Node;
+
+Node *insert(Node *t, int v) {                    /* returns the subtree root */
+    if (t == NULL) {
+        Node *n = malloc(sizeof(Node));
+        n-&gt;val = v; n-&gt;left = n-&gt;right = NULL;
+        return n;
+    }
+    if (v &lt; t-&gt;val) t-&gt;left = insert(t-&gt;left, v);
+    else if (v &gt; t-&gt;val) t-&gt;right = insert(t-&gt;right, v);   /* equal: ignore */
+    return t;
+}</code></pre>
+        <pre><code class="language-c">Node *remove_key(Node *t, int v) {               /* returns the subtree root */
+    if (t == NULL) return NULL;
+    if (v &lt; t-&gt;val) t-&gt;left = remove_key(t-&gt;left, v);
+    else if (v &gt; t-&gt;val) t-&gt;right = remove_key(t-&gt;right, v);
+    else if (t-&gt;left == NULL || t-&gt;right == NULL) {      /* 0 or 1 child */
+        Node *child = t-&gt;left ? t-&gt;left : t-&gt;right;
+        free(t); return child;
+    } else {                                      /* 2 children: use the successor */
+        Node *s = t-&gt;right;
+        while (s-&gt;left) s = s-&gt;left;
+        t-&gt;val = s-&gt;val;
+        t-&gt;right = remove_key(t-&gt;right, s-&gt;val);
+    }
+    return t;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>binary search tree</strong> is a binary tree where, at every node, all keys in the left subtree are smaller and all keys in the right subtree are bigger.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"t is empty?"} --&gt;|yes| B["create node v here"]
+  A --&gt;|no| C{"compare v with t.val"}
+  C --&gt;|"v smaller"| D["insert into left subtree"]
+  C --&gt;|"v bigger"| E["insert into right subtree"]
+  C --&gt;|equal| F["already present: do nothing"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: inserting 7, which arrows do you take at 8, 3 and 6? (Answer: "v smaller", then "v bigger", then "v bigger", then "create node".)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what happens to the height if you insert 1, 2, 3, 4, 5 in that order?</p>
+          <details><summary>Check your answer</summary>
+            <p>Every value goes right, so the tree is a chain of height 4, and search becomes $O(n)$.</p>
+          </details>
+        </div>
+        <p>Every operation walks one root-to-leaf path, so it costs the height $h$, which depends on the insertion order:</p>
+        $$\lfloor \log_2 n \rfloor \;\le\; h \;\le\; n - 1$$
+        <p>Random insertion orders give an expected height of $O(\log n)$. Sorted input gives the worst case, a chain.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Balanced</th><th>Worst (chain)</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Search</td><td>$O(\log n)$</td><td>$O(n)$</td><td>One path down</td></tr>
+            <tr><td>Insert</td><td>$O(\log n)$</td><td>$O(n)$</td><td>Search for the empty spot</td></tr>
+            <tr><td>Delete</td><td>$O(\log n)$</td><td>$O(n)$</td><td>Search, plus finding the successor</td></tr>
+            <tr><td>Min / max</td><td>$O(\log n)$</td><td>$O(n)$</td><td>Go left / right until the end</td></tr>
+            <tr><td>In-order (sorted output)</td><td>$O(n)$</td><td>$O(n)$</td><td>Visits each node once</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A plain BST gives <strong>no balance guarantee</strong>. Inserting sorted data (1, 2, 3, …) builds a chain, and every operation becomes $O(n)$. Self-balancing trees such as AVL fix this.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Deletion with two children is the favourite question. Say: "replace with the in-order successor (minimum of the right subtree), then delete the successor, which has at most one child".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Checking only a node's direct children instead of whole subtrees: in a BST, <em>every</em> left-subtree value must be smaller.</li>
+          <li>Forgetting to reattach the returned subtree (<code>t-&gt;left = insert(...)</code>), so new nodes are lost.</li>
+          <li>Deleting a two-child node by moving one subtree up, which breaks the ordering.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Insert 50, 30, 70, 20, 40 into an empty BST. What is its in-order traversal?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>In-order of a BST is always sorted.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>20, 30, 40, 50, 70.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>In the BST built from 50, 30, 70, 20, 40, 60, 80, delete 50. Which value becomes the root, and what is the new in-order traversal? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>The successor of 50 is the minimum of its right subtree: 60. It replaces 50 at the root, and the old 60 leaf is removed. In-order: 20, 30, 40, 60, 70, 80.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The sorted-input problem is real: inserting records by increasing ID builds a chain. That is why libraries use balanced trees: C++ <code>std::map</code> and Java's <code>TreeMap</code> are red-black trees.</p>
+          <p>Because in-order gives sorted output, a BST answers "next bigger value", "all keys between 10 and 20" and "smallest key" in $O(\log n)$ when balanced, which a plain array or list can't do while also allowing fast inserts.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Search follows one path <strong>because</strong> each comparison rules out a whole subtree.</li>
+          <li>Operations cost $O(h)$ <strong>because</strong> they walk from the root to at most a leaf.</li>
+          <li>Sorted insertion is the worst case <strong>because</strong> every new value goes the same way, building a chain.</li>
+          <li>In-order traversal is sorted <strong>because</strong> left values are smaller and right values bigger at every node.</li>
+          <li>Two-child deletion uses the successor <strong>because</strong> it is the next value in sorted order and has no left child.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a BST like the "higher or lower" guessing game?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each comparison says go left (lower) or right (higher), so you follow one path and never look at the other side.</p></details></li>
+          <li><strong>Walk through inserting 7 into the tree 8; 3, 10; 1, 6; 14.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>7 &lt; 8 go left to 3; 7 &gt; 3 go right to 6; 7 &gt; 6 go right, which is empty, so 7 becomes 6's right child.</p></details></li>
+          <li><strong>Why does <code>insert</code> return a node pointer and get assigned back, as in <code>t-&gt;left = insert(t-&gt;left, v)</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer covers the empty-subtree case.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When the subtree is empty, insert creates a new node, and the parent must store a pointer to it. Returning the subtree root and assigning it handles that case and leaves other links unchanged.</p></details></li>
+          <li><strong>So what is a binary search tree, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A binary tree where every node's left subtree holds smaller keys and its right subtree holds bigger keys.</p></details></li>
+          <li><strong>Walk through deleting 3 when it has children 1 and 6 (with 4 and 7 under 6).</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Find its successor, the smallest value in its right subtree: 4. Copy 4 into the node, then delete the old 4, which is a leaf.</p></details></li>
+          <li><strong>Why can a BST become as slow as a linked list?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer gives an insertion order.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Inserting sorted values sends every new value to the right of the last one, so the tree is a chain of height $n - 1$ and each operation walks all of it.</p></details></li>
+          <li><strong>What do search, insert and delete cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(h)$: $O(\log n)$ on a balanced tree, $O(n)$ in the worst case.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the code details and the predecessor alternative. I'd keep the higher/lower analogy, inserting 7 down one path, the three delete cases, and "$O(\log n)$ if balanced, $O(n)$ if it becomes a chain".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/bst" target="_blank" rel="noopener">VisuAlgo: Binary search tree</a>: animate insert, search and all three delete cases.</li>
+          <li><a href="https://www.geeksforgeeks.org/binary-search-tree-data-structure/" target="_blank" rel="noopener">GeeksforGeeks: Binary search tree</a>: operations with code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Binary_search_tree" target="_blank" rel="noopener">Wikipedia: Binary search tree</a>: analysis and history.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: lecture on binary trees and BST operations.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=binary+search+tree+delete+node+explained" target="_blank" rel="noopener">YouTube search: BST deletion explained</a>: pick a walkthrough of the three cases.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

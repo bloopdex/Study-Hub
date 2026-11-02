@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bellman-Ford algorithm · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-bellman-ford" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Bellman-Ford algorithm</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">From vertex 0, edges go 0 → 1 (4), 0 → 2 (5), 2 → 1 (−3) and 1 → 3 (2). Instead of settling vertices one by one, relax <em>every</em> edge, and repeat that $V - 1$ times. Vertex 1 first gets 4, then 5 − 3 = 2 through vertex 2. Negative edges are no problem. That's Bellman-Ford.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it finds shortest paths even when some edges are negative, in $O(VE)$, and one extra pass tells you whether a negative cycle makes "shortest" meaningless. Currency arbitrage and distance-vector routing use exactly this.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="graph-dijkstra.html">Dijkstra's algorithm</a> and edge relaxation.</li>
+          <li>Directed weighted graphs as an edge list.</li>
+          <li>Cycles in a graph.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine a rumour about the cheapest bus fare spreading through a town. Every day, everyone tells their neighbours "you can get here from me for my price plus the fare".</p>
+          <p>After enough days, everyone knows their true cheapest fare. A path uses at most $V - 1$ edges, so $V - 1$ rounds of gossip are always enough, unless prices keep dropping forever, which means a negative cycle.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> negative edge weights are allowed, but <strong>no negative cycle</strong> may be reachable from the start; the algorithm detects one if it exists.</p>
+        <h3>Start with one round by hand</h3>
+        <p>Edges in this order: (0→1, 4), (0→2, 5), (2→1, −3), (1→3, 2). Start: dist = [0, ∞, ∞, ∞]. Relax every edge in order. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Relax 0→1 and 0→2. Predict the distances.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>dist[1] = 4, dist[2] = 5.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: relax 2→1 (weight −3). Does dist[1] change?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Yes: 5 − 3 = 2 &lt; 4, so dist[1] = 2.</p></details>
+          <p><strong>Step 3.</strong> Relax 1→3. Then predict whether round 2 changes anything.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>dist[3] = 2 + 2 = 4. Round 2 changes nothing: dist = [0, 2, 5, 4] is final.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-bellman-ford-1.svg" alt="Directed graph with a negative edge 2 to 1 of weight minus 3; final distances 0, 2, 5, 4" width="600" height="290">
+          <figcaption>What you just computed: the negative edge makes the route 0 → 2 → 1 cheaper than the direct edge.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why does Bellman-Ford handle negative edges when Dijkstra doesn't?</p>
+          <details><summary>Check your answer</summary>
+            <p>It never declares a distance final early; it keeps relaxing every edge, so a later negative edge can still improve any distance.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a negative cycle</h3>
+        <p>Add the edge 1 → 2 with weight 1. Now 1 → 2 → 1 costs 1 − 3 = −2.</p>
+        <ul>
+          <li><strong>Going round the cycle.</strong> Predict what happens to dist[1] each time you go round.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It drops by 2 each lap: 2, 0, −2, … There is no shortest path; it goes to −∞.</p></details></li>
+          <li><strong>The extra round.</strong> Predict the output of the check after $V - 1$ rounds.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Some edge (for example 2 → 1) can still be relaxed, so the algorithm reports a negative cycle.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how does the algorithm detect a negative cycle?</p>
+          <details><summary>Check your answer</summary>
+            <p>After $V - 1$ rounds, it relaxes all edges once more. If any distance still improves, a negative cycle must exist.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Set dist[source] = 0, others ∞. Do $V - 1$ rounds; in each round, relax every edge $u \to v$: if dist[u] + w &lt; dist[v], update dist[v].</p>
+        <p>Then do one more pass. If anything still improves, report a negative cycle.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the algorithm in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Start with 0 for the source and ∞ elsewhere. 2. Repeat $V - 1$ times: relax every edge. 3. Relax every edge once more; any improvement means a negative cycle.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done a round by hand. It will make more sense.</p>
+        <pre><code class="language-c">int bellman_ford(int n, int m, int eu[], int ev[], int ew[], int s, int dist[]) {
+    for (int i = 0; i &lt; n; i++) dist[i] = INT_MAX;
+    dist[s] = 0;
+    for (int round = 1; round &lt; n; round++)               /* n - 1 rounds */
+        for (int j = 0; j &lt; m; j++)                        /* relax every edge */
+            if (dist[eu[j]] != INT_MAX &amp;&amp; dist[eu[j]] + ew[j] &lt; dist[ev[j]])
+                dist[ev[j]] = dist[eu[j]] + ew[j];
+    for (int j = 0; j &lt; m; j++)                            /* one more round */
+        if (dist[eu[j]] != INT_MAX &amp;&amp; dist[eu[j]] + ew[j] &lt; dist[ev[j]])
+            return 0;                                      /* still improving: negative cycle */
+    return 1;                                              /* distances are final */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: the <strong>Bellman-Ford algorithm</strong> computes single-source shortest paths by relaxing every edge $V - 1$ times; it allows negative edges and detects negative cycles.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["dist[s] = 0, others infinity"] --&gt; B["relax every edge"]
+  B --&gt; C{"done V - 1 rounds?"}
+  C --&gt;|no| B
+  C --&gt;|yes| D{"can any edge still be relaxed?"}
+  D --&gt;|yes| E["report a negative cycle"]
+  D --&gt;|no| F["distances are shortest paths"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: with the extra edge 1 → 2 (weight 1), which final box do you reach? (Answer: "report a negative cycle".)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why exactly $V - 1$ rounds?</p>
+          <details><summary>Check your answer</summary>
+            <p>A shortest path without cycles has at most $V - 1$ edges, and round $k$ guarantees all shortest paths with up to $k$ edges are found.</p>
+          </details>
+        </div>
+        <p>There are $V - 1$ rounds, and each round relaxes all $E$ edges:</p>
+        $$(V - 1) \cdot E \;=\; O(VE)$$
+        <p>That's slower than Dijkstra's $O((V + E) \log V)$, the price of allowing negative edges. You can stop early if a round changes nothing.</p>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Time</td><td>$O(VE)$</td><td>$V - 1$ rounds of $E$ relaxations</td></tr>
+            <tr><td>Negative-cycle check</td><td>$O(E)$</td><td>One extra round</td></tr>
+            <tr><td>Extra space</td><td>$O(V)$</td><td>One distance per vertex</td></tr>
+            <tr><td>Negative edges</td><td>Allowed</td><td>No distance is final until the end</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A negative cycle only matters if it is <strong>reachable from the source</strong>. The check above skips unreachable vertices (dist = ∞), so a negative cycle elsewhere in the graph is ignored, which is correct for single-source distances.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Two facts to state: "$V - 1$ rounds because a simple path has at most $V - 1$ edges", and "an improvement in round $V$ proves a negative cycle".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Running only one round and assuming it is enough (it was here only because the edge order was lucky).</li>
+          <li>Adding to ∞ (<code>INT_MAX + w</code>) for unreachable vertices, which overflows in C.</li>
+          <li>Forgetting the negative-cycle check and reporting meaningless distances.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Relax the same four edges in reverse order: (1→3, 2), (2→1, −3), (0→2, 5), (0→1, 4). What are the distances after round 1?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Edges from unreachable vertices do nothing yet.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>After round 1: dist = [0, 4, 5, ∞]. 1→3 and 2→1 fired while 1 and 2 were still ∞. Round 2 gives dist[3] = 6 (from the old dist[1]) and then dist[1] = 2; round 3 lowers dist[3] to 4. Edge order changes how many rounds you need, not the answer.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Exchange rates: 1 USD → 0.9 EUR, 1 EUR → 0.8 GBP, 1 GBP → 1.4 USD. Using edge weights $-\log(\text{rate})$, is there an arbitrage cycle? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>The product of rates round the cycle is 0.9 × 0.8 × 1.4 = 1.008 &gt; 1, so you end with more money. In weights that's a sum of $-\log$ below 0: a negative cycle, which Bellman-Ford detects.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The algorithm is named after Richard Bellman and Lester Ford Jr., who published it in the 1950s; Bellman also invented dynamic programming.</p>
+          <p>Early Internet routing (RIP) used a distributed Bellman-Ford: each router tells its neighbours its distance table, exactly like the gossip analogy.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>It allows negative edges <strong>because</strong> no distance is declared final before all rounds are done.</li>
+          <li>$V - 1$ rounds suffice <strong>because</strong> a shortest simple path has at most $V - 1$ edges.</li>
+          <li>An improvement in round $V$ proves a negative cycle <strong>because</strong> without one, nothing can improve any more.</li>
+          <li>It costs $O(VE)$ <strong>because</strong> every round relaxes every edge.</li>
+          <li>Unreachable vertices are skipped <strong>because</strong> adding to ∞ is meaningless and overflows.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Bellman-Ford like a rumour about cheap bus fares?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each round, everyone tells their neighbours "you can reach this place through me for this price". After enough rounds, everyone knows their cheapest fare.</p></details></li>
+          <li><strong>Walk through round 1 on the edges (0→1, 4), (0→2, 5), (2→1, −3), (1→3, 2).</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>dist[1] = 4, dist[2] = 5, then 2→1 lowers dist[1] to 2, then dist[3] = 4. Final: [0, 2, 5, 4].</p></details></li>
+          <li><strong>Why does the code check <code>dist[eu[j]] != INT_MAX</code> before relaxing?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions overflow.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An unreachable vertex has distance ∞; adding a weight to <code>INT_MAX</code> overflows in C, and a path from an unreachable vertex is meaningless anyway.</p></details></li>
+          <li><strong>So what is Bellman-Ford, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A shortest-path algorithm that relaxes every edge $V - 1$ times, handling negative edges and detecting negative cycles.</p></details></li>
+          <li><strong>Why are $V - 1$ rounds always enough without a negative cycle?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer counts edges on a shortest path.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A shortest path never repeats a vertex, so it has at most $V - 1$ edges, and round $k$ fixes every shortest path that uses $k$ edges.</p></details></li>
+          <li><strong>What do Bellman-Ford and its negative-cycle check cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(VE)$ for the rounds plus $O(E)$ for the check; $O(V)$ extra space.</p></details></li>
+          <li><strong>When would you choose Bellman-Ford over Dijkstra?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When the graph has negative edges, or when you need to detect negative cycles, such as arbitrage. Otherwise Dijkstra is faster.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the edge-order subtleties and the arbitrage example. I'd keep the gossip analogy, the round on the 4-vertex example, and "relax all edges $V - 1$ times, $O(VE)$, negative edges OK, detects negative cycles".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/sssp" target="_blank" rel="noopener">VisuAlgo: Single-source shortest paths</a>: choose Bellman-Ford and step through the rounds.</li>
+          <li><a href="https://www.geeksforgeeks.org/bellman-ford-algorithm-dp-23/" target="_blank" rel="noopener">GeeksforGeeks: Bellman-Ford</a>: code with negative-cycle detection.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Bellman%E2%80%93Ford_algorithm" target="_blank" rel="noopener">Wikipedia: Bellman-Ford algorithm</a>: proof and applications.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=bellman+ford+algorithm+explained" target="_blank" rel="noopener">YouTube search: Bellman-Ford explained</a>: pick a walkthrough of the rounds.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

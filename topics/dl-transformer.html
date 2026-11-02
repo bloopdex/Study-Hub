@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Transformer · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-transformer" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">The Transformer</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take the sentence "the cat sat". Turn each word into a vector, add a position signal, then pass all three vectors through a block: <strong>self-attention</strong> (each word gathers information from the others), add and normalise, then a small <strong>feed-forward</strong> network on each word, add and normalise. Stack 6, 12 or 96 such blocks. With $d_{\text{model}} = 512$ and 8 heads, one block has about 3.1 million weights. That's a Transformer.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it processes every position in parallel and lets any word attend to any other in one step, which made it possible to train on enormous text collections. GPT, BERT and almost every modern language model are Transformers.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-attention.html">Attention (Q, K, V)</a>.</li>
+          <li><a href="dl-mlp.html">Dense layers</a>.</li>
+          <li><a href="dl-batch-normalization.html">Normalization</a> (layer norm is the same idea per token).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine a round-table meeting. In each round, every participant listens to everyone else (attention), then thinks quietly on their own (feed-forward), and keeps a copy of their previous notes (residual connection). After many rounds, everyone's notes reflect the whole discussion.</p>
+          <p>Each Transformer block is one such round, applied to every token at the same time.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>One block:</strong> $x \leftarrow \text{LayerNorm}(x + \text{MultiHeadAttention}(x))$, then $x \leftarrow \text{LayerNorm}(x + \text{FFN}(x))$, with $\text{FFN}(x) = W_2\,\text{ReLU}(W_1 x + b_1) + b_2$. Positions are added to the input embeddings first.</p>
+        <h3>Start with the sizes of one block</h3>
+        <p>Use the original settings: $d_{\text{model}} = 512$, 8 attention heads, feed-forward size $d_{\text{ff}} = 2048$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Each head works in a smaller space. What is the size per head, $d_k$?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$512/8 = 64$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the attention weights. There are four $512 \times 512$ matrices ($W_Q$, $W_K$, $W_V$, $W_O$).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$4 \cdot 512^2 = 1{,}048{,}576$ weights (plus biases).</p></details>
+          <p><strong>Step 3.</strong> The feed-forward network: $512 \to 2048 \to 512$. Predict its weights and the block total.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$2 \cdot 512 \cdot 2048 = 2{,}097{,}152$. Block total $\approx 3.15$ million (plus biases and norm parameters).</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-transformer-1.svg" alt="Transformer block: input embeddings plus positions, multi-head self-attention, add and norm, feed-forward, add and norm, repeated N times" width="620" height="470">
+          <figcaption>What you just sized: one block. Residual "add" paths let each sub-layer refine the signal instead of replacing it.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what are the two sub-layers of a Transformer block?</p>
+          <details><summary>Check your answer</summary>
+            <p>Multi-head self-attention and a position-wise feed-forward network, each wrapped in a residual connection and layer normalization.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: positions</h3>
+        <p>The original Transformer adds sinusoidal position encodings: $PE(pos, 2i) = \sin(pos/10000^{2i/d})$, $PE(pos, 2i+1) = \cos(\cdot)$.</p>
+        <ul>
+          <li><strong>Position 1, dimensions 0 and 1 ($i = 0$).</strong> Predict the two values.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$\sin(1) \approx 0.841$ and $\cos(1) \approx 0.540$.</p></details></li>
+          <li><strong>Position 0.</strong> Predict the encoding for dimensions 0 and 1.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$\sin 0 = 0$ and $\cos 0 = 1$. Every position gets a unique pattern of waves of different frequencies.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does a Transformer need positional encodings?</p>
+          <details><summary>Check your answer</summary>
+            <p>Self-attention treats its inputs as a set; without position information "dog bites man" and "man bites dog" would look the same.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The numbers inside a Transformer: positional encodings for the first positions, a causal mask on "the cat sat", and a full parameter count for one block with $d = 512$, $d_{ff} = 2048$ (the original base model).</p>
+        <table>
+          <thead>
+            <tr><th>Part of one block</th><th>Formula</th><th>Parameters</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Attention: $W_Q, W_K, W_V, W_O$</td><td>$4 d^2$</td><td>1,048,576</td></tr>
+            <tr><td>Feed-forward: $d \to d_{ff} \to d$</td><td>$2\, d\, d_{ff}$</td><td>2,097,152</td></tr>
+            <tr><td>One block (weights only)</td><td></td><td><strong>3,145,728</strong></td></tr>
+            <tr><td>6 blocks</td><td></td><td>18,874,368</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Positional encoding</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$PE(\text{pos}, 2i) = \sin\frac{\text{pos}}{10000^{2i/d}}, \quad PE(\text{pos}, 2i + 1) = \cos\frac{\text{pos}}{10000^{2i/d}}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Attention by itself does not know word order. Each position gets a unique pattern of sines and cosines, added to the word's embedding.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Values for "cat" (position 1)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{dims } 0, 1: \; \sin 1 = 0.841, \; \cos 1 = 0.540; \qquad \text{dims } 2, 3: \; \sin\frac{1}{1.037} = 0.822, \; \cos = 0.570$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Position 0 is $[0, 1, 0, 1, \ldots]$, position 2 starts $[0.909, -0.416, \ldots]$. Low dimensions change fast with position, high dimensions slowly, like the hands of a clock.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Causal mask on the scores</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\begin{bmatrix} 1 & -\infty & -\infty \\ 0.5 & 1 & -\infty \\ 1 & 0.5 & 2 \end{bmatrix}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">In a decoder (like GPT), a word may only look at itself and earlier words. Scores for future positions are set to $-\infty$ before the softmax.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Softmax row by row</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{"the": } [1, 0, 0], \quad \text{"cat": } \frac{[e^{0.5}, e^{1}]}{e^{0.5} + e^{1}} = [0.378, 0.622, 0], \quad \text{"sat": } [0.231, 0.140, 0.629]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$e^{-\infty} = 0$, so future words get exactly zero weight. "the" can only attend to itself; "sat" sees all three.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Parameters of attention</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$4 \cdot 512^2 = 4 \cdot 262{,}144 = 1{,}048{,}576$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Four $d \times d$ matrices: query, key, value projections, and the output projection that merges the heads. Splitting into 8 heads of size 64 does not change this count.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Parameters of the feed-forward network</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$512 \cdot 2048 + 2048 \cdot 512 = 2{,}097{,}152$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Applied to every token separately, it expands to 2048 dimensions and back. It holds two thirds of the block's weights.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Whole encoder</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$6 \times 3{,}145{,}728 \approx 18.9 \text{ million}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Add the embeddings (vocabulary × 512) and small extras (biases, layer-norm $\gamma, \beta$) to reach the full model size. GPT-style models scale the same formula with more layers and larger $d$.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>A Transformer block = multi-head attention ($4d^2$ weights) + feed-forward ($2 d\, d_{ff}$), each wrapped in add & norm. Position comes from added sine/cosine patterns.</p>
+          <p>The causal mask (setting future scores to $-\infty$) is the only difference between an encoder's attention and a text generator's attention.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Embed the tokens and add positional encodings. Then repeat $N$ blocks: multi-head self-attention → add & norm → feed-forward → add & norm.</p>
+        <p>Encoders (BERT) let every token attend to all others; decoders (GPT) mask future tokens so each position only sees the past, and predict the next token.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the sinusoidal positional encoding in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For each position and each pair of dimensions, compute a sine and a cosine of the position divided by a frequency that shrinks along the dimensions; add these to the token embeddings.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have sized the block by hand. It will make more sense.</p>
+        <pre><code class="language-c">double pos_encoding(int pos, int dim, int d_model) {          /* sinusoidal PE */
+    int i = dim / 2;
+    double angle = pos / pow(10000, (2.0 * i) / d_model);
+    return dim % 2 == 0 ? sin(angle) : cos(angle);
+}</code></pre>
+        <pre><code class="language-c">long block_params(long d, long d_ff) {                         /* weights only, no biases */
+    return 4 * d * d + 2 * d * d_ff;                           /* attention + feed-forward */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>Transformer</strong> is a stack of blocks, each made of multi-head self-attention and a position-wise feed-forward network with residual connections and layer normalization, applied to token embeddings plus positional encodings.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  T["tokens"] --&gt; E["embeddings + positional encoding"]
+  E --&gt; A["multi-head self-attention"]
+  A --&gt; N1["add &amp; norm"]
+  N1 --&gt; F["feed-forward (per token)"]
+  F --&gt; N2["add &amp; norm"]
+  N2 --&gt;|"repeat N times"| A
+  N2 --&gt; O["output: next-token probabilities (decoder) or features (encoder)"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: in a GPT-style decoder, which box hides the future tokens? (Answer: "multi-head self-attention", through a causal mask.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does a Transformer's parameter count depend on the sentence length?</p>
+          <details><summary>Check your answer</summary>
+            <p>No: the same weights are applied to every position (except for learned position tables in some models).</p>
+          </details>
+        </div>
+        <p>Per block, the weights and the attention cost for a sequence of $n$ tokens:</p>
+        $$\#\text{weights} = \underbrace{4 d^2}_{\text{attention}} + \underbrace{2 d\, d_{\text{ff}}}_{\text{FFN}} = 4 \cdot 512^2 + 2 \cdot 512 \cdot 2048 \approx 3.15\text{M}, \qquad \text{attention cost } O(n^2 d)$$
+        <table>
+          <thead>
+            <tr><th>Setting</th><th>Value</th><th>Consequence</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$d_{\text{model}}$</td><td>512</td><td>Size of every token vector</td></tr>
+            <tr><td>Heads</td><td>8</td><td>$d_k = 64$ per head</td></tr>
+            <tr><td>$d_{\text{ff}}$</td><td>2048</td><td>FFN holds 2/3 of the block's weights</td></tr>
+            <tr><td>Blocks</td><td>6 (original)</td><td>≈ 19M weights in the encoder stack</td></tr>
+            <tr><td>Sequence length $n$</td><td>any</td><td>Attention cost grows as $n^2$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Without the residual connections and layer normalization, deep stacks of attention layers are very hard to train. They aren't decoration: every modern Transformer keeps them (often with the norm moved before each sub-layer, "pre-norm").</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Draw one block bottom-up and name every part. Know $d_k = d_{\text{model}}/h$, the $4d^2 + 2d\,d_{\text{ff}}$ parameter count, and the difference between encoder (BERT) and decoder (GPT) attention masks.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting positional encodings, so word order is lost.</li>
+          <li>Thinking the feed-forward layer mixes tokens; it is applied to each token separately.</li>
+          <li>Confusing encoder (bidirectional) and decoder (causal, masked) attention.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>A model has $d_{\text{model}} = 768$ and 12 heads. What is $d_k$?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Divide.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$768/12 = 64$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Estimate the weights of one block with $d = 768$ and $d_{\text{ff}} = 3072$, and of 12 such blocks. (BERT-base has about 110 million parameters in total.) Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Attention $4 \cdot 768^2 \approx 2.36$M; FFN $2 \cdot 768 \cdot 3072 \approx 4.72$M; block ≈ 7.1M; 12 blocks ≈ 85M. The rest of BERT's 110M is mostly the token embedding table.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The Transformer was introduced in 2017 by eight Google researchers in "Attention Is All You Need", originally for machine translation.</p>
+          <p>The same block is used for text (GPT, BERT), images (Vision Transformers cut images into patches as "tokens"), audio and protein structure prediction.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Transformers process tokens in parallel <strong>because</strong> attention compares all positions at once instead of stepping through them.</li>
+          <li>Positional encodings are needed <strong>because</strong> attention by itself ignores order.</li>
+          <li>Residual connections make depth trainable <strong>because</strong> each sub-layer only adds a refinement to its input.</li>
+          <li>A block has $4d^2 + 2d\,d_{\text{ff}}$ weights <strong>because</strong> attention uses four $d \times d$ matrices and the FFN two $d \times d_{\text{ff}}$ ones.</li>
+          <li>GPT can generate text <strong>because</strong> causal masking trains each position to predict the next token from the past only.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a Transformer block like a round-table meeting?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each participant listens to everyone (attention), then thinks alone (feed-forward), keeping their previous notes (residuals); many rounds give a shared understanding.</p></details></li>
+          <li><strong>Size one block with $d_{\text{model}} = 512$, 8 heads, $d_{\text{ff}} = 2048$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$d_k = 64$; attention $4 \cdot 512^2 \approx 1.05$M weights; FFN $\approx 2.10$M; total $\approx 3.15$M.</p></details></li>
+          <li><strong>Why does <code>pos_encoding</code> use <code>sin</code> for even dimensions and <code>cos</code> for odd ones?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions unique patterns.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each pair of dimensions encodes the position as a point on a circle at one frequency; using both sine and cosine makes each position's pattern unique and lets relative positions be expressed as rotations.</p></details></li>
+          <li><strong>So what is a Transformer, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A stack of blocks of multi-head self-attention and per-token feed-forward layers, with residual connections and normalization, applied to embeddings plus positions.</p></details></li>
+          <li><strong>Why can Transformers be trained faster than RNNs on long texts?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions parallelism.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>All positions are processed at once with matrix multiplications, instead of one step after another as in an RNN.</p></details></li>
+          <li><strong>How many weights does one block have, in terms of $d$ and $d_{\text{ff}}$?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$4d^2 + 2d\,d_{\text{ff}}$ (ignoring biases and normalization parameters).</p></details></li>
+          <li><strong>What is the difference between an encoder and a decoder Transformer?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Encoder tokens attend to the whole sequence (BERT); decoder tokens only attend to earlier positions through a causal mask and predict the next token (GPT).</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the parameter formula and positional-encoding maths. I'd keep the round-table analogy, the block diagram, and "attention + feed-forward + residuals, stacked; positions added; GPT predicts the next word".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank" rel="noopener">Jay Alammar: The Illustrated Transformer</a>: the most popular visual walkthrough.</li>
+          <li><a href="https://nlp.seas.harvard.edu/annotated-transformer/" target="_blank" rel="noopener">Harvard NLP: The Annotated Transformer</a>: the paper with working code, line by line.</li>
+          <li><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al.: Attention Is All You Need</a>: the original paper.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html" target="_blank" rel="noopener">PyTorch docs: nn.Transformer</a>: the module and its parameters.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=wjZofJX0v4M" target="_blank" rel="noopener">3Blue1Brown: Transformers, the tech behind LLMs</a>: a visual tour of a GPT-style Transformer.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

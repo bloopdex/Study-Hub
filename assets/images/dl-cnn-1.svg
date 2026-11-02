@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="310" viewBox="0 0 720 310" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Convolution example</title>
+  <rect width="720" height="310" rx="16" fill="#f8fafc"/>
+  <text x="360" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Convolution: patch × filter → one output cell</text>
+  <text x="111" y="66" text-anchor="middle" font-size="13" fill="#475569">image 3×3</text>
+  <text x="307" y="66" text-anchor="middle" font-size="13" fill="#475569">filter</text>
+  <text x="475" y="66" text-anchor="middle" font-size="13" fill="#475569">output 2×2</text>
+  <rect x="30" y="76" width="50" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="55" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">1</text>
+  <rect x="86" y="76" width="50" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="111" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">2</text>
+  <rect x="142" y="76" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="167" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0</text>
+  <rect x="254" y="76" width="50" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="279" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">1</text>
+  <rect x="310" y="76" width="50" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="335" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0</text>
+  <rect x="422" y="76" width="50" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="447" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0</text>
+  <rect x="478" y="76" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="503" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−1</text>
+  <text x="560" y="104" font-size="15" fill="#334155">top-left: 1 − 1 = 0</text>
+  <text x="279" y="146" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="30" y="156" width="50" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="55" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0</text>
+  <rect x="86" y="156" width="50" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="111" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">1</text>
+  <rect x="142" y="156" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="167" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">3</text>
+  <rect x="254" y="156" width="50" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="279" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0</text>
+  <rect x="310" y="156" width="50" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="335" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−1</text>
+  <rect x="422" y="156" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="447" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−1</text>
+  <rect x="478" y="156" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="503" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">1</text>
+  <text x="560" y="184" font-size="15" fill="#334155"></text>
+  <text x="279" y="226" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="30" y="236" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="55" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">2</text>
+  <rect x="86" y="236" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="111" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">1</text>
+  <rect x="142" y="236" width="50" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="167" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0</text>
+  <text x="560" y="264" font-size="15" fill="#334155"></text>
+</svg>

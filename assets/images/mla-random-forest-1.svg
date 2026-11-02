@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Random forest voting</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="640" height="320" rx="16" fill="#f8fafc"/>
+  <text x="320" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Three trees, one vote</text>
+  <line x1="270.0" y1="95.0" x2="180.0" y2="140.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="320.0" y1="95.0" x2="320.0" y2="140.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="370.0" y1="95.0" x2="460.0" y2="140.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="130.0" y1="190.0" x2="130.0" y2="225.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="320.0" y1="190.0" x2="320.0" y2="225.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="510.0" y1="190.0" x2="510.0" y2="225.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="235" y="45" width="170" height="50" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="320" y="68" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">training data</text>
+  <text x="320" y="85" text-anchor="middle" font-size="12" fill="#475569">10 rows</text>
+  <rect x="65" y="140" width="130" height="50" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="130" y="163" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">tree 1</text>
+  <text x="130" y="180" text-anchor="middle" font-size="12" fill="#475569">sample A</text>
+  <rect x="255" y="140" width="130" height="50" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="320" y="163" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">tree 2</text>
+  <text x="320" y="180" text-anchor="middle" font-size="12" fill="#475569">sample B</text>
+  <rect x="445" y="140" width="130" height="50" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="510" y="163" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">tree 3</text>
+  <text x="510" y="180" text-anchor="middle" font-size="12" fill="#475569">sample C</text>
+  <rect x="80" y="225" width="100" height="50" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="130" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">sick</text>
+  <rect x="270" y="225" width="100" height="50" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="320" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">healthy</text>
+  <rect x="460" y="225" width="100" height="50" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="510" y="256" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">sick</text>
+  <text x="320" y="305" text-anchor="middle" font-size="15" font-weight="700" fill="#b91c1c">majority vote: sick (2 of 3)</text>
+</svg>

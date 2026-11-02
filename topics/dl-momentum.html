@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Momentum · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-momentum" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Momentum</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Minimise $(w - 3)^2$ from $w = 0$ with learning rate 0.1, but keep a running "velocity". Step 1: gradient −6, velocity −6, $w = 0.6$, same as plain gradient descent. Step 2: gradient −4.8, but velocity $= 0.9 \cdot (-6) - 4.8 = -10.2$, so $w = 1.62$ instead of 1.08. The past steps keep pushing in the same direction. That's momentum.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> momentum speeds up progress along consistent directions and damps zig-zagging across steep valleys. It is part of almost every modern optimiser, including Adam.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-gradient-descent.html">Gradient descent</a> (same function and numbers).</li>
+          <li><a href="dl-sgd.html">SGD</a>.</li>
+          <li>Running (exponentially weighted) averages.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Roll a heavy ball down a hilly valley. It doesn't stop at every small bump; it builds up speed along the long downhill direction, and its inertia smooths out small left-right wobbles.</p>
+          <p>Momentum gives gradient descent that inertia: each step is the current gradient plus a fraction of the previous step.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Update rule:</strong> $v \leftarrow \beta v + g$, then $w \leftarrow w - \eta v$, with momentum $\beta$ (often 0.9) and $v$ starting at 0.</p>
+        <h3>Start with two steps by hand</h3>
+        <p>$f(w) = (w - 3)^2$, gradient $2(w - 3)$. Start $w = 0$, $v = 0$, $\eta = 0.1$, $\beta = 0.9$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Step 1: gradient at 0, new velocity, new $w$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = -6$, $v = 0.9 \cdot 0 - 6 = -6$, $w = 0 + 0.6 = 0.6$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: step 2.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = 2(0.6 - 3) = -4.8$, $v = 0.9 \cdot (-6) - 4.8 = -10.2$, $w = 0.6 + 1.02 = 1.62$.</p></details>
+          <p><strong>Step 3.</strong> Compare with plain gradient descent after 2 steps.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Plain GD: $w = 1.08$. Momentum: $1.62$, much closer to 3, because the velocity accumulated.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-momentum-1.svg" alt="Plot of w over 10 steps for plain gradient descent and momentum on (w - 3) squared; momentum rises faster and overshoots slightly" width="580" height="350">
+          <figcaption>What you just computed, continued for 10 steps: momentum (indigo) races ahead, overshoots 3 a little, then settles; plain GD (grey) creeps up.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the velocity $v$ remember?</p>
+          <details><summary>Check your answer</summary>
+            <p>A decaying sum of past gradients: recent ones count most, older ones fade by a factor $\beta$ each step.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: overshooting</h3>
+        <p>Continue the momentum run.</p>
+        <ul>
+          <li><strong>Step 3.</strong> Predict $g$, $v$ and $w$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = 2(1.62 - 3) = -2.76$, $v = 0.9 \cdot (-10.2) - 2.76 = -11.94$, $w = 1.62 + 1.194 = 2.814$.</p></details></li>
+          <li><strong>Step 4.</strong> Predict $w$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = -0.372$, $v = -11.118$, $w \approx 3.93$: it overshoots the minimum, like a ball rolling past the bottom, then the velocity reverses and it settles.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: in a zig-zagging valley, why does momentum help?</p>
+          <details><summary>Check your answer</summary>
+            <p>Gradients that alternate in sign across the valley cancel in the velocity, while the consistent component along the valley adds up.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Six steps of momentum ($\beta = 0.9$, $\eta = 0.1$) on $f(w) = (w - 3)^2$ from $w = 0$, next to plain gradient descent with the same learning rate. The update is $v \leftarrow \beta v + g$, then $w \leftarrow w - \eta v$.</p>
+        <table>
+          <thead>
+            <tr><th>Step</th><th>Gradient $g$</th><th>Velocity $v$</th><th>$w$ (momentum)</th><th>$w$ (plain GD)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>−6</td><td>−6</td><td>0.6</td><td>0.6</td></tr>
+            <tr><td>2</td><td>−4.8</td><td>−10.2</td><td>1.62</td><td>1.08</td></tr>
+            <tr><td>3</td><td>−2.76</td><td>−11.94</td><td>2.814</td><td>1.464</td></tr>
+            <tr><td>4</td><td>−0.372</td><td>−11.118</td><td><strong>3.926</strong></td><td>1.771</td></tr>
+            <tr><td>5</td><td>1.852</td><td>−8.155</td><td>4.741</td><td>2.017</td></tr>
+            <tr><td>6</td><td>3.483</td><td>−3.857</td><td>5.127</td><td>2.214</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Step 1: no history yet</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = 2(0 - 3) = -6, \quad v = 0.9 \cdot 0 + (-6) = -6, \quad w = 0 - 0.1 \cdot (-6) = 0.6$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With $v$ starting at 0, the first step is identical to plain gradient descent.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Step 2: the velocity builds up</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = 2(0.6 - 3) = -4.8, \quad v = 0.9 \cdot (-6) - 4.8 = -10.2, \quad w = 0.6 + 1.02 = 1.62$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">90% of the previous velocity is kept and the new gradient is added on top. The step (1.02) is more than twice plain GD's (0.48): consistent gradients accelerate the ball.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Step 3</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = 2(1.62 - 3) = -2.76, \quad v = 0.9 \cdot (-10.2) - 2.76 = -11.94, \quad w = 1.62 + 1.194 = 2.814$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The gradient is getting smaller, but the velocity is still growing because the remembered part (−9.18) dominates.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Step 4: overshoot</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = 2(2.814 - 3) = -0.372, \quad v = 0.9 \cdot (-11.94) - 0.372 = -11.118, \quad w = 2.814 + 1.112 = 3.926$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Just before the minimum, the gradient is almost 0, but the accumulated velocity carries $w$ right past 3. This is the price of inertia.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Steps 5–6: braking</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = 2(3.926 - 3) = +1.852, \quad v = 0.9 \cdot (-11.118) + 1.852 = -8.155, \quad w = 4.741$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The gradient now points back, but it takes a few steps to cancel the momentum. Velocity shrinks (−11.1 → −8.2 → −3.9) and $w$ will turn around and oscillate with decreasing amplitude around 3.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Why it pays off</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{effective step on a constant slope: } \frac{\eta}{1 - \beta} = \frac{0.1}{0.1} = 10\times \eta$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">On a long, gentle slope the velocity grows to 10 times the gradient, so momentum moves up to 10 times faster. In a narrow valley, gradients that flip sign cancel out in $v$, damping the zigzag.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>After 3 steps momentum reached 2.81 where plain GD was at 1.46, but it overshot to 5.13 before coming back.</p>
+          <p>Momentum = remember a decaying sum of past gradients. $\beta = 0.9$ is the usual default; it speeds up consistent directions and smooths out noisy ones.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Keep a velocity $v$ (start at 0). Each step: $v \leftarrow \beta v + g$ and $w \leftarrow w - \eta v$.</p>
+        <p>Use $\beta \approx 0.9$. If it overshoots or oscillates, lower $\beta$ or the learning rate.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one momentum step in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the gradient, update the velocity to $\beta$ times the old velocity plus the gradient, then move $w$ by minus the learning rate times the velocity.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the two steps by hand. It will make more sense.</p>
+        <pre><code class="language-c">double momentum_run(double w, double lr, double beta, int steps) {   /* minimise (w - 3)^2 */
+    double v = 0;                                   /* velocity */
+    for (int t = 0; t &lt; steps; t++) {
+        double g = 2 * (w - 3);                     /* current gradient */
+        v = beta * v + g;                           /* accumulate past gradients */
+        w -= lr * v;                                /* move with the velocity */
+    }
+    return w;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>momentum</strong> is gradient descent with a velocity term: each update is an exponentially decaying sum of past gradients, $v \leftarrow \beta v + g$, $w \leftarrow w - \eta v$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  G["gradient g at current w"] --&gt; V["v = beta × v + g"]
+  V --&gt; W["w = w - learning rate × v"]
+  W --&gt; G
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: with $\beta = 0$, what does this loop become? (Answer: plain gradient descent.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: if the gradient stayed constant at $g$ forever, what would the velocity approach?</p>
+          <details><summary>Check your answer</summary>
+            <p>$g / (1 - \beta)$: with $\beta = 0.9$, ten times the gradient.</p>
+          </details>
+        </div>
+        <p>Unrolling the velocity shows it is a weighted sum of all past gradients:</p>
+        $$v_t = g_t + \beta g_{t-1} + \beta^2 g_{t-2} + \dots, \qquad \text{constant } g:\; v \to \frac{g}{1 - \beta} = 10g \text{ for } \beta = 0.9$$
+        <table>
+          <thead>
+            <tr><th>Step</th><th>GD $w$</th><th>Momentum $g$</th><th>Momentum $v$</th><th>Momentum $w$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>0.6</td><td>−6</td><td>−6</td><td>0.6</td></tr>
+            <tr><td>2</td><td>1.08</td><td>−4.8</td><td>−10.2</td><td>1.62</td></tr>
+            <tr><td>3</td><td>1.464</td><td>−2.76</td><td>−11.94</td><td>2.814</td></tr>
+            <tr><td>4</td><td>1.771</td><td>−0.372</td><td>−11.118</td><td>3.926</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Momentum can overshoot the minimum, as in step 4 above, and with too high a $\beta$ or learning rate it can oscillate for a long time. If the loss swings up and down, reduce one of them.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Do a two-column table, plain GD versus momentum, for two or three steps. The key sentence: "the velocity accumulates consistent gradients and cancels oscillating ones".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to carry $v$ from one step to the next (resetting it to 0).</li>
+          <li>Using $\beta$ above 1, which makes the velocity grow without limit.</li>
+          <li>Mixing the two common conventions (some write $v \leftarrow \beta v - \eta g$, $w \leftarrow w + v$); both are fine, but not mixed.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>With $\beta = 0.5$ instead of 0.9 (same start, $\eta = 0.1$), compute $w$ after two steps.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Step 1 is the same as before.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Step 1: $v = -6$, $w = 0.6$. Step 2: $g = -4.8$, $v = -3 - 4.8 = -7.8$, $w = 1.38$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>If the gradient were always $-1$, what would the velocity be after 1, 2 and 3 steps with $\beta = 0.9$, and what does it approach? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$-1$, $-1.9$, $-2.71$, approaching $-1/(1 - 0.9) = -10$. Momentum effectively multiplies the learning rate by up to 10 along consistent directions.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Boris Polyak introduced the "heavy ball" method in 1964; Nesterov's accelerated variant (1983) looks ahead before computing the gradient and converges faster on convex problems.</p>
+          <p>Adam's first moment $m$ is momentum in disguise: an exponential average of past gradients.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Momentum speeds up consistent directions <strong>because</strong> gradients that agree add up in the velocity.</li>
+          <li>It damps oscillations <strong>because</strong> gradients that alternate in sign cancel in the velocity.</li>
+          <li>The velocity can reach $g/(1 - \beta)$ <strong>because</strong> it sums a geometric series of past gradients.</li>
+          <li>It can overshoot <strong>because</strong> accumulated velocity keeps moving past the minimum.</li>
+          <li>$\beta = 0$ is plain gradient descent <strong>because</strong> then the velocity is just the current gradient.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is momentum like a heavy ball rolling down a valley?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It builds up speed in the consistent downhill direction and its inertia smooths out small bumps and wobbles.</p></details></li>
+          <li><strong>Do two momentum steps on $(w - 3)^2$ from 0 with $\eta = 0.1$, $\beta = 0.9$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Step 1: $v = -6$, $w = 0.6$. Step 2: $v = -10.2$, $w = 1.62$.</p></details></li>
+          <li><strong>Why is <code>v</code> declared outside the loop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what $v$ must remember.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The velocity must persist between steps to accumulate past gradients; declaring it inside would reset it to 0 every step.</p></details></li>
+          <li><strong>So what is momentum, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An optimiser that moves along an exponentially decaying sum of past gradients instead of only the current one.</p></details></li>
+          <li><strong>Why does momentum reduce zig-zagging in a narrow valley?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer separates the two directions.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Across the valley the gradient flips sign each step and cancels in the velocity; along the valley it keeps the same sign and accumulates.</p></details></li>
+          <li><strong>What does the velocity approach for a constant gradient $g$?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$g/(1 - \beta)$, which is $10g$ for $\beta = 0.9$.</p></details></li>
+          <li><strong>What is a risk of momentum, and how do you fix it?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Overshooting and oscillation; lower $\beta$ or the learning rate.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the geometric-series limit and Nesterov. I'd keep the heavy-ball analogy, the two steps reaching 1.62 versus 1.08, and "velocity = decaying sum of gradients".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://distill.pub/2017/momentum/" target="_blank" rel="noopener">Distill: Why momentum really works</a>: an interactive, visual explanation.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html" target="_blank" rel="noopener">PyTorch docs: SGD with momentum</a>: the momentum and Nesterov options.</li>
+          <li><a href="https://cs231n.github.io/neural-networks-3/#sgd" target="_blank" rel="noopener">Stanford CS231n: Parameter updates</a>: momentum and Nesterov in practice.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=gradient+descent+with+momentum+explained" target="_blank" rel="noopener">YouTube search: gradient descent with momentum</a>: pick a visual walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

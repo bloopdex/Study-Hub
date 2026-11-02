@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gradient descent · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-gradient-descent" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Gradient descent</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Minimise $f(w) = (w - 3)^2$, starting at $w = 0$. The slope there is $f'(0) = 2(0 - 3) = -6$: downhill is to the right. Take a step against the slope, scaled by a learning rate of 0.1: $w = 0 - 0.1 \cdot (-6) = 0.6$. Repeat: slope −4.8, new $w = 1.08$. Each step moves closer to the minimum at 3. That's gradient descent.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it is the engine of all neural-network training: compute the gradient of the loss, step a little against it, repeat millions of times. Every optimiser (SGD, momentum, Adam) is a variation on this one update.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Derivatives: the slope of a function.</li>
+          <li><a href="dl-loss-functions.html">Loss functions</a>.</li>
+          <li><a href="dl-backpropagation.html">Backpropagation</a>, which supplies the gradients.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine walking down a hill in thick fog. You can only feel the slope under your feet, so you take a step in the steepest downhill direction, feel again, and repeat until the ground is flat.</p>
+          <p>Gradient descent does the same on the loss surface: the gradient is the slope, and the learning rate is the size of your steps.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Update rule:</strong> $w \leftarrow w - \eta \, \nabla L(w)$, with learning rate $\eta &gt; 0$. Here $L(w) = (w - 3)^2$, so $\nabla L(w) = 2(w - 3)$.</p>
+        <h3>Start with two steps by hand</h3>
+        <p>$f(w) = (w - 3)^2$, start $w_0 = 0$, learning rate $\eta = 0.1$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the gradient at $w_0 = 0$ and the first update.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Gradient $2(0 - 3) = -6$. $w_1 = 0 - 0.1 \cdot (-6) = 0.6$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the second step.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Gradient $2(0.6 - 3) = -4.8$. $w_2 = 0.6 + 0.48 = 1.08$.</p></details>
+          <p><strong>Step 3.</strong> How far from the minimum are $w_0$, $w_1$, $w_2$? Spot the pattern.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>3, 2.4, 1.92: each step shrinks the distance by the same factor, 0.8.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-gradient-descent-1.svg" alt="Parabola f(w) = (w - 3) squared with gradient-descent steps from w = 0 to 0.6, 1.08, 1.46, approaching the minimum at 3" width="580" height="350">
+          <figcaption>What you just did: each dot is one step. The steps get shorter as the slope flattens near the minimum.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why do we step <em>against</em> the gradient?</p>
+          <details><summary>Check your answer</summary>
+            <p>The gradient points uphill (the direction of steepest increase), so its opposite is the steepest way down.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the learning rate</h3>
+        <p>Same function and start, different learning rates.</p>
+        <ul>
+          <li><strong>$\eta = 0.5$.</strong> Predict $w_1$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$w_1 = 0 - 0.5 \cdot (-6) = 3$: the minimum in one step (lucky for this exact function).</p></details></li>
+          <li><strong>$\eta = 1.1$.</strong> Predict $w_1$ and $w_2$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$w_1 = 6.6$ (overshoots to the other side), $w_2 = 6.6 - 1.1 \cdot 7.2 = -1.32$: the distance from 3 grows (3.6, then 4.32). It diverges.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what happened with learning rate 1.1?</p>
+          <details><summary>Check your answer</summary>
+            <p>Each step overshot the minimum by more than it started with, so $w$ bounced back and forth further and further away: it diverged.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Five full steps of gradient descent on $f(w) = (w - 3)^2$ from $w = 0$ with learning rate $\eta = 0.1$, then the same start with $\eta = 0.5$ and $\eta = 1.1$ to see what the learning rate does.</p>
+        <table>
+          <thead>
+            <tr><th>Step</th><th>$w$</th><th>$f(w)$</th><th>Gradient $2(w - 3)$</th><th>Step $-\eta \cdot$ grad</th><th>Distance to 3</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>9</td><td>−6</td><td>+0.6</td><td>3</td></tr>
+            <tr><td>1</td><td>0.6</td><td>5.76</td><td>−4.8</td><td>+0.48</td><td>2.4</td></tr>
+            <tr><td>2</td><td>1.08</td><td>3.686</td><td>−3.84</td><td>+0.384</td><td>1.92</td></tr>
+            <tr><td>3</td><td>1.464</td><td>2.359</td><td>−3.072</td><td>+0.307</td><td>1.536</td></tr>
+            <tr><td>4</td><td>1.771</td><td>1.510</td><td>−2.458</td><td>+0.246</td><td>1.229</td></tr>
+            <tr><td>5</td><td>2.017</td><td>0.966</td><td>−1.966</td><td>+0.197</td><td>0.983</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Gradient at the start</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$f'(w) = 2(w - 3) \;\Rightarrow\; f'(0) = -6$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The derivative is the slope. Negative means the function goes down to the right, so we should increase $w$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>First step</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_1 = w_0 - \eta f'(w_0) = 0 - 0.1 \cdot (-6) = 0.6, \qquad f(0.6) = 2.4^2 = 5.76$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">We move against the slope, by 10% of its value. The loss falls from 9 to 5.76.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Second step</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$f'(0.6) = 2(0.6 - 3) = -4.8, \qquad w_2 = 0.6 + 0.48 = 1.08$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The slope is gentler now, so the step is smaller (0.48 instead of 0.6), even though $\eta$ did not change. Steps shrink automatically as we approach the bottom.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>The pattern</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_{t+1} - 3 = (w_t - 3) - 0.1 \cdot 2(w_t - 3) = 0.8\,(w_t - 3)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Every step multiplies the distance to the minimum by 0.8: 3, 2.4, 1.92, 1.536… After 5 steps we are at 2.017, still 0.98 away; after 30 steps we would be within 0.004.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>A larger learning rate: η = 0.5</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_1 = 0 - 0.5 \cdot (-6) = 3 \quad\Rightarrow\quad \text{the minimum in one step}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Here the factor is $1 - 2 \cdot 0.5 = 0$. That is luck of a perfectly quadratic function; on real losses no single $\eta$ jumps straight to the answer.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Too large: η = 1.1</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{factor } 1 - 2.2 = -1.2: \quad w = 0 \to 6.6 \to -1.32 \to 8.18 \to \ldots$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each step overshoots to the other side and lands farther away (distance 3, 3.6, 4.32, 5.18). The loss grows instead of falling: divergence. If your training loss explodes, lower the learning rate first.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Gradient descent repeats $w \leftarrow w - \eta f'(w)$. With $\eta = 0.1$ the error shrinks by 20% per step; with $\eta = 1.1$ it grows by 20% per step.</p>
+          <p>The learning rate is the most important setting: too small is slow, too large diverges. Try values like 0.1, 0.01, 0.001 and watch the loss curve.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Start from an initial $w$. Repeat: compute the gradient of the loss at $w$, then update $w \leftarrow w - \eta \nabla L(w)$.</p>
+        <p>Stop when the gradient is tiny or the loss stops improving. Too small an $\eta$ is slow; too large overshoots or diverges.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the gradient-descent loop in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Repeat: compute the gradient at the current $w$, multiply it by the learning rate, subtract that from $w$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the two steps by hand. It will make more sense.</p>
+        <pre><code class="language-c">double grad_f(double w) { return 2 * (w - 3); }      /* derivative of (w - 3)^2 */
+
+double gradient_descent(double w, double lr, int steps) {
+    for (int t = 0; t &lt; steps; t++)
+        w -= lr * grad_f(w);                          /* step against the slope */
+    return w;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>gradient descent</strong> minimises a function by repeatedly moving the parameters a small step in the direction opposite to the gradient: $w \leftarrow w - \eta \nabla L(w)$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["start with some w"] --&gt; B["compute the gradient g = dL/dw"]
+  B --&gt; C["w = w - learning rate × g"]
+  C --&gt; D{"loss still decreasing / gradient not tiny?"}
+  D --&gt;|yes| B
+  D --&gt;|no| E["stop: (local) minimum reached"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: at $w = 3$, what does the update box change? (Answer: nothing; the gradient is 0.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why do the steps get shorter as $w$ approaches 3, even with a fixed learning rate?</p>
+          <details><summary>Check your answer</summary>
+            <p>The step is learning rate × gradient, and the gradient $2(w - 3)$ shrinks to 0 near the minimum.</p>
+          </details>
+        </div>
+        <p>For this function, one step shrinks the distance to the minimum by a constant factor:</p>
+        $$w_{t+1} - 3 = (1 - 2\eta)(w_t - 3) \quad\Longrightarrow\quad \eta = 0.1: \text{factor } 0.8, \qquad \eta &gt; 1: |\text{factor}| &gt; 1 \text{ (diverges)}$$
+        <table>
+          <thead>
+            <tr><th>Learning rate $\eta$</th><th>Factor $1 - 2\eta$</th><th>Behaviour</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0.01</td><td>0.98</td><td>Converges very slowly</td></tr>
+            <tr><td>0.1</td><td>0.8</td><td>Converges smoothly</td></tr>
+            <tr><td>0.5</td><td>0</td><td>Exact minimum in one step</td></tr>
+            <tr><td>0.9</td><td>−0.8</td><td>Converges, but zig-zags across the minimum</td></tr>
+            <tr><td>1.1</td><td>−1.2</td><td>Diverges</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Gradient descent only finds a point where the gradient is zero. On non-convex losses, like those of neural networks, that can be a local minimum or a saddle point, not the global minimum.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Write the update rule, compute the gradient numerically, and do two or three steps in a small table: $t$, $w_t$, gradient, $w_{t+1}$. Then comment on the learning rate.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Adding the gradient instead of subtracting it (gradient <em>ascent</em>).</li>
+          <li>Choosing a learning rate so large that the loss oscillates or explodes.</li>
+          <li>Assuming the result is the global minimum on a non-convex loss.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Minimise $f(w) = w^2$ from $w_0 = 4$ with $\eta = 0.25$. Give $w_1$ and $w_2$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$f'(w) = 2w$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$w_1 = 4 - 0.25 \cdot 8 = 2$, $w_2 = 2 - 0.25 \cdot 4 = 1$: halving each step.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Fit $\hat y = wx$ to one point $(x, y) = (2, 4)$ with loss $L = (wx - y)^2$, starting at $w = 0$, $\eta = 0.05$. Do two steps. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\partial L/\partial w = 2(wx - y)x$. At $w = 0$: $2(-4)(2) = -16$, so $w_1 = 0.8$. At $0.8$: $2(1.6 - 4)(2) = -9.6$, so $w_2 = 1.28$, heading towards 2.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Augustin-Louis Cauchy proposed gradient descent in 1847 to solve systems of equations in astronomy.</p>
+          <p>Training a large language model takes hundreds of thousands of gradient steps, each one the same update rule applied to billions of weights at once.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Stepping against the gradient lowers the loss <strong>because</strong> the gradient points in the direction of steepest increase.</li>
+          <li>Steps shrink near the minimum <strong>because</strong> the gradient approaches 0 there.</li>
+          <li>Too large a learning rate diverges <strong>because</strong> each step overshoots by more than the previous distance.</li>
+          <li>Too small a learning rate is slow <strong>because</strong> each step covers only a tiny part of the distance.</li>
+          <li>It may stop at a local minimum <strong>because</strong> it only sees the local slope.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is gradient descent like walking down a hill in fog?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You only feel the slope under your feet, so you keep stepping in the steepest downhill direction until the ground is flat.</p></details></li>
+          <li><strong>Do two steps on $(w - 3)^2$ from $w = 0$ with $\eta = 0.1$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Gradient −6, $w_1 = 0.6$; gradient −4.8, $w_2 = 1.08$.</p></details></li>
+          <li><strong>Why does the code use <code>w -= lr * grad_f(w)</code> and not <code>+=</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says where the gradient points.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The gradient points uphill; subtracting it moves downhill, which lowers the loss.</p></details></li>
+          <li><strong>So what is gradient descent, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An optimisation method that repeatedly moves the parameters a small step against the gradient of the loss.</p></details></li>
+          <li><strong>Why does a learning rate of 1.1 diverge on this function?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the factor $1 - 2\eta$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each step multiplies the distance to the minimum by $1 - 2\eta = -1.2$, whose size is above 1, so the distance grows every step.</p></details></li>
+          <li><strong>What happens with learning rates 0.01, 0.1 and 0.5 here?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>0.01 converges very slowly, 0.1 converges smoothly (factor 0.8), 0.5 reaches the minimum in one step.</p></details></li>
+          <li><strong>What can gradient descent get stuck in on a neural network's loss?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Local minima or saddle points, because it only uses local slope information.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the factor formula and saddle points. I'd keep the foggy-hill analogy, the two steps from 0 to 1.08, and "step against the slope; the learning rate decides speed versus stability".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.3blue1brown.com/lessons/gradient-descent" target="_blank" rel="noopener">3Blue1Brown: Gradient descent</a>: how neural networks learn, visually.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent" target="_blank" rel="noopener">Google ML Crash Course: Gradient descent</a>: interactive learning-rate demo.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Gradient_descent" target="_blank" rel="noopener">Wikipedia: Gradient descent</a>: theory and convergence.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=IHZwWFHWa-w" target="_blank" rel="noopener">3Blue1Brown: Gradient descent, how neural networks learn</a>: chapter 2 of the deep learning series.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

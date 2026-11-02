@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AVL tree · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="tree-avl" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="trees.html" class="hover:text-indigo-500">Trees</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Trees</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">AVL tree</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Insert 30, 20, 10 into a plain BST and you get a chain leaning left. An AVL tree notices that 30's left side is 2 levels taller than its right, and <em>rotates</em>: 20 moves up, 10 and 30 become its children. That's an AVL tree: a BST that repairs itself so both sides of every node differ in height by at most one.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> the balance rule keeps the height below about $1.44 \log_2 n$, so search, insert and delete are $O(\log n)$ <em>guaranteed</em>, even on sorted input. Each repair is a constant-time rotation.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="tree-binary-search-tree.html">Binary search tree</a> insert and search.</li>
+          <li>Height of a tree (see <a href="tree-binary-tree-basics.html">Binary tree basics</a>).</li>
+          <li>Pointer rewiring.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a mobile hanging over a baby's cot. If one side gets too heavy, you shift the hanging point so it balances again, without changing what hangs on it.</p>
+          <p>An AVL rotation does that to a tree. When one side becomes two levels taller, a node moves up and its parent moves down to the other side. The left-to-right order of the values never changes.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with one rotation by hand</h3>
+        <p>The <strong>balance factor</strong> of a node is height(left) − height(right) and must stay in −1, 0, +1. Insert 30, 20, 10 in that order. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> After inserting 30 and 20, predict the balance factor of 30.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>+1: its left subtree (20) has height 0 and its right subtree is empty (height −1). Still allowed.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: after inserting 10 (left of 20), what is 30's balance factor, and is it allowed?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>+2: left height 1, right height −1. Not allowed: the tree must rotate.</p></details>
+          <p><strong>Step 3.</strong> Rotate right at 30. Predict the new root and its children.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>20 becomes the root, with 10 on the left and 30 on the right. Every balance factor is 0, and in-order is still 10, 20, 30.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/tree-avl-1.svg" alt="Left-leaning chain 30, 20, 10 with balance factor +2 at 30, rotated right into a balanced tree with 20 at the root" width="640" height="300">
+          <figcaption>What you just did by hand: a right rotation at 30. The numbers next to the nodes are balance factors.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does a rotation preserve, and what does it change?</p>
+          <details><summary>Check your answer</summary>
+            <p>It preserves the in-order (sorted) order of the keys; it changes which node is the parent, and so the heights.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the zig-zag case</h3>
+        <p>Now insert 30, 10, 20: 10 goes left of 30, then 20 goes <em>right</em> of 10. 30 has balance factor +2 again.</p>
+        <ul>
+          <li><strong>One right rotation at 30.</strong> Predict whether it fixes the tree.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No: 10 would become the root with 30 as its right child and 20 under 30, leaning the other way (balance −2).</p></details></li>
+          <li><strong>Rotate left at 10, then right at 30.</strong> Predict the result.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>The left rotation turns 30 → 10 → 20 into 30 → 20 → 10, the left-left case; the right rotation then gives 20 with children 10 and 30.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does the left-right case need two rotations?</p>
+          <details><summary>Check your answer</summary>
+            <p>The heavy part is in the middle. A single right rotation would just make it lean the other way; first rotating left at the child turns it into the simple left-left case.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>After each insert or delete, walk back up the path, updating heights. At the first node whose balance factor is ±2, rotate.</p>
+        <p>Left-left: rotate right. Right-right: rotate left. Left-right: rotate left at the child, then right. Right-left: rotate right at the child, then left.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three pointer changes of a right rotation at <code>y</code> in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Let <code>x</code> be y's left child. 2. x's right subtree becomes y's left subtree. 3. y becomes x's right child, and x is the new subtree root.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the rotation by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct Node { int val, h; struct Node *left, *right; } Node;
+
+int ht(Node *t) { return t ? t-&gt;h : -1; }        /* empty tree: height -1 */
+void fix(Node *t) { int l = ht(t-&gt;left), r = ht(t-&gt;right); t-&gt;h = 1 + (l &gt; r ? l : r); }
+int balance(Node *t) { return ht(t-&gt;left) - ht(t-&gt;right); }   /* must stay in -1..1 */
+
+Node *rotate_right(Node *y) {          /* y's left child x becomes the root */
+    Node *x = y-&gt;left;
+    y-&gt;left = x-&gt;right;                /* x's right subtree moves under y */
+    x-&gt;right = y;
+    fix(y); fix(x);                    /* y is now lower: fix it first */
+    return x;
+}</code></pre>
+        <pre><code class="language-c">Node *rotate_left(Node *x) {           /* mirror image of rotate_right */
+    Node *y = x-&gt;right;
+    x-&gt;right = y-&gt;left;
+    y-&gt;left = x;
+    fix(x); fix(y);
+    return y;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: an <strong>AVL tree</strong> is a binary search tree in which every node's two subtrees differ in height by at most one, restored after each change by <strong>rotations</strong>.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"balance factor of the node?"} --&gt;|"+2: left heavy"| B{"left child's balance?"}
+  A --&gt;|"-2: right heavy"| C{"right child's balance?"}
+  A --&gt;|"-1, 0, +1"| OK["no rotation"]
+  B --&gt;|"+1 or 0 (left-left)"| R["rotate right"]
+  B --&gt;|"-1 (left-right)"| LR["rotate left at child, then right"]
+  C --&gt;|"-1 or 0 (right-right)"| L["rotate left"]
+  C --&gt;|"+1 (right-left)"| RL["rotate right at child, then left"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for the insertion order 30, 10, 20, which box do you end in? (Answer: "rotate left at child, then right".)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: can an AVL tree with 1,000,000 nodes be 100 levels tall?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. Its height is at most about $1.44 \log_2 n \approx 29$.</p>
+          </details>
+        </div>
+        <p>The balance rule forces even the sparsest AVL tree to have many nodes, which caps the height:</p>
+        $$h \;<\; 1.44 \, \log_2 (n + 2)$$
+        <p>A rotation changes three pointers and two heights, which is $O(1)$. An insert needs at most one single or double rotation; a delete may need one per level, still $O(\log n)$.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Search</td><td>$O(\log n)$</td><td>Height is at most $1.44 \log_2 n$</td></tr>
+            <tr><td>Insert</td><td>$O(\log n)$</td><td>BST insert plus at most 2 rotations</td></tr>
+            <tr><td>Delete</td><td>$O(\log n)$</td><td>BST delete plus up to one rotation per level</td></tr>
+            <tr><td>One rotation</td><td>$O(1)$</td><td>Constant pointer and height updates</td></tr>
+            <tr><td>Extra space per node</td><td>$O(1)$</td><td>Stores its height (or balance)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Update heights bottom-up. In <code>rotate_right</code>, <code>y</code> ends up <em>below</em> <code>x</code>, so <code>fix(y)</code> must run before <code>fix(x)</code>; the other order computes x's height from y's stale height.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Name the case from the path to the new node: two lefts = rotate right; two rights = rotate left; left then right = double rotation (left, then right); right then left = (right, then left).</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using a single rotation for a zig-zag (left-right or right-left) case.</li>
+          <li>Forgetting that the rotated subtree's new root must be linked back into its parent.</li>
+          <li>Mixing the height conventions, so leaves get balance factors that look wrong.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Insert 10, 20, 30 into an empty AVL tree. Which rotation happens, and what is the result?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>The tree leans right twice.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Right-right case at 10: rotate left. 20 becomes the root with children 10 and 30.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Insert 50, 20, 80, 10, 30, 25 into an empty AVL tree. Where is the first imbalance, which case is it, and what is the tree afterwards? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>After 25 (left of 30), node 50 has balance +2: its left subtree 20 has height 2, its right subtree 80 has height 0. 25 went left then right from 50, so it's left-right: rotate left at 20, then right at 50. Result: root 30, with left 20 (children 10, 25) and right 50 (right child 80).</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The AVL tree (1962) was the first self-balancing BST, named after Adelson-Velsky and Landis, two Soviet mathematicians.</p>
+          <p>Red-black trees relax the balance rule (heights may differ more), so they rotate less on insert and delete; databases that read much more than they write sometimes prefer AVL for its shorter height.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Every operation is $O(\log n)$ <strong>because</strong> the balance rule keeps the height below $1.44 \log_2 n$.</li>
+          <li>Rotations keep the tree a valid BST <strong>because</strong> they never change the in-order sequence of keys.</li>
+          <li>A rotation is $O(1)$ <strong>because</strong> it rewires a fixed number of pointers.</li>
+          <li>Zig-zag cases need two rotations <strong>because</strong> the heavy grandchild sits in the middle.</li>
+          <li>Heights are fixed bottom-up <strong>because</strong> a parent's height depends on its children's.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is AVL rebalancing like adjusting a baby's mobile?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When one side gets too heavy, you move the hanging point to balance it without changing what hangs where; a rotation moves a node up while keeping the key order.</p></details></li>
+          <li><strong>Walk through inserting 30, 20, 10 into an AVL tree.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>After 10, node 30 has balance +2 (left-left case), so rotate right at 30: 20 becomes the root with 10 and 30 as children.</p></details></li>
+          <li><strong>Why does <code>rotate_right</code> call <code>fix(y)</code> before <code>fix(x)</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says which node is lower after the rotation.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>After rotating, y is x's child. x's height depends on y's, so y must be updated first.</p></details></li>
+          <li><strong>So what is an AVL tree, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A self-balancing BST where every node's subtrees differ in height by at most one, kept that way with rotations.</p></details></li>
+          <li><strong>Why does the insertion order 30, 10, 20 need two rotations?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer describes the shape.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The path to 20 goes left then right, a zig-zag. A single right rotation just mirrors the imbalance; rotating left at 10 first turns it into a straight left-left line that one right rotation fixes.</p></details></li>
+          <li><strong>What do search, insert, delete and one rotation cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Search, insert and delete are $O(\log n)$; a single rotation is $O(1)$.</p></details></li>
+          <li><strong>Why is an AVL tree better than a plain BST for sorted input?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A plain BST becomes a chain with $O(n)$ operations; the AVL tree rotates as it goes and stays $O(\log n)$ high.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the $1.44 \log_2 n$ bound and the height-update order. I'd keep the mobile analogy, the 30-20-10 right rotation, the four cases, and "guaranteed $O(\log n)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/bst" target="_blank" rel="noopener">VisuAlgo: AVL tree</a>: switch to "AVL" and watch rotations happen on insert.</li>
+          <li><a href="https://www.geeksforgeeks.org/introduction-to-avl-tree/" target="_blank" rel="noopener">GeeksforGeeks: AVL tree</a>: the four rotation cases with diagrams.</li>
+          <li><a href="https://en.wikipedia.org/wiki/AVL_tree" target="_blank" rel="noopener">Wikipedia: AVL tree</a>: history, height bound and comparison with red-black trees.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: lecture on balanced binary trees.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=AVL+tree+rotations+explained" target="_blank" rel="noopener">YouTube search: AVL tree rotations</a>: pick a walkthrough of all four cases.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recurrent neural networks (RNN) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-rnn" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Recurrent neural networks (RNN)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Read a sequence one item at a time while carrying a memory, the hidden state $h$. Start with $h_0 = 0$. The first input $x_1 = 1$ gives $h_1 = \tanh(0.8 \cdot 0 + 0.5 \cdot 1) \approx 0.46$. The next input $x_2 = 1$ gives $h_2 = \tanh(0.8 \cdot 0.46 + 0.5) \approx 0.70$: the same input produced a different state, because the memory carried the past. That's a recurrent neural network.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> sentences, sounds and time series have order and variable length. An RNN processes them with the same weights at every step and a hidden state that summarises everything seen so far.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-mlp.html">Dense layers</a> and tanh.</li>
+          <li><a href="dl-backpropagation.html">Backpropagation</a>.</li>
+          <li>Sequences: words in a sentence, values over time.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of reading a sentence word by word. You don't restart your understanding at every word: you carry a running summary in your head and update it with each new word.</p>
+          <p>An RNN's hidden state is that running summary. The same "update rule" is applied at every step: combine the old summary with the new word.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>One step:</strong> $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$, output $y_t = W_{hy} h_t$. Here (scalars): $W_{hh} = 0.8$, $W_{xh} = 0.5$, $b = 0$.</p>
+        <h3>Start with two time steps by hand</h3>
+        <p>Inputs $x_1 = 1$, $x_2 = 1$; $h_0 = 0$. Use $\tanh(0.5) \approx 0.462$, $\tanh(0.87) \approx 0.701$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the pre-activation and $h_1$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.8 \cdot 0 + 0.5 \cdot 1 = 0.5$; $h_1 = \tanh(0.5) \approx 0.462$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the pre-activation and $h_2$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.8 \cdot 0.462 + 0.5 \approx 0.870$; $h_2 = \tanh(0.870) \approx 0.701$.</p></details>
+          <p><strong>Step 3.</strong> Why is $h_2 \ne h_1$ although $x_2 = x_1$?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Because $h_2$ also depends on $h_1$: the hidden state carries information from earlier inputs.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-rnn-1.svg" alt="Unrolled RNN over two steps: h0 = 0, x1 = 1 gives h1 = 0.46, x2 = 1 gives h2 = 0.70, with the same weights at each step" width="660" height="290">
+          <figcaption>What you just computed, unrolled in time: the same cell (same weights) is applied at every step, passing the hidden state along.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the hidden state represent?</p>
+          <details><summary>Check your answer</summary>
+            <p>A running summary of everything the network has read so far in the sequence.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the vanishing gradient</h3>
+        <p>Training an RNN means backpropagating through every time step.</p>
+        <ul>
+          <li><strong>The gradient of $h_2$ with respect to $h_1$.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$W_{hh} \cdot (1 - h_2^2) = 0.8 \cdot (1 - 0.701^2) \approx 0.41$.</p></details></li>
+          <li><strong>Through 20 such steps.</strong> Predict the size of the product and the consequence.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>About $0.41^{20} \approx 2 \times 10^{-8}$. Early inputs barely affect the gradient, so a plain RNN struggles to learn long-range dependencies; LSTMs and GRUs fix this.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why do gradients vanish over long sequences in a plain RNN?</p>
+          <details><summary>Check your answer</summary>
+            <p>Backpropagation through time multiplies one factor $W_{hh} \cdot \tanh'$ per step; with factors below 1, the product shrinks exponentially with the distance.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's RNN, $h_t = \tanh(0.8\,h_{t-1} + 0.5\,x_t)$, run on the sequence $x = [1, 1, 0, 0]$, then the backward factors that explain why plain RNNs forget.</p>
+        <table>
+          <thead>
+            <tr><th>$t$</th><th>$x_t$</th><th>$h_{t-1}$</th><th>$0.8\,h_{t-1} + 0.5\,x_t$</th><th>$h_t$</th><th>Backward factor $0.8\,(1 - h_t^2)$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>0</td><td>0.5</td><td>0.462</td><td>0.629</td></tr>
+            <tr><td>2</td><td>1</td><td>0.462</td><td>0.870</td><td>0.701</td><td>0.407</td></tr>
+            <tr><td>3</td><td>0</td><td>0.701</td><td>0.561</td><td>0.509</td><td>0.593</td></tr>
+            <tr><td>4</td><td>0</td><td>0.509</td><td>0.407</td><td>0.386</td><td>0.681</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Step 1</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$h_1 = \tanh(0.8 \cdot 0 + 0.5 \cdot 1) = \tanh(0.5) = 0.462$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The memory starts empty ($h_0 = 0$), so only the input counts.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Step 2: same input, different state</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$h_2 = \tanh(0.8 \cdot 0.462 + 0.5 \cdot 1) = \tanh(0.870) = 0.701$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$x_2 = x_1$, but $h_2 \ne h_1$, because the previous state adds 0.37 to the sum. The state encodes "I have seen two 1s".</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Steps 3–4: no input, fading memory</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$h_3 = \tanh(0.8 \cdot 0.701) = 0.509, \qquad h_4 = \tanh(0.8 \cdot 0.509) = 0.386$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With $x = 0$, the only thing that keeps the state alive is $w_{hh} = 0.8$. Each step multiplies by less than 1 (and tanh shrinks further), so the memory of the 1s fades.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>The same weights at every step</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{parameters: } w_{hh}, \; w_{xh}, \; b \quad (3 \text{ numbers, for a sequence of any length})$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The cell is reused at every time step. That is what lets an RNN read sequences of any length, and why its gradient multiplies through the same weight again and again.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Backward through time</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial h_t}{\partial h_{t-1}} = w_{hh}\,(1 - h_t^2): \quad 0.407, \; 0.593, \; 0.681 \quad (t = 2, 3, 4)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">To learn how $x_1$ affected $h_4$, the gradient is multiplied by one such factor per step, using tanh's derivative $1 - h^2$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>The product shrinks</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial h_4}{\partial h_1} = 0.407 \cdot 0.593 \cdot 0.681 = 0.164$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">After only 3 steps, 84% of the signal is gone. Over 10 steps with factors around 0.4 it would be $0.4^{10} \approx 0.0001$: the vanishing gradient. The network cannot learn that something 10 steps ago mattered.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>An RNN updates one state with the same small rule at every step: $h_t = \tanh(w_{hh} h_{t-1} + w_{xh} x_t + b)$. The state here went 0.46, 0.70, 0.51, 0.39.</p>
+          <p>Backpropagation through time multiplies one factor per step; with factors below 1 the gradient vanishes, which motivated LSTMs and GRUs.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>For each time step: $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$, then (optionally) an output $y_t = W_{hy} h_t$. The same weights are used at every step.</p>
+        <p>Train with backpropagation through time: unroll the sequence and backpropagate through all steps.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one RNN step in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Multiply the previous hidden state by the recurrent weight, add the input times the input weight and the bias, and pass the sum through tanh.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the two steps by hand. It will make more sense.</p>
+        <pre><code class="language-c">double rnn_step(double h_prev, double x, double w_hh, double w_xh, double b) {
+    return tanh(w_hh * h_prev + w_xh * x + b);           /* new hidden state */
+}
+
+double rnn_run(double x[], int T, double w_hh, double w_xh, double b) {
+    double h = 0;                                        /* h_0 = 0 */
+    for (int t = 0; t &lt; T; t++) h = rnn_step(h, x[t], w_hh, w_xh, b);   /* same weights each step */
+    return h;                                            /* summary of the whole sequence */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>recurrent neural network</strong> processes a sequence step by step, updating a <strong>hidden state</strong> $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$ with the same weights at every step.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  H0["h0"] --&gt; C1["cell"]
+  X1["x1"] --&gt; C1
+  C1 --&gt;|h1| C2["cell"]
+  X2["x2"] --&gt; C2
+  C2 --&gt;|h2| C3["cell"]
+  X3["x3"] --&gt; C3
+  C3 --&gt;|h3| Y["output / next layer"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: how many different weight matrices do the three cells use? (Answer: one set, shared by every cell.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: after 20 steps, how big is a gradient factor of $0.8 \cdot 0.5 = 0.4$ per step?</p>
+          <details><summary>Check your answer</summary>
+            <p>$0.4^{20} \approx 10^{-8}$: effectively zero.</p>
+          </details>
+        </div>
+        <p>The recurrence, and the gradient factor that backpropagation multiplies at every step:</p>
+        $$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b), \qquad \frac{\partial h_t}{\partial h_{t-1}} = W_{hh} \,(1 - h_t^2)$$
+        <p>Over $k$ steps the gradient is a product of $k$ such factors: below 1 it vanishes, above 1 it explodes.</p>
+        <table>
+          <thead>
+            <tr><th>Step</th><th>Pre-activation</th><th>$h_t$</th><th>Gradient factor</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>0.5</td><td>0.462</td><td>$0.8(1 - 0.462^2) \approx 0.63$</td></tr>
+            <tr><td>2</td><td>0.870</td><td>0.701</td><td>$0.8(1 - 0.701^2) \approx 0.41$</td></tr>
+            <tr><td>20 steps</td><td>—</td><td>—</td><td>product $\approx 10^{-8}$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Exploding gradients are the opposite problem: if $|W_{hh}|$ is large, gradients grow exponentially and training diverges. Gradient clipping (capping the gradient norm) is the standard fix.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Draw the unrolled network: same cell repeated, hidden state passed right, inputs coming in from below. Then explain vanishing gradients as "a product of many factors below 1".</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using different weights at each time step; an RNN shares them.</li>
+          <li>Resetting the hidden state between steps of the same sequence.</li>
+          <li>Expecting a plain RNN to remember information from hundreds of steps back.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>With the same weights, compute $h_1$ for $x_1 = -1$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$\tanh$ is odd: $\tanh(-z) = -\tanh z$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$\tanh(-0.5) \approx -0.462$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Compute $h_3$ for the input sequence 1, 1, 0. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$h_1 = 0.462$, $h_2 = 0.701$, $h_3 = \tanh(0.8 \cdot 0.701 + 0) = \tanh(0.561) \approx 0.509$. Even with input 0, the state remembers the earlier ones, fading slowly.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Jeffrey Elman's "simple recurrent network" (1990) studied how a network could learn grammar from sequences of words.</p>
+          <p>Before Transformers (2017), RNNs, mostly LSTMs, powered Google Translate, speech recognition and phone keyboards' next-word prediction.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>An RNN handles sequences of any length <strong>because</strong> it applies the same cell at every step.</li>
+          <li>The hidden state carries memory <strong>because</strong> each new state depends on the previous one.</li>
+          <li>The same input can give different states <strong>because</strong> the state also depends on the past.</li>
+          <li>Gradients vanish over long sequences <strong>because</strong> backpropagation multiplies many factors below 1.</li>
+          <li>Training uses backpropagation through time <strong>because</strong> the unrolled network is just a deep feed-forward network.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is an RNN like reading a sentence word by word?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You keep a running summary in your head and update it with each new word; the hidden state is that summary.</p></details></li>
+          <li><strong>Compute $h_1$ and $h_2$ for inputs 1, 1 with $W_{hh} = 0.8$, $W_{xh} = 0.5$, $b = 0$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$h_1 = \tanh(0.5) \approx 0.46$; $h_2 = \tanh(0.87) \approx 0.70$.</p></details></li>
+          <li><strong>Why does <code>rnn_run</code> reuse the same <code>w_hh</code> and <code>w_xh</code> at every step?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions sequence length.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sharing weights across time lets one small set of parameters process sequences of any length and apply the same rule at every position.</p></details></li>
+          <li><strong>So what is an RNN, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A network that processes a sequence step by step, updating a hidden state with the same weights at every step.</p></details></li>
+          <li><strong>Why do plain RNNs struggle with long-range dependencies?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the gradient factor.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The gradient through $k$ steps is a product of $k$ factors like $0.4$; that shrinks to almost zero, so early inputs hardly influence learning.</p></details></li>
+          <li><strong>What is the RNN update equation?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$.</p></details></li>
+          <li><strong>How do you deal with exploding gradients in RNNs?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Gradient clipping: rescale the gradient whenever its norm exceeds a threshold.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out exploding gradients and backpropagation through time details. I'd keep the reading analogy, the two-step computation, and "same cell each step, hidden state as memory, gradients vanish over long sequences".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://karpathy.github.io/2015/05/21/rnn-effectiveness/" target="_blank" rel="noopener">Andrej Karpathy: The unreasonable effectiveness of RNNs</a>: character-level RNNs with fun examples.</li>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.nn.RNN.html" target="_blank" rel="noopener">PyTorch docs: nn.RNN</a>: the update equation and shapes.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Recurrent_neural_network" target="_blank" rel="noopener">Wikipedia: Recurrent neural network</a>: history and architectures.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+recurrent+neural+networks" target="_blank" rel="noopener">YouTube search: StatQuest RNN</a>: StatQuest's clear introduction.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

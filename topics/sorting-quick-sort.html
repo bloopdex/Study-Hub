@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quick sort · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="sorting-quick-sort" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="sorting.html" class="hover:text-indigo-500">Sorting</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Sorting</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Quick sort</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>[5, 2, 6, 1, 4]</code> and pick the last number, 4, as the <em>pivot</em>. Move everything ≤ 4 to its left and everything bigger to its right: <code>[2, 1, 4, 5, 6]</code>. The 4 is now in its final place. Do the same to each side, and you have quick sort.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> every partition puts one pivot in its final place for good. With reasonably balanced pivots, the whole sort takes $O(n \log n)$ in place, and in practice it's usually the fastest comparison sort.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Recursion: a function that calls itself on a smaller input.</li>
+          <li>Swapping two array elements.</li>
+          <li>Big-O notation (see Complexity analysis), and ideally <a href="sorting-merge-sort.html">Merge sort</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>A coach picks one player as the reference height. Everyone shorter goes to the left wall, everyone taller to the right wall, and the reference player stands in the middle.</p>
+          <p>That middle spot is already correct. Each wall group then picks its own reference and splits again, until every group is one person. That's quick sort, with the pivot as the reference player.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with one partition by hand</h3>
+        <p>Take <code>[5, 2, 6, 1, 4]</code>, pivot = 4. Walk left to right; every number ≤ 4 gets swapped into a growing "left zone" at the front. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: one partition, predict before you read</p>
+          <p><strong>Step 1.</strong> Look at 5. Predict: does it join the left zone?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>No, 5 &gt; 4. Skip it. The left zone is still empty.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: what happens to 2?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>2 ≤ 4, so it swaps to the front of the zone: <code>[2, 5, 6, 1, 4]</code>. 6 is next and is skipped.</p></details>
+          <p><strong>Step 3.</strong> Now 1. Then the scan ends. Predict: where does the pivot go?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>1 ≤ 4 joins the zone: <code>[2, 1, 6, 5, 4]</code>. The pivot swaps into the slot right after the zone: <code>[2, 1, 4, 5, 6]</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/sorting-quick-sort-1.svg" alt="Lomuto partition of 5 2 6 1 4 with pivot 4: 2 and 1 move into the left zone, then the pivot lands at index 2, giving 2 1 4 5 6." width="700" height="370">
+          <figcaption>What you just did by hand: blue is the left zone (≤ pivot). The pivot ends in green, in its final place.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does one partition guarantee?</p>
+          <details><summary>Check your answer</summary>
+            <p>The pivot is in its final position, with everything ≤ it on the left and everything bigger on the right.</p>
+          </details>
+        </div>
+
+        <h3>Finish the run</h3>
+        <p>Now sort each side of <code>[2, 1 | 4 | 5, 6]</code> the same way.</p>
+        <ul>
+          <li><strong>Left side <code>[2, 1]</code></strong>, pivot 1. Predict the result.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>2 &gt; 1 is skipped, then 1 swaps to the front: <code>[1, 2]</code>.</p></details></li>
+          <li><strong>Right side <code>[5, 6]</code></strong>, pivot 6. Predict: does anything move?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No. 5 ≤ 6 stays in the zone and 6 stays last. Final array: <code>[1, 2, 4, 5, 6]</code>.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is the 4 never touched again after the first partition?</p>
+          <details><summary>Check your answer</summary>
+            <p>It's already in its final place: everything left of it is smaller or equal and everything right is bigger. The recursion only works on the two sides.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Pick the last number as the pivot. Walk through the rest; swap every number ≤ pivot into the left zone. Finally, swap the pivot right after the zone.</p>
+        <p>The pivot is now final. Repeat on the part left of it and the part right of it. A part of size 0 or 1 is already sorted.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of quick sort in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Choose a pivot. 2. Partition: smaller-or-equal numbers to the left, bigger to the right, pivot in between. 3. Sort the left and right parts the same way.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one partition by hand. It will make more sense.</p>
+        <pre><code class="language-c">static void swap(int *x, int *y) { int t = *x; *x = *y; *y = t; }
+int partition(int a[], int lo, int hi) {     /* Lomuto, pivot = a[hi] */
+    int pivot = a[hi], i = lo - 1;           /* a[lo..i] is the left zone */
+    for (int j = lo; j &lt; hi; j++)
+        if (a[j] &lt;= pivot) swap(&amp;a[++i], &amp;a[j]);
+    swap(&amp;a[i + 1], &amp;a[hi]);                 /* pivot after the zone */
+    return i + 1;
+}
+
+void quick_sort(int a[], int lo, int hi) {   /* sorts a[lo..hi] */
+    if (lo &gt;= hi) return;
+    int p = partition(a, lo, hi);
+    quick_sort(a, lo, p - 1);                /* a[p] is final: skip it */
+    quick_sort(a, p + 1, hi);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>quick sort</strong> picks a <strong>pivot</strong>, <strong>partitions</strong> the array so the pivot lands in its final place with smaller-or-equal elements on its left, then sorts both sides recursively.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  A["5 2 6 1 4 (pivot 4)"] -->|partition| B["2 1 | 4 | 5 6"]
+  B --> C["2 1 (pivot 1)"]
+  B --> D["5 6 (pivot 6)"]
+  C -->|partition| E["1 | 2"]
+  D -->|partition| F["5 | 6"]
+  E & F --> G["1 2 4 5 6"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the bottom half and guess: after partitioning <code>[2, 1]</code> around 1, what is the result? (Answer: <code>[1, 2]</code>.)</figcaption>
+        </figure>
+        <figure>
+          <img src="../assets/images/sorting-1.svg" alt="Bar chart of 7 2 9 4 1 8 3 5 before and after partitioning around pivot 5: afterwards 2 4 1 3 are left of the pivot and 8 7 9 are right of it." width="660" height="530">
+          <figcaption>The same partition on 8 numbers, pivot 5: one linear pass puts the pivot at index 4.</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what if the pivot is always the <em>largest</em> number in its part, as on a sorted array?</p>
+          <details><summary>Check your answer</summary>
+            <p>Each partition only removes the pivot. The left part is everything else and the right part is empty, so the parts shrink by one each time.</p>
+          </details>
+        </div>
+        <p>With balanced pivots there are about $\log_2 n$ levels of $n$ work each, so $O(n \log n)$. With the worst pivots, the parts shrink by one:</p>
+        $$(n-1) + (n-2) + \dots + 1 \;=\; \frac{n(n-1)}{2} \;=\; O(n^2).$$
+        <p>Random pivots, or the median of the first, middle and last elements, make the bad case very unlikely.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable</th><th>In-place</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n^2)$</td><td>$O(\log n)$ stack</td><td>No</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>"In-place" doesn't mean $O(1)$ memory here. The recursion stack is $O(\log n)$ on average, and can grow to $O(n)$ with bad pivots unless you recurse on the smaller side first.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>A classic question: quick sort on an <strong>already sorted</strong> array with the first or last element as pivot. Every split is as unbalanced as possible, so the answer is $O(n^2)$.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the final swap that puts the pivot after the left zone.</li>
+          <li>Recursing on <code>[lo, p]</code> instead of <code>[lo, p - 1]</code>, which can recurse forever on the same range.</li>
+          <li>Using a fixed first or last pivot on data that may already be sorted.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Partition <code>[3, 7, 1, 5]</code> with pivot 5 (the last element). What is the array afterwards, and where is the pivot?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>3 and 1 join the left zone; 7 doesn't.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p><code>[3, 1, 5, 7]</code>, with the pivot 5 at index 2.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>How many comparisons does this quick sort make on <code>[1, 2, 3, 4, 5]</code>? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>4 + 3 + 2 + 1 = 10, which is $\frac{n(n-1)}{2}$. Every pivot is the largest, so each right part is empty and the left part shrinks by one.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Tony Hoare invented quick sort in 1959, as a visiting student in Moscow, while working on sorting words for machine translation.</p>
+          <p>Today variants of it sort arrays of numbers in C++'s <code>std::sort</code> and Java's <code>Arrays.sort</code> for primitives. Learn this one and you understand what most standard libraries do.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>After a partition the pivot is final, <strong>because</strong> everything left of it is ≤ it and everything right of it is bigger.</li>
+          <li>The average case is $O(n \log n)$ <strong>because</strong> reasonably balanced splits give about $\log_2 n$ levels of $n$ work.</li>
+          <li>The worst case is $O(n^2)$ <strong>because</strong> a pivot that is always the min or max shrinks the problem by only one.</li>
+          <li>It is not stable <strong>because</strong> partition swaps can jump an element over an equal one.</li>
+          <li>Its extra space is $O(\log n)$ <strong>because</strong> the only memory it uses is the recursion stack.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is quick sort like a coach splitting players by height?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The coach picks a reference player, sends shorter players left and taller players right, and the reference player's spot is now correct. Each group then repeats the process.</p></details></li>
+          <li><strong>Walk through the first partition of [5, 2, 6, 1, 4] with pivot 4.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>5 is skipped, 2 joins the left zone, 6 is skipped, 1 joins the zone, then 4 swaps in after the zone: [2, 1, 4, 5, 6].</p></details></li>
+          <li><strong>Why does the code recurse on <code>p - 1</code> and <code>p + 1</code>, not on <code>p</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what is special about index <code>p</code>.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The pivot at <code>p</code> is already in its final place, so there's nothing left to do there. Including it could also make a range never shrink, giving infinite recursion.</p></details></li>
+          <li><strong>So what is quick sort, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It partitions the array around a pivot so the pivot lands in its final place, then sorts the two sides the same way.</p></details></li>
+          <li><strong>Why does a sorted array make this quick sort $O(n^2)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says how big the two sides are.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>With the last element as pivot, the pivot is always the maximum, so one side is empty and the other has everything else. The sizes go $n-1$, $n-2$, …, adding up to $\frac{n(n-1)}{2}$.</p></details></li>
+          <li><strong>What are its best, average and worst cases, and its extra space?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n \log n)$ in the best and average case, $O(n^2)$ in the worst case. Extra space is the recursion stack, $O(\log n)$ on average.</p></details></li>
+          <li><strong>How do you make the bad case unlikely?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Choose a random pivot, or the median of the first, middle and last elements. Then no particular input order, like sorted, can trigger the worst case on purpose.</p></details></li>
+          <li><strong>Quick sort is usually fastest. Why would anyone choose merge sort or heap sort instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Merge sort is stable and guarantees $O(n \log n)$. Heap sort guarantees $O(n \log n)$ with $O(1)$ extra memory. Quick sort offers neither guarantee.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the Lomuto index details and the stack-space discussion. I'd keep the coach analogy, one partition on a small array, "the pivot is final", and "fast on average, $O(n^2)$ with bad pivots".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/sorting" target="_blank" rel="noopener">VisuAlgo: Sorting</a>: pick "QUI" or "R-Q" (random pivot) and compare.</li>
+          <li><a href="https://www.geeksforgeeks.org/quick-sort-algorithm/" target="_blank" rel="noopener">GeeksforGeeks: Quick sort</a>: an article covering Lomuto and Hoare partitioning.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Quicksort" target="_blank" rel="noopener">Wikipedia: Quicksort</a>: history, pivot strategies and analysis.</li>
+          <li><a href="https://www.toptal.com/developers/sorting-algorithms/quick-sort" target="_blank" rel="noopener">Toptal: Quick sort animation</a>: compare it with the other sorts on different inputs.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=quick+sort+hungarian+folk+dance" target="_blank" rel="noopener">YouTube: quick sort as a folk dance</a>: the AlgoRythmics video for quick sort.</li>
+          <li><a href="https://www.youtube.com/results?search_query=quicksort+partition+explained" target="_blank" rel="noopener">YouTube search: quicksort partition explained</a>: pick a walkthrough of the partition step.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

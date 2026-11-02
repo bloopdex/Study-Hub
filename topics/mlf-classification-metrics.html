@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classification metrics · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-classification-metrics" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Classification metrics</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">A disease test is run on 100 people. It catches 40 sick people (TP) but misses 20 (FN); it wrongly flags 10 healthy people (FP) and clears 30 (TN). Accuracy is 70%, but the more useful questions are: when it says "sick", how often is it right (<strong>precision</strong> 80%)? And how many sick people does it find (<strong>recall</strong> 67%)?</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> one number like accuracy can hide disasters, such as a test that misses every sick patient. Precision, recall and F1 tell you <em>which</em> mistakes a classifier makes.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-paradigms.html">Classification</a>.</li>
+          <li>Fractions and percentages.</li>
+          <li>The words "positive" (the class we look for) and "negative".</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a fishing net. <strong>Precision</strong> asks: of everything in the net, how much is fish and not old boots? <strong>Recall</strong> asks: of all the fish in the lake, how many did the net catch?</p>
+          <p>A tiny net catches only fish (high precision) but few of them (low recall). A huge net catches most fish (high recall) plus lots of boots (low precision). Classifiers face the same trade-off.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>The four counts:</strong> <strong>TP</strong>: predicted positive, really positive. <strong>FP</strong>: predicted positive, really negative. <strong>FN</strong>: predicted negative, really positive. <strong>TN</strong>: predicted negative, really negative.</p>
+        <h3>Start with the confusion matrix by hand</h3>
+        <p>TP = 40, FP = 10, FN = 20, TN = 30 (100 people). Predict each metric, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Accuracy: the share of all predictions that are right.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$(40 + 30) / 100 = 0.70$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: precision = TP / (TP + FP), and recall = TP / (TP + FN).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Precision $= 40 / 50 = 0.80$. Recall $= 40 / 60 \approx 0.667$.</p></details>
+          <p><strong>Step 3.</strong> F1 is the harmonic mean of precision and recall. Predict it.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$F1 = 2 \cdot 0.8 \cdot 0.667 / (0.8 + 0.667) \approx 0.727$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-classification-metrics-1.svg" alt="Confusion matrix with TP 40, FN 20 in the actual-positive row and FP 10, TN 30 in the actual-negative row" width="600" height="230">
+          <figcaption>What you just used: green cells are correct predictions, red cells are mistakes. Rows are the truth, columns the prediction.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which counts does precision use, and which does recall use?</p>
+          <details><summary>Check your answer</summary>
+            <p>Precision: TP and FP (everything predicted positive). Recall: TP and FN (everything actually positive).</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: when accuracy lies</h3>
+        <p>1,000 transactions, 10 of them fraud. A lazy model predicts "not fraud" every time.</p>
+        <ul>
+          <li><strong>Accuracy.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>990 / 1000 = 99%. It looks excellent.</p></details></li>
+          <li><strong>Recall for fraud.</strong> Predict it, and what it reveals.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0 / 10 = 0: it catches no fraud at all. On imbalanced data, look at recall, precision and F1, not accuracy.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does the "always negative" model get 99% accuracy but is useless?</p>
+          <details><summary>Check your answer</summary>
+            <p>Only 1% of cases are positive, so saying "negative" every time is right 99% of the time while catching none of the positives: recall 0.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's disease test (TP = 40, FP = 10, FN = 20, TN = 30), with every metric computed. Then we move the decision threshold up and down and recompute everything, to see the precision-recall trade-off in numbers.</p>
+        <table>
+          <thead>
+            <tr><th>Threshold</th><th>TP</th><th>FP</th><th>FN</th><th>TN</th><th>Precision</th><th>Recall</th><th>F1</th><th>Accuracy</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Strict (high)</td><td>30</td><td>4</td><td>30</td><td>36</td><td>0.882</td><td>0.500</td><td>0.638</td><td>0.66</td></tr>
+            <tr><td>Default</td><td>40</td><td>10</td><td>20</td><td>30</td><td>0.800</td><td>0.667</td><td><strong>0.727</strong></td><td>0.70</td></tr>
+            <tr><td>Lenient (low)</td><td>55</td><td>25</td><td>5</td><td>15</td><td>0.688</td><td>0.917</td><td><strong>0.786</strong></td><td>0.70</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Lay out the confusion matrix</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\begin{array}{c|cc} & \text{pred} + & \text{pred} - \\ \hline \text{actual} + & TP = 40 & FN = 20 \\ \text{actual} - & FP = 10 & TN = 30 \end{array}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Rows are the truth (60 sick, 40 healthy), columns the prediction. Every metric below is a ratio of cells from this table, so writing it first avoids mixing up FP and FN.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Accuracy</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{TP + TN}{TP + FP + FN + TN} = \frac{40 + 30}{100} = 0.70$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The diagonal over everything. It treats a miss and a false alarm as equally bad, and it says nothing about which one happens.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Precision</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{TP}{TP + FP} = \frac{40}{40 + 10} = 0.80$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The denominator is the "predicted +" column: the 50 people the test flagged. 8 out of 10 flagged people are really sick, so a positive result is fairly trustworthy.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Recall and specificity</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{Recall} = \frac{TP}{TP + FN} = \frac{40}{60} = 0.667, \qquad \text{Specificity} = \frac{TN}{TN + FP} = \frac{30}{40} = 0.75$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Recall uses the "actual +" row: of the 60 sick people, the test finds two thirds and sends 20 home undiagnosed. Specificity is the same idea for the healthy row.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>F1, and why not the ordinary mean</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$F_1 = \frac{2 \cdot 0.8 \cdot 0.667}{0.8 + 0.667} = \frac{1.067}{1.467} = 0.727 \quad \text{vs} \quad \frac{0.8 + 0.667}{2} = 0.733$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Here precision and recall are close, so both averages agree. The harmonic mean only differs strongly when one is much smaller, as in Exercise 2 (0.45 vs 0.6).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Raise the threshold</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$TP = 30,\; FP = 4 \;\Rightarrow\; P = \tfrac{30}{34} = 0.882, \quad R = \tfrac{30}{60} = 0.50, \quad F_1 = 0.638$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Demanding more evidence before saying "sick" removes false alarms (10 → 4), so precision rises. But 10 more sick people now slip through, so recall drops to one half.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Lower the threshold</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$TP = 55,\; FP = 25 \;\Rightarrow\; P = \tfrac{55}{80} = 0.688, \quad R = \tfrac{55}{60} = 0.917, \quad F_1 = 0.786$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Flagging more people catches almost every sick person (only 5 missed) at the price of 25 false alarms. Accuracy is still 0.70: it did not notice anything changed.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Moving the threshold trades precision for recall: 0.88 / 0.50 → 0.80 / 0.67 → 0.69 / 0.92. Accuracy barely moves (0.66–0.70), so it hides the choice entirely.</p>
+          <p>For screening, where a miss is the costly mistake, the lenient threshold is best: recall 0.92 and also the highest F1. A follow-up test then clears the false alarms.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Build the 2 × 2 confusion matrix from predictions and truth. <strong>Precision</strong> = TP / (TP + FP): how trustworthy a "positive" is. <strong>Recall</strong> = TP / (TP + FN): how many positives are found.</p>
+        <p>Use <strong>F1</strong> when you need one number that balances both, and choose the metric that matches the cost of each mistake.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the formulas for accuracy, precision, recall and F1 in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Accuracy: correct predictions over all. Precision: true positives over all predicted positives. Recall: true positives over all real positives. F1: twice their product over their sum.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the metrics by hand. It will make more sense.</p>
+        <pre><code class="language-c">void metrics(int tp, int fp, int fn, int tn, double out[]) {
+    out[0] = (double)(tp + tn) / (tp + fp + fn + tn);   /* accuracy */
+    out[1] = (double)tp / (tp + fp);                    /* precision: trust in "positive" */
+    out[2] = (double)tp / (tp + fn);                    /* recall: share of positives found */
+    out[3] = 2 * out[1] * out[2] / (out[1] + out[2]);   /* F1: harmonic mean */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>confusion matrix</strong> counts TP, FP, FN, TN; <strong>precision</strong> = TP/(TP+FP), <strong>recall</strong> = TP/(TP+FN), and <strong>F1</strong> is their harmonic mean.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"Which mistake is worse?"} --&gt;|"missing a positive (FN)"| R["Maximise recall: disease screening, fraud"]
+  A --&gt;|"a false alarm (FP)"| P["Maximise precision: spam filter, legal evidence"]
+  A --&gt;|"both matter"| F["Use F1"]
+  A --&gt;|"classes balanced, equal costs"| ACC["Accuracy is fine"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for a spam filter that must not lose important emails, which box applies? (Answer: "Maximise precision", since a false alarm hides a real email.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: if precision is 1.0 and recall is 0.1, is F1 closer to 0.55 or to 0.18?</p>
+          <details><summary>Check your answer</summary>
+            <p>About 0.18. The harmonic mean is pulled towards the smaller value, so F1 punishes a big imbalance.</p>
+          </details>
+        </div>
+        <p>The four formulas, with our numbers:</p>
+        $$\text{Precision} = \tfrac{TP}{TP + FP} = \tfrac{40}{50} = 0.80, \quad \text{Recall} = \tfrac{TP}{TP + FN} = \tfrac{40}{60} \approx 0.67, \quad F_1 = \tfrac{2PR}{P + R} \approx 0.73$$
+        <p>Specificity, TN / (TN + FP) = 30 / 40 = 0.75, is the recall of the negative class.</p>
+        <table>
+          <thead>
+            <tr><th>Metric</th><th>Formula</th><th>Our value</th><th>Answers</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Accuracy</td><td>$\frac{TP + TN}{\text{all}}$</td><td>0.70</td><td>How often is it right?</td></tr>
+            <tr><td>Precision</td><td>$\frac{TP}{TP + FP}$</td><td>0.80</td><td>When it says positive, is it?</td></tr>
+            <tr><td>Recall (sensitivity)</td><td>$\frac{TP}{TP + FN}$</td><td>0.67</td><td>How many positives does it find?</td></tr>
+            <tr><td>Specificity</td><td>$\frac{TN}{TN + FP}$</td><td>0.75</td><td>How many negatives does it clear?</td></tr>
+            <tr><td>F1</td><td>$\frac{2PR}{P + R}$</td><td>0.73</td><td>Balance of precision and recall</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Raising the decision threshold usually <strong>raises precision and lowers recall</strong>, and vice versa. Quoting one without the other is meaningless; report both, or F1, or the whole precision-recall curve.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Write the 2 × 2 matrix first, with rows = truth and columns = prediction. Then every formula is a ratio of cells, and you won't mix up FP and FN.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Swapping FP and FN: FP is a false <em>alarm</em> (predicted positive), FN is a <em>miss</em>.</li>
+          <li>Using accuracy on imbalanced data.</li>
+          <li>Averaging precision and recall with an ordinary mean instead of the harmonic mean.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>TP = 8, FP = 2, FN = 8, TN = 82. Compute precision, recall and accuracy.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Precision uses the predicted-positive column; recall the actual-positive row.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Precision 8/10 = 0.8, recall 8/16 = 0.5, accuracy 90/100 = 0.9.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A model has precision 0.9 and recall 0.3. Compute F1, and compare it with the ordinary average. Which better reflects the model? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>F1 = 2 · 0.9 · 0.3 / 1.2 = 0.45; the ordinary average is 0.6. F1 is better: a model that misses 70% of positives shouldn't look "60% good".</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Precision and recall come from information retrieval in the 1950s–60s: of the documents a search returns, how many are relevant (precision), and how many relevant documents does it find (recall)?</p>
+          <p>Medical tests use the names sensitivity (recall) and specificity, and doctors choose thresholds by weighing missed diagnoses against false alarms.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Accuracy can mislead <strong>because</strong> on imbalanced data predicting the majority class already scores high.</li>
+          <li>Precision measures trust in positives <strong>because</strong> its denominator is everything predicted positive.</li>
+          <li>Recall measures coverage <strong>because</strong> its denominator is everything actually positive.</li>
+          <li>F1 punishes imbalance <strong>because</strong> the harmonic mean stays close to the smaller of precision and recall.</li>
+          <li>The right metric depends on costs <strong>because</strong> a missed disease and a false spam alarm are not equally bad.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How are precision and recall like a fishing net?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Precision is the share of the catch that is fish; recall is the share of all the lake's fish that were caught.</p></details></li>
+          <li><strong>With TP 40, FP 10, FN 20, TN 30, compute accuracy, precision, recall and F1.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Accuracy 0.70, precision 0.80, recall about 0.67, F1 about 0.73.</p></details></li>
+          <li><strong>Why does the code cast to <code>double</code> before dividing?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions integer division.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>In C, dividing two ints truncates: 40 / 50 would be 0. Casting one side to double gives 0.8.</p></details></li>
+          <li><strong>So what are precision and recall, in one sentence each?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Precision is the share of predicted positives that are really positive; recall is the share of real positives that the model finds.</p></details></li>
+          <li><strong>Why is accuracy misleading on imbalanced data?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the fraud example.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>With 10 frauds in 1,000, always predicting "not fraud" scores 99% accuracy while catching nothing; recall reveals it is 0.</p></details></li>
+          <li><strong>What are the formulas for precision, recall and F1?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>TP/(TP+FP), TP/(TP+FN), and $2PR/(P+R)$.</p></details></li>
+          <li><strong>For cancer screening, which metric would you prioritise, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Recall, because missing a sick patient (FN) is far worse than a false alarm, which a follow-up test can clear.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out specificity and threshold curves. I'd keep the fishing-net analogy, the 100-person confusion matrix, and "accuracy can lie; precision = trust, recall = coverage".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall" target="_blank" rel="noopener">Google ML Crash Course: Accuracy, precision, recall</a>: interactive explanation with examples.</li>
+          <li><a href="https://scikit-learn.org/stable/modules/model_evaluation.html#classification-metrics" target="_blank" rel="noopener">scikit-learn: Classification metrics</a>: every metric with code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Precision_and_recall" target="_blank" rel="noopener">Wikipedia: Precision and recall</a>: definitions and related measures.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+confusion+matrix+sensitivity+specificity" target="_blank" rel="noopener">YouTube search: StatQuest confusion matrix</a>: StatQuest on the confusion matrix and its metrics.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

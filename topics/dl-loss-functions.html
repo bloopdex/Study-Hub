@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loss functions · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-loss-functions" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Loss functions</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Three examples with true labels $[1, 0, 1]$ and predicted probabilities $[0.9, 0.2, 0.6]$. <strong>MSE</strong> averages the squared gaps: $(0.01 + 0.04 + 0.16)/3 = 0.07$. <strong>Binary cross-entropy</strong> averages $-\ln$ of the probability given to the true class: $(0.105 + 0.223 + 0.511)/3 \approx 0.28$. The 0.6 prediction costs the most under both. A loss function turns "how wrong" into one number to minimise.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> training is nothing but making the loss smaller. The loss decides what "good" means: which mistakes are expensive, and how strongly gradients push the model.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-activation-functions.html">Sigmoid and softmax</a> outputs.</li>
+          <li>Natural logarithm: $\ln 1 = 0$, $\ln p &lt; 0$ for $p &lt; 1$.</li>
+          <li><a href="mlf-regression-metrics.html">MSE</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a weather forecaster scored on rain predictions. Saying "90% rain" on a rainy day costs very little; saying "10% rain" on a rainy day costs a lot, because they were confident and wrong.</p>
+          <p>Cross-entropy scores probability forecasts exactly like that. MSE is a gentler judge that just measures the gap between the number and the truth.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>The losses:</strong> regression: MSE $= \frac1n\sum (y_i - \hat y_i)^2$. Binary classification: BCE $= -\frac1n\sum [y_i \ln p_i + (1 - y_i)\ln(1 - p_i)]$. Multi-class: CE $= -\ln p_{\text{true class}}$, averaged.</p>
+        <h3>Start with three predictions by hand</h3>
+        <p>Labels $y = [1, 0, 1]$, predicted probabilities $p = [0.9, 0.2, 0.6]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> MSE: square each gap and average.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Gaps 0.1, 0.2, 0.4; squares 0.01, 0.04, 0.16; MSE $= 0.07$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the probability each prediction gave to the <em>true</em> class.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>0.9 (true 1), $1 - 0.2 = 0.8$ (true 0), 0.6 (true 1).</p></details>
+          <p><strong>Step 3.</strong> BCE: average $-\ln$ of those three probabilities.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$-\ln 0.9 \approx 0.105$, $-\ln 0.8 \approx 0.223$, $-\ln 0.6 \approx 0.511$; mean $\approx 0.280$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-loss-functions-1.svg" alt="Curve of minus log p for p from 0 to 1, with the three examples marked at 0.9, 0.8 and 0.6" width="580" height="350">
+          <figcaption>What you just computed: cross-entropy charges $-\ln p$ for the probability $p$ given to the true class. It explodes as $p$ approaches 0.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does cross-entropy charge for a prediction?</p>
+          <details><summary>Check your answer</summary>
+            <p>Minus the log of the probability the model gave to the true class: near 0 when that probability is high, huge when it is low.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: confident mistakes</h3>
+        <p>Change the third prediction from 0.6 to 0.1 (true label still 1).</p>
+        <ul>
+          <li><strong>MSE.</strong> Predict the new value.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Gap 0.9, square 0.81: MSE $= (0.01 + 0.04 + 0.81)/3 \approx 0.287$.</p></details></li>
+          <li><strong>BCE.</strong> Predict the new value.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$-\ln 0.1 \approx 2.303$: BCE $= (0.105 + 0.223 + 2.303)/3 \approx 0.877$. Cross-entropy punishes the confident mistake far harder.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what is the multi-class cross-entropy for probabilities [0.7, 0.2, 0.1] when class 1 is true?</p>
+          <details><summary>Check your answer</summary>
+            <p>$-\ln 0.7 \approx 0.357$; only the true class's probability matters.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's three predictions, true labels $[1, 0, 1]$ and probabilities $[0.9, 0.2, 0.6]$, scored term by term with MSE and with cross-entropy. Then the multi-class version (softmax + cross-entropy) and a look at the gradients, which is where the two losses really differ.</p>
+        <table>
+          <thead>
+            <tr><th>Example</th><th>$y$</th><th>$p$</th><th>Prob. of true class</th><th>MSE term $(y - p)^2$</th><th>BCE term $-\ln(\cdot)$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>0.9</td><td>0.9</td><td>0.01</td><td>0.105</td></tr>
+            <tr><td>2</td><td>0</td><td>0.2</td><td>0.8</td><td>0.04</td><td>0.223</td></tr>
+            <tr><td>3</td><td>1</td><td>0.6</td><td>0.6</td><td>0.16</td><td>0.511</td></tr>
+            <tr><td>Mean</td><td></td><td></td><td></td><td><strong>0.07</strong></td><td><strong>0.280</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>MSE term by term</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$(1 - 0.9)^2 = 0.01, \quad (0 - 0.2)^2 = 0.04, \quad (1 - 0.6)^2 = 0.16 \;\Rightarrow\; \text{MSE} = \frac{0.21}{3} = 0.07$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Squared distance between the label and the predicted probability, averaged.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Probability given to the true class</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$y = 1: \; p, \qquad y = 0: \; 1 - p \;\Rightarrow\; [0.9,\; 0.8,\; 0.6]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Cross-entropy only looks at how much probability the model gave to the correct answer. Example 2 has label 0, so the relevant number is $1 - 0.2 = 0.8$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>BCE term by term</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$-\ln 0.9 = 0.105, \quad -\ln 0.8 = 0.223, \quad -\ln 0.6 = 0.511 \;\Rightarrow\; \text{BCE} = \frac{0.839}{3} = 0.280$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$-\ln$ is 0 for a perfect prediction and grows without limit as the probability drops. The least confident example (0.6) contributes most.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>A confident mistake</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$y = 1, \; p = 0.1: \quad \text{MSE term} = 0.81, \qquad \text{BCE term} = -\ln 0.1 = 2.303$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">MSE can never exceed 1 per example. Cross-entropy punishes being confidently wrong much harder, which is exactly what we want from a classifier.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Gradients with respect to p</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial\,\text{MSE}}{\partial p} = 2(p - y) = -1.8, \qquad \frac{\partial\,\text{BCE}}{\partial p} = -\frac{1}{p} = -10$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For the confident mistake the cross-entropy gradient is more than 5 times stronger, so learning corrects it quickly. Combined with a sigmoid, BCE's gradient on the score becomes simply $p - y$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Multi-class: softmax then cross-entropy</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z = [2, 1, 0.1] \;\Rightarrow\; e^z = [7.389, 2.718, 1.105], \; \sum = 11.21 \;\Rightarrow\; p = [0.659, 0.242, 0.099]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With three classes, softmax turns the scores into probabilities first.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Categorical cross-entropy and its gradient</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{true class } 1: \; L = -\ln 0.659 = 0.417, \qquad \frac{\partial L}{\partial z} = p - \text{onehot} = [-0.341,\; 0.242,\; 0.099]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Only the true class's probability enters the loss. The gradient pushes the true score up (negative) and the others down, in proportion to how much probability they stole.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>MSE = 0.07 and BCE = 0.28 on the same predictions, but they rank mistakes differently: cross-entropy explodes for confident errors.</p>
+          <p>Use MSE for regression, binary cross-entropy for yes/no outputs, and softmax + cross-entropy for several classes.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Match the loss to the output: <strong>MSE</strong> (or MAE / Huber) for real-valued outputs, <strong>binary cross-entropy</strong> after a sigmoid, <strong>categorical cross-entropy</strong> after a softmax.</p>
+        <p>Training minimises the average loss over the training set; its gradient drives every weight update.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute BCE for a batch, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For each example, take $p$ if the label is 1 or $1 - p$ if it is 0, take minus its log, and average over the examples.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed both losses by hand. It will make more sense.</p>
+        <pre><code class="language-c">double mse(double y[], double p[], int n) {
+    double s = 0;
+    for (int i = 0; i &lt; n; i++) s += (y[i] - p[i]) * (y[i] - p[i]);
+    return s / n;
+}
+
+double bce(int y[], double p[], int n) {           /* binary cross-entropy */
+    double s = 0;
+    for (int i = 0; i &lt; n; i++) s -= y[i] ? log(p[i]) : log(1 - p[i]);   /* -ln P(true class) */
+    return s / n;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>loss function</strong> measures how far a model's predictions are from the targets; <strong>MSE</strong> averages squared errors (regression), <strong>cross-entropy</strong> averages $-\ln$ of the probability given to the true class (classification).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"What does the model output?"} --&gt;|"a real number"| R{"Outliers a concern?"}
+  R --&gt;|no| MSE["MSE"]
+  R --&gt;|yes| H["MAE or Huber loss"]
+  A --&gt;|"one probability (sigmoid)"| BCE["binary cross-entropy"]
+  A --&gt;|"K class probabilities (softmax)"| CE["categorical cross-entropy"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: a network predicting tomorrow's temperature, which box? (Answer: "MSE", or Huber if there are outliers.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: which loss gives larger gradients for a confident wrong answer, MSE or cross-entropy?</p>
+          <details><summary>Check your answer</summary>
+            <p>Cross-entropy: its penalty grows without bound, while MSE's gap is at most 1 for probabilities.</p>
+          </details>
+        </div>
+        <p>The two losses with our numbers:</p>
+        $$\text{MSE} = \tfrac13(0.1^2 + 0.2^2 + 0.4^2) = 0.07, \qquad \text{BCE} = -\tfrac13(\ln 0.9 + \ln 0.8 + \ln 0.6) \approx 0.280$$
+        <table>
+          <thead>
+            <tr><th>Loss</th><th>Formula (one example)</th><th>Use with</th><th>Our 3rd example (p = 0.6)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>MSE</td><td>$(y - \hat y)^2$</td><td>Regression (linear output)</td><td>0.16</td></tr>
+            <tr><td>MAE</td><td>$|y - \hat y|$</td><td>Regression, robust to outliers</td><td>0.4</td></tr>
+            <tr><td>Binary CE</td><td>$-[y \ln p + (1-y)\ln(1-p)]$</td><td>Sigmoid output</td><td>0.511</td></tr>
+            <tr><td>Categorical CE</td><td>$-\ln p_{\text{true}}$</td><td>Softmax output</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>$\ln 0$ is $-\infty$. If a model outputs exactly 0 or 1, cross-entropy becomes infinite or undefined. Frameworks clip probabilities or compute the loss directly from the raw scores (logits) for numerical stability.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>For cross-entropy, first write down the probability given to the <em>true</em> class for each example, then take $-\ln$ and average. That avoids sign and $1 - p$ mistakes.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using $p$ instead of $1 - p$ for examples whose true label is 0.</li>
+          <li>Using MSE with a sigmoid output for classification, which gives weak gradients for confident mistakes.</li>
+          <li>Applying softmax twice: once in the model and again inside a loss that expects raw scores.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Compute the binary cross-entropy of a single prediction $p = 0.5$ with label 1.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$\ln 0.5 \approx -0.693$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$-\ln 0.5 \approx 0.693$: the cost of a pure coin-flip guess.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A 3-class model outputs probabilities [0.7, 0.2, 0.1], [0.1, 0.8, 0.1] and [0.3, 0.3, 0.4] for three examples whose true classes are 1, 2 and 1. Compute the average categorical cross-entropy. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$-\ln 0.7 \approx 0.357$, $-\ln 0.8 \approx 0.223$, $-\ln 0.3 \approx 1.204$; average $\approx 0.595$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Cross-entropy comes from Claude Shannon's information theory (1948): it measures how many extra bits you need when you encode outcomes using the model's probabilities instead of the true ones.</p>
+          <p>Minimising cross-entropy is the same as maximising the likelihood of the training labels, which is why it is the default loss for classification.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Training minimises the loss <strong>because</strong> the loss defines what "better predictions" means.</li>
+          <li>Cross-entropy punishes confident mistakes <strong>because</strong> $-\ln p$ grows without bound as $p \to 0$.</li>
+          <li>MSE suits regression <strong>because</strong> it measures squared distance between numbers.</li>
+          <li>Only the true class's probability matters in cross-entropy <strong>because</strong> the label is one-hot.</li>
+          <li>Logits are used for stability <strong>because</strong> computing $\ln$ of a probability near 0 loses precision.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is cross-entropy like scoring a weather forecaster?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A confident correct forecast costs almost nothing, while a confident wrong forecast costs a lot, just as $-\ln p$ is small for high $p$ and huge for low $p$.</p></details></li>
+          <li><strong>Compute MSE and BCE for labels [1, 0, 1] and predictions [0.9, 0.2, 0.6].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MSE $= 0.07$; BCE $= (0.105 + 0.223 + 0.511)/3 \approx 0.280$.</p></details></li>
+          <li><strong>Why does <code>bce</code> use <code>log(1 - p[i])</code> when the label is 0?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what $1 - p$ is.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$p$ is the probability of class 1, so the probability given to the true class 0 is $1 - p$; cross-entropy charges $-\ln$ of that.</p></details></li>
+          <li><strong>So what is a loss function, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A function that turns the gap between predictions and targets into one number that training tries to minimise.</p></details></li>
+          <li><strong>Why does changing one prediction from 0.6 to 0.1 hurt BCE much more than MSE?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares 0.81 with 2.30.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MSE adds $0.9^2 = 0.81$, while BCE adds $-\ln 0.1 \approx 2.30$; the log grows without limit near 0, so confident mistakes dominate.</p></details></li>
+          <li><strong>Which loss goes with which output layer?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>MSE (or MAE/Huber) with a linear output; binary cross-entropy with a sigmoid; categorical cross-entropy with a softmax.</p></details></li>
+          <li><strong>Why are losses often computed from logits rather than probabilities?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>For numerical stability: it avoids taking the log of values that rounded to 0 or 1.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out MAE, Huber and the logits detail. I'd keep the forecaster analogy, the 3-example MSE and BCE, and "MSE for numbers, cross-entropy for probabilities".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://pytorch.org/docs/stable/nn.html#loss-functions" target="_blank" rel="noopener">PyTorch docs: Loss functions</a>: MSELoss, BCEWithLogitsLoss, CrossEntropyLoss and more.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Cross-entropy" target="_blank" rel="noopener">Wikipedia: Cross-entropy</a>: the information-theory background.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/logistic-regression/loss-regularization" target="_blank" rel="noopener">Google ML Crash Course: Log loss</a>: why log loss for probabilities.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+cross+entropy" target="_blank" rel="noopener">YouTube search: StatQuest cross-entropy</a>: StatQuest's clear walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

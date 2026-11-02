@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="310" viewBox="0 0 620 310" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Weights before and after regularization</title>
+  <rect width="620" height="310" rx="16" fill="#f8fafc"/>
+  <text x="310" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Weights: none vs L2 vs L1</text>
+  <text x="70" y="66" text-anchor="middle" font-size="13" fill="#475569">w₁</text>
+  <text x="142" y="66" text-anchor="middle" font-size="13" fill="#475569">w₂</text>
+  <text x="214" y="66" text-anchor="middle" font-size="13" fill="#475569">w₃</text>
+  <text x="286" y="66" text-anchor="middle" font-size="13" fill="#475569">w₄</text>
+  <rect x="40" y="76" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="70" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">4.0</text>
+  <rect x="112" y="76" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="142" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−3.0</text>
+  <rect x="184" y="76" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="214" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.5</text>
+  <rect x="256" y="76" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="286" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.1</text>
+  <text x="340" y="104" font-size="15" fill="#334155">no penalty</text>
+  <text x="178" y="146" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="156" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="70" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">2.0</text>
+  <rect x="112" y="156" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="142" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−1.5</text>
+  <rect x="184" y="156" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="214" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.25</text>
+  <rect x="256" y="156" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="286" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">0.05</text>
+  <text x="340" y="184" font-size="15" fill="#334155">L2 (ridge), λ = 1</text>
+  <text x="178" y="226" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="236" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="70" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">3.4</text>
+  <rect x="112" y="236" width="60" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="142" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−2.4</text>
+  <rect x="184" y="236" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="214" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8">0</text>
+  <rect x="256" y="236" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="286" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8">0</text>
+  <text x="340" y="264" font-size="15" font-weight="700" fill="#15803d">L1 (lasso), λ = 0.6</text>
+</svg>

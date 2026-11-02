@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prep Sheet · Study Hub</title>
+  <script src="assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="assets/js/mdx-runtime.js"></script>
+  <style>
+    .hub { margin: 2rem 0 .75rem; font-size: 1.25rem; font-weight: 700; color: #6366f1; }
+    .grid { display: grid; gap: 1rem; }
+    .grid > * { min-width: 0; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .block { border-radius: .75rem; padding: 1rem 1.25rem; font-size: .9rem; line-height: 1.45; background: rgb(99 102 241 / .06); border: 1px solid rgb(99 102 241 / .25); }
+    .block h3 { font-weight: 700; font-size: 1.05rem; margin-bottom: .35rem; }
+    .block h3 a:hover { color: #6366f1; }
+    .block .def { margin-bottom: .4rem; }
+    .block ul { list-style: disc; padding-left: 1.2rem; margin: .3rem 0; }
+    .block p { margin: .3rem 0; }
+    .block .formula { overflow-x: auto; font-size: .85rem; }
+    .block code { font-family: "JetBrains Mono", monospace; font-size: .85em; }
+    .tag { display: inline-block; padding: 0 .4rem; border-radius: .3rem; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .pit { background: rgb(245 158 11 / .2); color: #b45309; }
+    .fey { background: rgb(99 102 241 / .2); color: #4338ca; }
+    @page { size: A4; margin: 12mm; }
+    @media print {
+      body { font-size: 11pt; }
+      .grid { grid-template-columns: 1fr; gap: 0; }
+      .block { break-inside: avoid; min-height: 128mm; margin-bottom: 6mm; padding: 5mm 6mm; background: #fff !important; }   /* about two topics per A4 page */
+      .hub { break-after: avoid; margin-top: 4mm; }
+    }
+  </style>
+  <script defer src="assets/js/feynman.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300"><a href="index.html" class="hover:text-indigo-500">Dashboard</a></nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight">Prep sheet</h1>
+        <p class="mt-2 text-slate-600 dark:text-slate-400">90 topics: definition, three key facts, one formula, one pitfall and a Feynman prompt each.</p>
+      </div>
+      <button onclick="window.print()" class="no-print rounded-xl bg-indigo-500 px-4 py-2 font-medium text-white shadow hover:bg-indigo-600">Print</button>
+    </div>
+    <h2 class="hub">Sorting</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/sorting-bubble-sort.html">Bubble sort</a></h3>
+        <p class="def">a <strong>pass</strong> walks the unsorted part, comparing <code>a[j]</code> with <code>a[j+1]</code> and swapping when <code>a[j] &gt; a[j+1]</code>.</p>
+        <ul><li>After pass $k$, the $k$ largest values are final, <strong>because</strong> each pass carries the largest remaining value all the way to the end.</li><li>The worst case is $O(n^2)$ <strong>because</strong> there are up to $n-1$ passes, and together they make $\frac{n(n-1)}{2}$ comparisons.</li><li>The best case is $O(n)$ <strong>because</strong>, with the flag, a sorted array needs just one pass with no swaps.</li></ul>
+        <div class="formula">$$\sum_{i=1}^{n-1} i \;=\; \frac{n(n-1)}{2} \;=\; O(n^2).$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the <code>swapped</code> flag, so sorted input still costs $O(n^2)$.</p>
+        <p><span class="tag fey">Feynman</span> Explain Bubble sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/sorting-insertion-sort.html">Insertion sort</a></h3>
+        <p class="def"><strong>insertion sort</strong> keeps a sorted prefix <code>a[0..i-1]</code> and inserts <code>a[i]</code> into it by shifting bigger elements one slot right.</p>
+        <ul><li>The prefix is always sorted, <strong>because</strong> each key is dropped exactly where it fits among the numbers already there.</li><li>The worst case is $O(n^2)$ <strong>because</strong> on reversed input key $i$ shifts past all $i$ numbers before it, $\frac{n(n-1)}{2}$ in total.</li><li>The best case is $O(n)$ <strong>because</strong> on sorted input every key stops after one comparison.</li></ul>
+        <div class="formula">$$1 + 2 + \dots + (n-1) \;=\; \frac{n(n-1)}{2} \;=\; O(n^2).$$</div>
+        <p><span class="tag pit">Pitfall</span> Shifting before saving <code>a[i]</code> into <code>key</code>, which overwrites the number you are inserting.</p>
+        <p><span class="tag fey">Feynman</span> Explain Insertion sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/sorting-selection-sort.html">Selection sort</a></h3>
+        <p class="def"><strong>selection sort</strong> repeatedly selects the minimum of the unsorted part <code>a[i..n-1]</code> and swaps it into position <code>i</code>.</p>
+        <ul><li>After pass $k$, the first $k$ slots are final, <strong>because</strong> each pass puts the smallest remaining value there.</li><li>It is always $\Theta(n^2)$ <strong>because</strong> each pass must scan the whole unsorted part to be sure it found the minimum.</li><li>It makes at most $n-1$ swaps <strong>because</strong> it swaps once per pass, after the scan.</li></ul>
+        <div class="formula">$$\sum_{i=1}^{n-1} i \;=\; \frac{n(n-1)}{2} \;=\; \Theta(n^2).$$</div>
+        <p><span class="tag pit">Pitfall</span> Swapping inside the inner loop every time a smaller value appears, which turns one swap per pass into many.</p>
+        <p><span class="tag fey">Feynman</span> Explain Selection sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/sorting-merge-sort.html">Merge sort</a></h3>
+        <p class="def"><strong>merge sort</strong> splits the array into halves, sorts each half recursively, and <strong>merges</strong> the two sorted halves in linear time.</p>
+        <ul><li>The merge works <strong>because</strong> both halves are sorted, so the smaller front is always the smallest number left.</li><li>It is $O(n \log n)$ in every case <strong>because</strong> there are $\log_2 n$ levels and each moves all $n$ numbers.</li><li>It needs $O(n)$ extra space <strong>because</strong> the merge writes into a scratch array.</li></ul>
+        <div class="formula">$$\underbrace{n}_{\text{work per level}} \times \underbrace{\log_2 n}_{\text{levels}} \;=\; O(n \log n).$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to copy the leftovers after one half runs out, which silently loses numbers.</p>
+        <p><span class="tag fey">Feynman</span> Explain Merge sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/sorting-quick-sort.html">Quick sort</a></h3>
+        <p class="def"><strong>quick sort</strong> picks a <strong>pivot</strong>, <strong>partitions</strong> the array so the pivot lands in its final place with smaller-or-equal elements on its left, then sorts both sides recursively.</p>
+        <ul><li>After a partition the pivot is final, <strong>because</strong> everything left of it is ≤ it and everything right of it is bigger.</li><li>The average case is $O(n \log n)$ <strong>because</strong> reasonably balanced splits give about $\log_2 n$ levels of $n$ work.</li><li>The worst case is $O(n^2)$ <strong>because</strong> a pivot that is always the min or max shrinks the problem by only one.</li></ul>
+        <div class="formula">$$(n-1) + (n-2) + \dots + 1 \;=\; \frac{n(n-1)}{2} \;=\; O(n^2).$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the final swap that puts the pivot after the left zone.</p>
+        <p><span class="tag fey">Feynman</span> Explain Quick sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/sorting-heap-sort.html">Heap sort</a></h3>
+        <p class="def"><strong>heap sort</strong> turns the array into a <strong>max-heap</strong> (every parent ≥ its children), then repeatedly swaps the root to the end of the shrinking heap and sifts the new root down.</p>
+        <ul><li>The root is always the maximum <strong>because</strong> every parent is at least as big as its children.</li><li>Building the heap is $O(n)$ <strong>because</strong> most nodes are near the bottom and sink only a level or two.</li><li>The sort is $O(n \log n)$ in every case <strong>because</strong> each of the $n-1$ extractions sinks at most $\log_2 n$ levels.</li></ul>
+        <div class="formula">$$\underbrace{O(n)}_{\text{build}} + \underbrace{(n-1) \cdot O(\log n)}_{\text{extractions}} \;=\; O(n \log n).$$</div>
+        <p><span class="tag pit">Pitfall</span> Sifting down with the full size <code>n</code> instead of the shrinking heap size, which pulls sorted numbers back into the heap.</p>
+        <p><span class="tag fey">Feynman</span> Explain Heap sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">Searching</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/searching-linear.html">Linear search</a></h3>
+        <p class="def"><strong>linear search</strong> compares the target with each element in order and returns the index of the first match, or −1 if there is none.</p>
+        <ul><li>It works on unsorted data <strong>because</strong> it never assumes anything about elements it hasn't checked.</li><li>The worst case is $O(n)$ <strong>because</strong> a missing target can only be ruled out by checking all $n$ elements.</li><li>The average successful search is $\frac{n+1}{2}$ comparisons <strong>because</strong> the target is, on average, halfway along.</li></ul>
+        <div class="formula">$$\frac{1}{n}\sum_{i=1}^{n} i \;=\; \frac{n+1}{2} \;=\; O(n).$$</div>
+        <p><span class="tag pit">Pitfall</span> Returning −1 inside the loop on the first mismatch, so only <code>a[0]</code> is ever checked.</p>
+        <p><span class="tag fey">Feynman</span> Explain Linear search to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/searching-binary.html">Binary search</a></h3>
+        <p class="def"><strong>binary search</strong> finds a target in a sorted array by comparing it with the middle of the current range and discarding the half that cannot contain it.</p>
+        <ul><li>It needs sorted data <strong>because</strong> only order lets one comparison rule out a whole half.</li><li>It is $O(\log n)$ <strong>because</strong> each comparison halves the range, and you can halve $n$ only $\log_2 n$ times.</li><li>It stops with "not found" when <code>lo &gt; hi</code> <strong>because</strong> an empty range leaves no place for the target.</li></ul>
+        <div class="formula">$$\frac{n}{2^k} = 1 \;\Longrightarrow\; k = \log_2 n, \qquad \text{at most } \lfloor \log_2 n \rfloor + 1 \text{ comparisons.}$$</div>
+        <p><span class="tag pit">Pitfall</span> Running it on unsorted data. It doesn't crash; it silently gives wrong answers.</p>
+        <p><span class="tag fey">Feynman</span> Explain Binary search to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/searching-interpolation.html">Interpolation search</a></h3>
+        <p class="def"><strong>interpolation search</strong> is binary search with the probe placed by linear interpolation between <code>a[lo]</code> and <code>a[hi]</code>, instead of at the middle.</p>
+        <ul><li>It probes near the target <strong>because</strong> it assumes values grow evenly from <code>a[lo]</code> to <code>a[hi]</code>.</li><li>It is $O(\log \log n)$ on uniform data <strong>because</strong> each good estimate shrinks the range far more than halving does.</li><li>It is $O(n)$ in the worst case <strong>because</strong> skewed values can make every probe move just one step.</li></ul>
+        <div class="formula">$$\text{pos} \;=\; lo + \frac{(x - a[lo]) \cdot (hi - lo)}{a[hi] - a[lo]}.$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the <code>a[hi] == a[lo]</code> check, which divides by zero on runs of equal values.</p>
+        <p><span class="tag fey">Feynman</span> Explain Interpolation search to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/searching-exponential.html">Exponential search</a></h3>
+        <p class="def"><strong>exponential search</strong> finds a range $[i/2, i]$ containing the target by doubling $i$, then runs binary search inside it.</p>
+        <ul><li>Doubling brackets the target <strong>because</strong> it stops at the first $i$ where $a[i] \ge x$, so $x$ lies in $[i/2, i]$.</li><li>The cost is $O(\log i)$ <strong>because</strong> both phases depend only on the target's position $i$, not on $n$.</li><li>It works on unbounded lists <strong>because</strong> it never needs to know $n$ in advance.</li></ul>
+        <div class="formula">$$\underbrace{\log_2 i}_{\text{doubling}} + \underbrace{\log_2 (i/2)}_{\text{binary search}} \;=\; O(\log i) \;\le\; O(\log n).$$</div>
+        <p><span class="tag pit">Pitfall</span> Starting the doubling at <code>i = 0</code>: 0 × 2 stays 0 forever.</p>
+        <p><span class="tag fey">Feynman</span> Explain Exponential search to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/searching-ternary.html">Ternary search</a></h3>
+        <p class="def"><strong>ternary search</strong> splits the range with two probes into three parts and keeps the one part that can contain the target, or the peak of a unimodal function.</p>
+        <ul><li>Each round keeps one third <strong>because</strong> two probes split the range into three parts and only one can hold the target.</li><li>It is $O(\log n)$ <strong>because</strong> shrinking by a factor of 3 each round takes $\log_3 n$ rounds.</li><li>It loses to binary search on sorted arrays <strong>because</strong> $2 \log_3 n \approx 1.26 \log_2 n$ comparisons.</li></ul>
+        <div class="formula">$$2 \log_3 n \;=\; \frac{2}{\log_2 3} \log_2 n \;\approx\; 1.26 \, \log_2 n.$$</div>
+        <p><span class="tag pit">Pitfall</span> Claiming it beats binary search on sorted arrays because $\log_3 n &lt; \log_2 n$, forgetting the 2 comparisons per round.</p>
+        <p><span class="tag fey">Feynman</span> Explain Ternary search to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/searching-rotated-array.html">Search in a rotated sorted array</a></h3>
+        <p class="def"><strong>rotated array search</strong> is binary search that, at each step, finds the sorted half and keeps it only if the target lies within its range.</p>
+        <ul><li>One half is always sorted <strong>because</strong> the rotation creates only one "wrap" point, and it can be in only one half.</li><li>We test the target against the sorted half <strong>because</strong> only there does "between the ends" mean "inside".</li><li>It is $O(\log n)$ with distinct values <strong>because</strong> each round still throws away half the range.</li></ul>
+        <div class="formula">$$\lfloor \log_2 n \rfloor + 1 \text{ rounds} \;=\; O(\log n).$$</div>
+        <p><span class="tag pit">Pitfall</span> Testing the target against the unsorted half, where "between the ends" means nothing.</p>
+        <p><span class="tag fey">Feynman</span> Explain Search in a rotated sorted array to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/searching-peak-finding.html">Peak finding</a></h3>
+        <p class="def">a <strong>peak</strong> is an element with $a_{i-1} \le a_i \ge a_{i+1}$, and <strong>peak finding</strong> locates one by always keeping the half on the uphill side of the middle.</p>
+        <ul><li>A peak always exists <strong>because</strong> the maximum element is one, and rising values must end somewhere.</li><li>The uphill half must contain a peak <strong>because</strong> walking up it either turns down or reaches the edge.</li><li>It is $O(\log n)$ <strong>because</strong> each comparison halves the candidate range.</li></ul>
+        <div class="formula">$$\lceil \log_2 n \rceil \text{ comparisons} \;=\; O(\log n), \qquad \text{versus } O(n) \text{ for a linear scan.}$$</div>
+        <p><span class="tag pit">Pitfall</span> Writing <code>hi = mid - 1</code> on the downhill branch, which can throw away the peak at <code>mid</code> itself.</p>
+        <p><span class="tag fey">Feynman</span> Explain Peak finding to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">Linear structures</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/structure-array.html">Arrays</a></h3>
+        <p class="def">an <strong>array</strong> stores $n$ elements of the same size in one contiguous block, so element $i$ is found by address arithmetic.</p>
+        <ul><li>Access is $O(1)$ <strong>because</strong> the address of <code>a[i]</code> is computed as $b + i \cdot s$.</li><li>Insert and delete in the middle are $O(n)$ <strong>because</strong> every later element has to shift by one slot.</li><li>Appending is amortized $O(1)$ <strong>because</strong> doubling makes the rare big copies add up to less than $2n$.</li></ul>
+        <div class="formula">$$\text{address}(a[i]) \;=\; b + i \cdot s$$</div>
+        <p><span class="tag pit">Pitfall</span> Shifting right starting from index <code>i</code> instead of from the end, which copies the same value over everything.</p>
+        <p><span class="tag fey">Feynman</span> Explain Arrays to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-singly-linked-list.html">Singly linked list</a></h3>
+        <p class="def">a <strong>singly linked list</strong> is a chain of nodes, each holding a value and a pointer to the next node, accessed from a <code>head</code> pointer.</p>
+        <ul><li>Inserting at the front is $O(1)$ <strong>because</strong> only the new node and the head pointer change.</li><li>Access by position is $O(n)$ <strong>because</strong> nodes are scattered in memory and can only be reached by following <code>next</code>.</li><li>Deleting needs the previous node <strong>because</strong> its <code>next</code> pointer is what must skip the removed node.</li></ul>
+        <div class="formula">$$\frac{1}{n}\sum_{k=0}^{n-1} k \;=\; \frac{n-1}{2} \;=\; O(n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Losing the rest of the list by overwriting <code>head</code> before saving <code>head-&gt;next</code>.</p>
+        <p><span class="tag fey">Feynman</span> Explain Singly linked list to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-doubly-linked-list.html">Doubly linked list</a></h3>
+        <p class="def">a <strong>doubly linked list</strong> is a chain of nodes where each node points to both its next and its previous node.</p>
+        <ul><li>Deleting a known node is $O(1)$ <strong>because</strong> it stores pointers to both neighbours.</li><li>pop_back is $O(1)$ <strong>because</strong> the tail's <code>prev</code> gives the new tail without walking.</li><li>Every insert writes four pointers <strong>because</strong> each link exists in both directions.</li></ul>
+        <div class="formula">$$n \cdot (v + 2p) \quad \text{versus} \quad n \cdot (v + p) \text{ for a singly linked list}$$</div>
+        <p><span class="tag pit">Pitfall</span> Updating only the <code>next</code> pointers and forgetting the matching <code>prev</code> ones.</p>
+        <p><span class="tag fey">Feynman</span> Explain Doubly linked list to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-circular-linked-list.html">Circular linked list</a></h3>
+        <p class="def">a <strong>circular linked list</strong> is a linked list whose last node points back to the first, usually accessed through a <code>tail</code> pointer.</p>
+        <ul><li>One tail pointer is enough <strong>because</strong> the head is always <code>tail-&gt;next</code>.</li><li>Both ends are $O(1)$ to add to <strong>because</strong> they meet at the tail's link.</li><li>Traversal must stop at the start node <strong>because</strong> there is no <code>NULL</code> at the end.</li></ul>
+        <div class="formula">$$(t - 1) \bmod n$$</div>
+        <p><span class="tag pit">Pitfall</span> Using <code>while (p != NULL)</code> and looping forever.</p>
+        <p><span class="tag fey">Feynman</span> Explain Circular linked list to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-stack.html">Stack</a></h3>
+        <p class="def">a <strong>stack</strong> is a collection where you add (<strong>push</strong>) and remove (<strong>pop</strong>) only at the top, so the last item in is the first out (LIFO).</p>
+        <ul><li>The last item pushed is the first popped <strong>because</strong> both push and pop work at the same end, the top.</li><li>Every operation is $O(1)$ <strong>because</strong> only the top slot is ever read or written.</li><li>Bracket matching works <strong>because</strong> the most recent unclosed bracket is always the one that must close next.</li></ul>
+        <div class="formula">$$\text{work} \;\le\; n \cdot O(1) \;=\; O(n), \qquad \text{extra space} \le n$$</div>
+        <p><span class="tag pit">Pitfall</span> Popping without checking that the stack is non-empty.</p>
+        <p><span class="tag fey">Feynman</span> Explain Stack to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-queue.html">Queue</a></h3>
+        <p class="def">a <strong>queue</strong> is a first-in, first-out (FIFO) collection: you <strong>enqueue</strong> at the back and <strong>dequeue</strong> from the front.</p>
+        <ul><li>The oldest item leaves first <strong>because</strong> items are added at the back and removed from the front.</li><li>Dequeue is $O(1)$ <strong>because</strong> the front index moves instead of the items.</li><li>The array is used in a circle <strong>because</strong> <code>% capacity</code> sends indices past the end back to slot 0.</li></ul>
+        <div class="formula">$$\text{slot} \;=\; (\text{front} + \text{size}) \bmod \text{capacity}$$</div>
+        <p><span class="tag pit">Pitfall</span> Shifting all items on dequeue, which turns $O(1)$ into $O(n)$.</p>
+        <p><span class="tag fey">Feynman</span> Explain Queue to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-deque.html">Deque</a></h3>
+        <p class="def">a <strong>deque</strong> (double-ended queue) supports adding and removing at both the front and the back.</p>
+        <ul><li>All four end operations are $O(1)$ <strong>because</strong> each one touches one slot and updates one index.</li><li>A deque can act as a stack or a queue <strong>because</strong> it allows both same-end and opposite-end use.</li><li>push_front adds capacity − 1 <strong>because</strong> C's <code>%</code> can return a negative number for −1.</li></ul>
+        <div class="formula">$$\text{front}_{\text{new}} \;=\; (\text{front} + \text{capacity} - 1) \bmod \text{capacity}$$</div>
+        <p><span class="tag pit">Pitfall</span> Computing <code>(front - 1) % capacity</code>, which gives a negative index in C.</p>
+        <p><span class="tag fey">Feynman</span> Explain Deque to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/structure-priority-queue.html">Priority queue</a></h3>
+        <p class="def">a <strong>priority queue</strong> returns the item with the highest priority (here the smallest key) first; a <strong>binary min-heap</strong> implements it with $O(\log n)$ insert and extract-min.</p>
+        <ul><li>The minimum is at the root <strong>because</strong> every parent is ≤ its children.</li><li>Insert and extract-min are $O(\log n)$ <strong>because</strong> a sift moves along one path of a tree of height $\log_2 n$.</li><li>The heap fits in an array <strong>because</strong> a complete tree has no gaps, so index arithmetic replaces pointers.</li></ul>
+        <div class="formula">$$h \;=\; \lfloor \log_2 n \rfloor \quad\Longrightarrow\quad \text{insert, extract-min} = O(\log n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Thinking the heap array is sorted and reading the "second smallest" from index 1 (it could be at index 2).</p>
+        <p><span class="tag fey">Feynman</span> Explain Priority queue to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">Trees</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/tree-binary-tree-basics.html">Binary tree basics</a></h3>
+        <p class="def">a <strong>binary tree</strong> is a set of nodes where each node has at most two children (left and right), with one <strong>root</strong> at the top.</p>
+        <ul><li>Tree algorithms are recursive <strong>because</strong> a tree is a node plus two smaller trees.</li><li>Traversals are $O(n)$ <strong>because</strong> each node is visited exactly once.</li><li>A tree of $n$ nodes has height at least $\lfloor \log_2 n \rfloor$ <strong>because</strong> level $d$ can hold at most $2^d$ nodes.</li></ul>
+        <div class="formula">$$n \;\le\; 1 + 2 + 4 + \dots + 2^h \;=\; 2^{h+1} - 1 \quad\Longrightarrow\quad h \;\ge\; \lfloor \log_2 n \rfloor$$</div>
+        <p><span class="tag pit">Pitfall</span> Mixing up in-order and pre-order: in-order visits the node <em>between</em> its subtrees.</p>
+        <p><span class="tag fey">Feynman</span> Explain Binary tree basics to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/tree-binary-search-tree.html">Binary search tree</a></h3>
+        <p class="def">a <strong>binary search tree</strong> is a binary tree where, at every node, all keys in the left subtree are smaller and all keys in the right subtree are bigger.</p>
+        <ul><li>Search follows one path <strong>because</strong> each comparison rules out a whole subtree.</li><li>Operations cost $O(h)$ <strong>because</strong> they walk from the root to at most a leaf.</li><li>Sorted insertion is the worst case <strong>because</strong> every new value goes the same way, building a chain.</li></ul>
+        <div class="formula">$$\lfloor \log_2 n \rfloor \;\le\; h \;\le\; n - 1$$</div>
+        <p><span class="tag pit">Pitfall</span> Checking only a node's direct children instead of whole subtrees: in a BST, <em>every</em> left-subtree value must be smaller.</p>
+        <p><span class="tag fey">Feynman</span> Explain Binary search tree to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/tree-avl.html">AVL tree</a></h3>
+        <p class="def">an <strong>AVL tree</strong> is a binary search tree in which every node's two subtrees differ in height by at most one, restored after each change by <strong>rotations</strong>.</p>
+        <ul><li>Every operation is $O(\log n)$ <strong>because</strong> the balance rule keeps the height below $1.44 \log_2 n$.</li><li>Rotations keep the tree a valid BST <strong>because</strong> they never change the in-order sequence of keys.</li><li>A rotation is $O(1)$ <strong>because</strong> it rewires a fixed number of pointers.</li></ul>
+        <div class="formula">$$h \;<\; 1.44 \, \log_2 (n + 2)$$</div>
+        <p><span class="tag pit">Pitfall</span> Using a single rotation for a zig-zag (left-right or right-left) case.</p>
+        <p><span class="tag fey">Feynman</span> Explain AVL tree to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/tree-min-heap.html">Min-heap</a></h3>
+        <p class="def">a <strong>min-heap</strong> is a complete binary tree, stored in an array, where every parent is less than or equal to its children, so the minimum is at the root.</p>
+        <ul><li>The minimum is at the root <strong>because</strong> every parent is ≤ its children.</li><li>A heap fits in an array <strong>because</strong> it is a complete tree, so children of $i$ are at $2i+1$ and $2i+2$.</li><li>Heapify is $O(n)$ <strong>because</strong> half the nodes are leaves and most others sink only a level or two.</li></ul>
+        <div class="formula">$$\sum_{h=0}^{\lfloor \log_2 n \rfloor} \frac{n}{2^{h+1}} \cdot h \;\le\; n \quad\Longrightarrow\quad O(n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Building top-down by sifting down from index 0 first, which can leave lower subtrees unheaped.</p>
+        <p><span class="tag fey">Feynman</span> Explain Min-heap to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/tree-max-heap.html">Max-heap</a></h3>
+        <p class="def">a <strong>max-heap</strong> is a complete binary tree, stored in an array, where every parent is greater than or equal to its children, so the maximum is at the root.</p>
+        <ul><li>The maximum is at the root <strong>because</strong> every parent is ≥ its children.</li><li>Sinking swaps with the bigger child <strong>because</strong> that child is the only safe new parent.</li><li>Insert and remove-max are $O(\log n)$ <strong>because</strong> the complete tree has height $\lfloor \log_2 n \rfloor$.</li></ul>
+        <div class="formula">$$\underbrace{O(n)}_{\text{build}} + \underbrace{k \cdot O(\log n)}_{k \text{ removals}} \;=\; O(n + k \log n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Swapping with the smaller child when sifting down a max-heap.</p>
+        <p><span class="tag fey">Feynman</span> Explain Max-heap to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/tree-b-tree.html">B-tree</a></h3>
+        <p class="def">a <strong>B-tree</strong> is a balanced search tree whose nodes hold many sorted keys and children; it stays balanced by <strong>splitting</strong> full nodes and pushing the middle key up, so all leaves are at the same depth.</p>
+        <ul><li>A B-tree is very short <strong>because</strong> every node has many children, so the height is $O(\log_t n)$.</li><li>All leaves are at the same depth <strong>because</strong> the tree only grows when the root splits.</li><li>Splits push the middle key up <strong>because</strong> it separates the two halves in the parent.</li></ul>
+        <div class="formula">$$h \;\le\; \log_t \frac{n + 1}{2}$$</div>
+        <p><span class="tag pit">Pitfall</span> Splitting by moving the middle key down into a child, instead of up into the parent.</p>
+        <p><span class="tag fey">Feynman</span> Explain B-tree to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">Graphs</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/graph-representations.html">Graph representations</a></h3>
+        <p class="def">a graph $G = (V, E)$ is a set of vertices joined by edges; an <strong>adjacency matrix</strong> stores it as a $V \times V$ grid, an <strong>adjacency list</strong> as one neighbour list per vertex.</p>
+        <ul><li>A matrix answers edge queries in $O(1)$ <strong>because</strong> the answer is one cell <code>m[u][v]</code>.</li><li>A matrix needs $O(V^2)$ memory <strong>because</strong> it stores every pair, edge or not.</li><li>Lists need $O(V + E)$ memory <strong>because</strong> they store only real edges.</li></ul>
+        <div class="formula">$$E \;\le\; \frac{V(V-1)}{2}, \qquad \sum_{v} \deg(v) \;=\; 2E$$</div>
+        <p><span class="tag pit">Pitfall</span> Storing only one direction of an undirected edge.</p>
+        <p><span class="tag fey">Feynman</span> Explain Graph representations to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-bfs.html">Breadth-first search (BFS)</a></h3>
+        <p class="def"><strong>breadth-first search</strong> explores a graph layer by layer from a start vertex, using a queue, and finds the fewest-edges distance to every reachable vertex.</p>
+        <ul><li>BFS explores in layers <strong>because</strong> its queue processes vertices in the order they were discovered.</li><li>It finds shortest unweighted paths <strong>because</strong> every vertex is first reached from the layer just before it.</li><li>It runs in $O(V + E)$ on lists <strong>because</strong> each vertex is enqueued once and each edge is checked a constant number of times.</li></ul>
+        <div class="formula">$$O\Big(V + \sum_{v} \deg(v)\Big) \;=\; O(V + 2E) \;=\; O(V + E)$$</div>
+        <p><span class="tag pit">Pitfall</span> Using a stack instead of a queue, which turns BFS into DFS and loses the shortest-path property.</p>
+        <p><span class="tag fey">Feynman</span> Explain Breadth-first search (BFS) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-dfs.html">Depth-first search (DFS)</a></h3>
+        <p class="def"><strong>depth-first search</strong> explores a graph by following one path as deep as possible and backtracking at dead ends, using recursion or a stack.</p>
+        <ul><li>DFS dives deep first <strong>because</strong> it recurses into a neighbour before looking at the next one.</li><li>It backtracks to the latest junction <strong>because</strong> the call stack is last-in, first-out.</li><li>It is $O(V + E)$ <strong>because</strong> each vertex is visited once and each adjacency list scanned once.</li></ul>
+        <div class="formula">$$O\Big(V + \sum_{v} \deg(v)\Big) \;=\; O(V + E)$$</div>
+        <p><span class="tag pit">Pitfall</span> Marking a vertex after exploring its neighbours, so cycles cause infinite recursion.</p>
+        <p><span class="tag fey">Feynman</span> Explain Depth-first search (DFS) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-dijkstra.html">Dijkstra's algorithm</a></h3>
+        <p class="def"><strong>Dijkstra's algorithm</strong> computes single-source shortest paths in a graph with non-negative weights by repeatedly settling the closest unsettled vertex and relaxing its edges.</p>
+        <ul><li>The closest unsettled distance is final <strong>because</strong> non-negative edges can only make other routes longer.</li><li>Negative edges break it <strong>because</strong> a settled distance could still be improved later.</li><li>The heap version is $O((V + E) \log V)$ <strong>because</strong> each settle and each improvement is a heap operation.</li></ul>
+        <div class="formula">$$O\big((V + E) \log V\big) \text{ with a heap}, \qquad O(V^2) \text{ with an array scan}$$</div>
+        <p><span class="tag pit">Pitfall</span> Using it on a graph with a negative edge.</p>
+        <p><span class="tag fey">Feynman</span> Explain Dijkstra's algorithm to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-bellman-ford.html">Bellman-Ford algorithm</a></h3>
+        <p class="def">the <strong>Bellman-Ford algorithm</strong> computes single-source shortest paths by relaxing every edge $V - 1$ times; it allows negative edges and detects negative cycles.</p>
+        <ul><li>It allows negative edges <strong>because</strong> no distance is declared final before all rounds are done.</li><li>$V - 1$ rounds suffice <strong>because</strong> a shortest simple path has at most $V - 1$ edges.</li><li>An improvement in round $V$ proves a negative cycle <strong>because</strong> without one, nothing can improve any more.</li></ul>
+        <div class="formula">$$(V - 1) \cdot E \;=\; O(VE)$$</div>
+        <p><span class="tag pit">Pitfall</span> Running only one round and assuming it is enough (it was here only because the edge order was lucky).</p>
+        <p><span class="tag fey">Feynman</span> Explain Bellman-Ford algorithm to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-floyd-warshall.html">Floyd-Warshall algorithm</a></h3>
+        <p class="def">the <strong>Floyd-Warshall algorithm</strong> computes shortest paths between all pairs of vertices by allowing each vertex in turn as an intermediate stop.</p>
+        <ul><li>It finds all pairs at once <strong>because</strong> it updates the whole matrix for each new stop-over.</li><li>It costs $O(V^3)$ <strong>because</strong> it checks every hub for every pair.</li><li>The hub loop is outermost <strong>because</strong> each stage builds on answers that used only earlier hubs.</li></ul>
+        <div class="formula">$$V \cdot V \cdot V \;=\; O(V^3) \text{ time}, \qquad O(V^2) \text{ space}$$</div>
+        <p><span class="tag pit">Pitfall</span> Putting the $k$ loop inside the $i$ and $j$ loops.</p>
+        <p><span class="tag fey">Feynman</span> Explain Floyd-Warshall algorithm to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-kruskal.html">Kruskal's algorithm</a></h3>
+        <p class="def"><strong>Kruskal's algorithm</strong> builds a minimum spanning tree by taking edges in increasing weight order and keeping each one that connects two different components.</p>
+        <ul><li>Kruskal takes the cheapest safe edge <strong>because</strong> the cheapest edge between two groups is always part of some minimum tree.</li><li>It rejects edges inside one group <strong>because</strong> they would close a cycle.</li><li>It runs in $O(E \log E)$ <strong>because</strong> sorting the edges dominates.</li></ul>
+        <div class="formula">$$O(E \log E) + O\big(E \cdot \alpha(V)\big) \;=\; O(E \log E) \;=\; O(E \log V)$$</div>
+        <p><span class="tag pit">Pitfall</span> Rejecting an edge just because one end is already in the tree; only reject when <em>both</em> ends are in the same group.</p>
+        <p><span class="tag fey">Feynman</span> Explain Kruskal's algorithm to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-prim.html">Prim's algorithm</a></h3>
+        <p class="def"><strong>Prim's algorithm</strong> builds a minimum spanning tree by growing one tree from a start vertex, always adding the cheapest edge that connects the tree to a new vertex.</p>
+        <ul><li>Prim always adds the cheapest edge leaving the tree <strong>because</strong> that edge is safe to include in a minimum spanning tree.</li><li>It keeps one connected tree <strong>because</strong> every new vertex attaches to the existing tree.</li><li>The array version is $O(V^2)$ <strong>because</strong> each of $V$ rounds scans all vertices for the smallest key.</li></ul>
+        <div class="formula">$$O(V^2) \text{ (array)}, \qquad O\big((V + E) \log V\big) \text{ (binary heap)}$$</div>
+        <p><span class="tag pit">Pitfall</span> Updating keys with <code>key[u] + w</code> as in Dijkstra.</p>
+        <p><span class="tag fey">Feynman</span> Explain Prim's algorithm to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-topological-sort.html">Topological sort</a></h3>
+        <p class="def">a <strong>topological sort</strong> of a directed acyclic graph is an ordering of its vertices such that every edge $u \to v$ has $u$ before $v$. <strong>Kahn's algorithm</strong> builds one by repeatedly removing vertices with no incoming edges.</p>
+        <ul><li>In-degree-0 vertices go first <strong>because</strong> nothing has to come before them.</li><li>Outputting a vertex can unlock others <strong>because</strong> it removes one prerequisite from each successor.</li><li>It costs $O(V + E)$ <strong>because</strong> each vertex and edge is handled once.</li></ul>
+        <div class="formula">$$O(V + E) \text{ with adjacency lists}, \qquad O(V^2) \text{ with a matrix}$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to check for cycles, so a partial order is returned silently.</p>
+        <p><span class="tag fey">Feynman</span> Explain Topological sort to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-cycle-detection.html">Cycle detection</a></h3>
+        <p class="def">a directed graph has a <strong>cycle</strong> exactly when DFS finds a <strong>back edge</strong>, an edge to a vertex that is still on the current DFS path (grey).</p>
+        <ul><li>An edge to a grey vertex means a cycle <strong>because</strong> grey vertices form the current path, so the edge closes a loop.</li><li>Edges to black vertices are safe <strong>because</strong> a finished vertex cannot reach the current path.</li><li>It costs $O(V + E)$ <strong>because</strong> it is a single DFS with constant work per edge.</li></ul>
+        <div class="formula">$$O(V + E) \text{ (lists)}, \qquad O\big(E \, \alpha(V)\big) \text{ (Union-Find, undirected)}$$</div>
+        <p><span class="tag pit">Pitfall</span> Using a single "visited" flag on a directed graph and reporting false cycles.</p>
+        <p><span class="tag fey">Feynman</span> Explain Cycle detection to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/graph-union-find.html">Union-Find (disjoint sets)</a></h3>
+        <p class="def"><strong>Union-Find</strong> (a disjoint-set structure) keeps elements in non-overlapping groups, each stored as a tree with a root, and supports <strong>find</strong> (which group?) and <strong>union</strong> (merge two groups).</p>
+        <ul><li>Same root means same group <strong>because</strong> each group is one tree with one root.</li><li>Union by size keeps trees short <strong>because</strong> the smaller tree goes under the bigger one, so heights grow only slowly.</li><li>Path compression speeds up later finds <strong>because</strong> every node on a path is linked straight to the root.</li></ul>
+        <div class="formula">$$O\big(m \, \alpha(n)\big), \qquad \alpha(n) \le 4 \text{ for any } n \text{ you will ever meet}$$</div>
+        <p><span class="tag pit">Pitfall</span> Linking <code>p[a] = b</code> with the original elements instead of their roots, which breaks the trees.</p>
+        <p><span class="tag fey">Feynman</span> Explain Union-Find (disjoint sets) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">Algorithm paradigms</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/paradigm-divide-and-conquer.html">Divide and conquer</a></h3>
+        <p class="def"><strong>divide and conquer</strong> solves a problem by splitting it into smaller independent subproblems of the same type, solving them recursively, and combining their solutions.</p>
+        <ul><li>Divide and conquer is recursive <strong>because</strong> each subproblem is a smaller copy of the original.</li><li>Merge sort is $O(n \log n)$ <strong>because</strong> it has $\log_2 n$ levels and $O(n)$ combine work per level.</li><li>Binary search is $O(\log n)$ <strong>because</strong> it solves only one subproblem per level.</li></ul>
+        <div class="formula">$$\underbrace{n}_{\text{work per level}} \times \underbrace{\log_2 n}_{\text{levels}} \;=\; O(n \log n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the base case, which recurses forever.</p>
+        <p><span class="tag fey">Feynman</span> Explain Divide and conquer to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/paradigm-greedy.html">Greedy algorithms</a></h3>
+        <p class="def">a <strong>greedy algorithm</strong> builds a solution step by step, always taking the choice that looks best right now and never revising it.</p>
+        <ul><li>Greedy is fast <strong>because</strong> it makes one pass without ever backtracking.</li><li>Earliest finish is safe <strong>because</strong> it leaves the most time for the remaining talks.</li><li>Greedy can fail <strong>because</strong> a choice that looks best now can block a better combination later.</li></ul>
+        <div class="formula">$$O(n \log n)_{\text{sort}} + O(n)_{\text{scan}} \;=\; O(n \log n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Assuming greedy is optimal without a proof.</p>
+        <p><span class="tag fey">Feynman</span> Explain Greedy algorithms to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/paradigm-dynamic-programming.html">Dynamic programming</a></h3>
+        <p class="def"><strong>dynamic programming</strong> solves a problem by breaking it into overlapping subproblems, solving each one once, and storing the answers in a table for reuse.</p>
+        <ul><li>DP is fast <strong>because</strong> each subproblem is solved once and then looked up.</li><li>Naive Fibonacci is exponential <strong>because</strong> the same subproblems are recomputed in every branch.</li><li>DP time is subproblems × work each <strong>because</strong> every table entry is filled exactly once.</li></ul>
+        <div class="formula">$$\text{naive calls}(n) = 2\,fib(n+1) - 1 = O(1.618^n), \qquad \text{DP} = O(n)$$</div>
+        <p><span class="tag pit">Pitfall</span> Not defining precisely what a table entry means, so the recurrence comes out wrong.</p>
+        <p><span class="tag fey">Feynman</span> Explain Dynamic programming to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/paradigm-backtracking.html">Backtracking</a></h3>
+        <p class="def"><strong>backtracking</strong> builds candidate solutions one choice at a time and abandons a partial solution (backtracks) as soon as it cannot lead to a valid complete solution.</p>
+        <ul><li>Backtracking is DFS over choices <strong>because</strong> it extends one partial solution as deep as possible before trying alternatives.</li><li>Pruning saves time <strong>because</strong> one early clash removes every solution that would extend it.</li><li>Choices must be undone <strong>because</strong> the next option must start from the same state as the first.</li></ul>
+        <div class="formula">$$n^n \;\gg\; n! \;\gg\; \text{nodes actually explored}$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to undo a choice (when state is shared), so later branches see stale decisions.</p>
+        <p><span class="tag fey">Feynman</span> Explain Backtracking to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/paradigm-np-completeness.html">NP-completeness</a></h3>
+        <p class="def">a problem is <strong>NP-complete</strong> if proposed solutions can be checked in polynomial time (it is in NP) and every problem in NP can be reduced to it in polynomial time (it is NP-hard). <strong>3-SAT</strong> was among the first proved NP-complete.</p>
+        <ul><li>3-SAT is in NP <strong>because</strong> checking an assignment takes one pass over the clauses.</li><li>Brute force is exponential <strong>because</strong> $n$ variables have $2^n$ assignments.</li><li>Reductions show hardness <strong>because</strong> a fast solver for the target would give a fast solver for the source.</li></ul>
+        <div class="formula">$$\text{check} = O(m), \qquad \text{brute force} = O(2^n \cdot m)$$</div>
+        <p><span class="tag pit">Pitfall</span> Reducing in the wrong direction (new problem → 3-SAT).</p>
+        <p><span class="tag fey">Feynman</span> Explain NP-completeness to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">ML foundations</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/mlf-paradigms.html">Learning paradigms</a></h3>
+        <p class="def"><strong>supervised learning</strong> learns a mapping from features to known labels; <strong>unsupervised learning</strong> finds structure in unlabelled data; <strong>reinforcement learning</strong> learns actions that maximise reward.</p>
+        <ul><li>Supervised learning needs labels <strong>because</strong> it learns by comparing its predictions with the correct answers.</li><li>Classification and regression differ <strong>because</strong> one predicts a category and the other a number.</li><li>Unsupervised learning finds structure <strong>because</strong> without answers, all it can use is how the inputs relate to each other.</li></ul>
+        <div class="formula">$$\hat f \;=\; \arg\min_{f} \; \frac{1}{n} \sum_{i=1}^{n} L\big(f(x_i),\, y_i\big)$$</div>
+        <p><span class="tag pit">Pitfall</span> Calling a numeric prediction "classification" because the numbers are integers (predicting a count is still regression).</p>
+        <p><span class="tag fey">Feynman</span> Explain Learning paradigms to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-classification-metrics.html">Classification metrics</a></h3>
+        <p class="def">a <strong>confusion matrix</strong> counts TP, FP, FN, TN; <strong>precision</strong> = TP/(TP+FP), <strong>recall</strong> = TP/(TP+FN), and <strong>F1</strong> is their harmonic mean.</p>
+        <ul><li>Accuracy can mislead <strong>because</strong> on imbalanced data predicting the majority class already scores high.</li><li>Precision measures trust in positives <strong>because</strong> its denominator is everything predicted positive.</li><li>Recall measures coverage <strong>because</strong> its denominator is everything actually positive.</li></ul>
+        <div class="formula">$$\text{Precision} = \tfrac{TP}{TP + FP} = \tfrac{40}{50} = 0.80, \quad \text{Recall} = \tfrac{TP}{TP + FN} = \tfrac{40}{60} \approx 0.67, \quad F_1 = \tfrac{2PR}{P + R} \approx 0.73$$</div>
+        <p><span class="tag pit">Pitfall</span> Swapping FP and FN: FP is a false <em>alarm</em> (predicted positive), FN is a <em>miss</em>.</p>
+        <p><span class="tag fey">Feynman</span> Explain Classification metrics to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-regression-metrics.html">Regression metrics</a></h3>
+        <p class="def"><strong>MAE</strong> is the mean absolute error, <strong>MSE</strong> the mean squared error (RMSE its square root), and <strong>R²</strong> the share of the variance in $y$ explained by the model.</p>
+        <ul><li>MAE treats all errors equally <strong>because</strong> it averages their absolute sizes.</li><li>MSE punishes big errors <strong>because</strong> squaring makes large errors grow much faster than small ones.</li><li>RMSE is easier to interpret <strong>because</strong> the square root brings it back to the units of $y$.</li></ul>
+        <div class="formula">$$\text{MAE} = \tfrac{1}{n}\sum |e_i| = 0.875, \quad \text{MSE} = \tfrac{1}{n}\sum e_i^2 \approx 1.31, \quad R^2 = 1 - \tfrac{\sum e_i^2}{\sum (y_i - \bar y)^2} \approx 0.64$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the absolute value in MAE, so positive and negative errors cancel out.</p>
+        <p><span class="tag fey">Feynman</span> Explain Regression metrics to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-bias-variance.html">Bias–variance trade-off</a></h3>
+        <p class="def"><strong>bias</strong> is the error of the average model (too simple to capture the truth), <strong>variance</strong> is how much the model changes between training samples (too sensitive), and the trade-off is that reducing one tends to increase the other.</p>
+        <ul><li>Simple models underfit <strong>because</strong> they cannot represent the true shape, which is bias.</li><li>Complex models overfit <strong>because</strong> they also fit the noise of their particular training sample, which is variance.</li><li>There is an optimal complexity <strong>because</strong> bias falls and variance rises as flexibility grows.</li></ul>
+        <div class="formula">$$\mathbb{E}\big[(y - \hat f(x))^2\big] \;=\; \underbrace{\big(\mathbb{E}[\hat f(x)] - f(x)\big)^2}_{\text{bias}^2} \;+\; \underbrace{\mathbb{E}\big[(\hat f(x) - \mathbb{E}[\hat f(x)])^2\big]}_{\text{variance}} \;+\; \underbrace{\sigma^2}_{\text{noise}}$$</div>
+        <p><span class="tag pit">Pitfall</span> Fixing overfitting by adding more model capacity.</p>
+        <p><span class="tag fey">Feynman</span> Explain Bias–variance trade-off to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-regularization.html">Regularization (L1 and L2)</a></h3>
+        <p class="def"><strong>regularization</strong> adds a penalty on the size of the weights to the loss; <strong>L2 (ridge)</strong> penalises squared weights and shrinks them, <strong>L1 (lasso)</strong> penalises absolute weights and can set some exactly to zero.</p>
+        <ul><li>Regularization reduces overfitting <strong>because</strong> it makes large, noise-chasing weights expensive.</li><li>L1 sets weights to exactly zero <strong>because</strong> it subtracts a constant amount, stopping at zero.</li><li>L2 never zeroes weights <strong>because</strong> dividing a nonzero number never gives zero.</li></ul>
+        <div class="formula">$$J_{L2}(w) = \tfrac12 \lVert y - Xw \rVert^2 + \tfrac{\lambda}{2} \lVert w \rVert_2^2, \qquad J_{L1}(w) = \tfrac12 \lVert y - Xw \rVert^2 + \lambda \lVert w \rVert_1$$</div>
+        <p><span class="tag pit">Pitfall</span> Penalising the bias (intercept) term, which shifts all predictions for no reason.</p>
+        <p><span class="tag fey">Feynman</span> Explain Regularization (L1 and L2) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-cross-validation.html">Cross-validation</a></h3>
+        <p class="def"><strong>$k$-fold cross-validation</strong> splits the data into $k$ parts, trains $k$ times on $k - 1$ parts while testing on the remaining one, and averages the $k$ scores.</p>
+        <ul><li>CV gives a more reliable score <strong>because</strong> it averages over several different test blocks.</li><li>Every sample is tested once <strong>because</strong> each fold serves as the test block exactly once.</li><li>The spread matters <strong>because</strong> a small difference in mean can be pure noise.</li></ul>
+        <div class="formula">$$\text{CV} = \frac{1}{k}\sum_{f=1}^{k} s_f = \frac{0.82 + 0.78 + 0.85 + 0.80 + 0.75}{5} = 0.80, \qquad \text{sd} \approx 0.034$$</div>
+        <p><span class="tag pit">Pitfall</span> Reporting only the mean, without the spread across folds.</p>
+        <p><span class="tag fey">Feynman</span> Explain Cross-validation to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-preprocessing.html">Data preprocessing</a></h3>
+        <p class="def"><strong>preprocessing</strong> transforms raw data into a model-ready form: <strong>scaling</strong> numeric features to comparable ranges, <strong>encoding</strong> categories as numbers, and <strong>imputing</strong> missing values.</p>
+        <ul><li>Scaling matters <strong>because</strong> distance and gradient methods treat a big-number feature as more important.</li><li>Standardization gives mean 0 and sd 1 <strong>because</strong> it subtracts the mean and divides by the sd.</li><li>One-hot encoding avoids fake order <strong>because</strong> each category gets its own independent column.</li></ul>
+        <div class="formula">$$z = \frac{x - \mu}{\sigma} = \frac{20 - 35}{11.18} \approx -1.34, \qquad x' = \frac{x - \min}{\max - \min} = \frac{30 - 20}{50 - 20} \approx 0.33$$</div>
+        <p><span class="tag pit">Pitfall</span> Computing the mean and sd on the full dataset before splitting (data leakage).</p>
+        <p><span class="tag fey">Feynman</span> Explain Data preprocessing to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mlf-data-leakage.html">Data leakage</a></h3>
+        <p class="def"><strong>data leakage</strong> is when information that would not be available at prediction time (test data, future data, or the label itself) is used to train or evaluate a model.</p>
+        <ul><li>Leakage inflates scores <strong>because</strong> the model uses information it won't have in real use.</li><li>Split before preprocessing <strong>because</strong> fitted parameters must come from training data only.</li><li>Future-only features leak <strong>because</strong> they partly encode the answer.</li></ul>
+        <div class="formula">$$z_{\text{correct}} = \frac{80 - 30}{8.16} \approx 6.1, \qquad z_{\text{leaky}} = \frac{80 - 42.5}{22.8} \approx 1.6$$</div>
+        <p><span class="tag pit">Pitfall</span> Imputing missing values or selecting features using the whole dataset.</p>
+        <p><span class="tag fey">Feynman</span> Explain Data leakage to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">ML algorithms</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/mla-linear-regression.html">Linear regression</a></h3>
+        <p class="def"><strong>linear regression</strong> models the target as a weighted sum of the features plus a bias, $\hat y = w^\top x + b$, with weights chosen to minimise the mean squared error.</p>
+        <ul><li>The slope is a ratio of covariance to variance <strong>because</strong> it measures how much $y$ moves per unit move of $x$.</li><li>The line passes through $(\bar x, \bar y)$ <strong>because</strong> $b = \bar y - w \bar x$.</li><li>Residuals sum to zero <strong>because</strong> the least-squares intercept balances positive and negative errors.</li></ul>
+        <div class="formula">$$\min_{w, b} \; \frac{1}{n}\sum_{i=1}^{n} \big(y_i - (w^\top x_i + b)\big)^2 \quad\Longrightarrow\quad w = (X^\top X)^{-1} X^\top y$$</div>
+        <p><span class="tag pit">Pitfall</span> Dividing the slope formula the wrong way round ($\sum (x - \bar x)^2$ is the denominator).</p>
+        <p><span class="tag fey">Feynman</span> Explain Linear regression to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-logistic-regression.html">Logistic regression</a></h3>
+        <p class="def"><strong>logistic regression</strong> predicts the probability of the positive class as $\sigma(w^\top x + b)$, trained by minimising the log loss.</p>
+        <ul><li>The output is a probability <strong>because</strong> the sigmoid maps any score into (0, 1).</li><li>The boundary is linear <strong>because</strong> $p = 0.5$ exactly when $w^\top x + b = 0$.</li><li>Log loss punishes confident mistakes <strong>because</strong> $-\ln p$ grows without limit as $p \to 0$.</li></ul>
+        <div class="formula">$$J(w, b) = -\frac{1}{n}\sum_{i=1}^{n} \Big[y_i \ln p_i + (1 - y_i)\ln(1 - p_i)\Big], \qquad \frac{\partial J}{\partial w} = \frac{1}{n}\sum_i (p_i - y_i)\,x_i$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the bias $b$ in the score.</p>
+        <p><span class="tag fey">Feynman</span> Explain Logistic regression to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-knn.html">k-nearest neighbours (KNN)</a></h3>
+        <p class="def"><strong>k-nearest neighbours</strong> predicts the label of a point from the majority label (or average value) of its $k$ closest training points.</p>
+        <ul><li>KNN needs no training <strong>because</strong> it stores the data and decides at prediction time.</li><li>Predictions are slow <strong>because</strong> each one computes distances to all $n$ training points.</li><li>Scaling is essential <strong>because</strong> distances are dominated by the largest-valued feature.</li></ul>
+        <div class="formula">$$d(p, q) = \sqrt{\sum_{j=1}^{d} (p_j - q_j)^2}, \qquad \text{one prediction: } O(nd)$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to scale features before computing distances.</p>
+        <p><span class="tag fey">Feynman</span> Explain k-nearest neighbours (KNN) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-naive-bayes.html">Naive Bayes</a></h3>
+        <p class="def"><strong>Naive Bayes</strong> classifies by Bayes' rule, assuming features are independent given the class: $P(c \mid x) \propto P(c) \prod_j P(x_j \mid c)$.</p>
+        <ul><li>Training is just counting <strong>because</strong> every probability is a frequency in the training data.</li><li>Likelihoods are multiplied <strong>because</strong> features are assumed independent given the class.</li><li>Smoothing is needed <strong>because</strong> one zero count makes a class's whole product zero.</li></ul>
+        <div class="formula">$$P(c \mid x_1, \dots, x_m) \;=\; \frac{P(c) \prod_{j=1}^{m} P(x_j \mid c)}{\sum_{c'} P(c') \prod_{j} P(x_j \mid c')}$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the prior $P(c)$ in the product.</p>
+        <p><span class="tag fey">Feynman</span> Explain Naive Bayes to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-decision-tree.html">Decision tree</a></h3>
+        <p class="def">a <strong>decision tree</strong> predicts by following a sequence of feature tests from the root to a leaf, with each test chosen to maximise <strong>information gain</strong> (reduction in entropy).</p>
+        <ul><li>Splits are chosen by information gain <strong>because</strong> the best question is the one that makes the groups purest.</li><li>Entropy is 1 for a 50/50 group <strong>because</strong> that is maximum uncertainty for two classes.</li><li>Trees need no scaling <strong>because</strong> each split compares one feature with a threshold.</li></ul>
+        <div class="formula">$$H(S) = -\sum_{c} p_c \log_2 p_c, \qquad \text{Gain} = H(S) - \sum_{i} \frac{|S_i|}{|S|} H(S_i)$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to weight each child's entropy by its size.</p>
+        <p><span class="tag fey">Feynman</span> Explain Decision tree to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-random-forest.html">Random forest</a></h3>
+        <p class="def">a <strong>random forest</strong> is an ensemble of decision trees, each trained on a bootstrap sample with random feature subsets at each split, combined by majority vote or averaging.</p>
+        <ul><li>Averaging trees reduces variance <strong>because</strong> their different errors partly cancel.</li><li>Bootstrap samples make trees differ <strong>because</strong> each sees a different mix of rows.</li><li>Feature sampling matters <strong>because</strong> it lowers the correlation between trees, which sets the variance floor.</li></ul>
+        <div class="formula">$$\operatorname{Var}\Big(\frac{1}{B}\sum_{b=1}^{B} T_b\Big) \;=\; \rho\,\sigma^2 + \frac{1 - \rho}{B}\,\sigma^2$$</div>
+        <p><span class="tag pit">Pitfall</span> Thinking more trees cause overfitting; they don't, they just cost more.</p>
+        <p><span class="tag fey">Feynman</span> Explain Random forest to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-adaboost.html">AdaBoost</a></h3>
+        <p class="def"><strong>AdaBoost</strong> builds a strong classifier as a weighted vote of weak learners trained in sequence, each on data re-weighted to emphasise the previous learners' mistakes.</p>
+        <ul><li>Mistakes get heavier <strong>because</strong> their weights are multiplied by $e^{\alpha} &gt; 1$.</li><li>Accurate learners get a bigger say <strong>because</strong> $\alpha$ grows as ε shrinks.</li><li>A coin-flip learner gets $\alpha = 0$ <strong>because</strong> its vote carries no information.</li></ul>
+        <div class="formula">$$\alpha_t = \tfrac12 \ln\frac{1 - \varepsilon_t}{\varepsilon_t}, \qquad w_i \leftarrow \frac{w_i \, e^{-\alpha_t y_i h_t(x_i)}}{Z_t}, \qquad H(x) = \operatorname{sign}\Big(\sum_t \alpha_t h_t(x)\Big)$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to normalise the weights after updating.</p>
+        <p><span class="tag fey">Feynman</span> Explain AdaBoost to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-xgboost.html">Gradient boosting and XGBoost</a></h3>
+        <p class="def"><strong>gradient boosting</strong> builds an additive model of small trees, each fitted to the negative gradient (the residuals) of the loss of the current ensemble; <strong>XGBoost</strong> is a regularized, highly optimised implementation using second-order information.</p>
+        <ul><li>Each tree fits the residuals <strong>because</strong> they are what the current ensemble still gets wrong.</li><li>A small learning rate helps <strong>because</strong> many partial corrections generalise better than a few big ones.</li><li>XGBoost shrinks leaf values <strong>because</strong> λ in $-G/(H + \lambda)$ penalises large outputs.</li></ul>
+        <div class="formula">$$w^* = -\frac{G}{H + \lambda}, \qquad \text{Gain} = \frac12\left[\frac{G_L^2}{H_L + \lambda} + \frac{G_R^2}{H_R + \lambda} - \frac{(G_L + G_R)^2}{H_L + H_R + \lambda}\right] - \gamma$$</div>
+        <p><span class="tag pit">Pitfall</span> Using a large learning rate with many rounds, which overfits quickly.</p>
+        <p><span class="tag fey">Feynman</span> Explain Gradient boosting and XGBoost to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-svm.html">Support vector machine (SVM)</a></h3>
+        <p class="def">a <strong>support vector machine</strong> is a classifier that finds the separating boundary with the <strong>maximum margin</strong>; the training points on the margin are the <strong>support vectors</strong>.</p>
+        <ul><li>Only support vectors matter <strong>because</strong> the margin is set by the closest points of each class.</li><li>Minimising $\lVert w \rVert$ widens the margin <strong>because</strong> the margin width is $2/\lVert w \rVert$.</li><li>Soft margins handle noise <strong>because</strong> they let some points violate the margin at a cost set by C.</li></ul>
+        <div class="formula">$$\min_{w, b} \; \tfrac12 \lVert w \rVert^2 \quad \text{subject to} \quad y_i\,(w^\top x_i + b) \ge 1 \;\; \forall i, \qquad \text{margin} = \frac{2}{\lVert w \rVert}$$</div>
+        <p><span class="tag pit">Pitfall</span> Saying all training points define the boundary; only the support vectors do.</p>
+        <p><span class="tag fey">Feynman</span> Explain Support vector machine (SVM) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-k-means.html">k-means clustering</a></h3>
+        <p class="def"><strong>k-means</strong> partitions data into $k$ clusters by alternating between assigning each point to its nearest centroid and moving each centroid to the mean of its points, minimising the within-cluster sum of squares.</p>
+        <ul><li>Each iteration lowers WCSS <strong>because</strong> both the assignment and the update step can only reduce it.</li><li>It converges <strong>because</strong> WCSS cannot decrease forever with finitely many assignments.</li><li>Results depend on the start <strong>because</strong> it only reaches a local optimum.</li></ul>
+        <div class="formula">$$\text{WCSS} = \sum_{j=1}^{k} \sum_{x \in C_j} \lVert x - \mu_j \rVert^2 \qquad (= 4 \times 0.5^2 = 1.0 \text{ at the end})$$</div>
+        <p><span class="tag pit">Pitfall</span> Confusing k-means (unsupervised clustering) with KNN (supervised classification).</p>
+        <p><span class="tag fey">Feynman</span> Explain k-means clustering to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-hierarchical-clustering.html">Hierarchical clustering</a></h3>
+        <p class="def"><strong>agglomerative hierarchical clustering</strong> starts with every point alone and repeatedly merges the two closest clusters, producing a <strong>dendrogram</strong> that can be cut at any height.</p>
+        <ul><li>No $k$ is needed upfront <strong>because</strong> the dendrogram contains every number of clusters at once.</li><li>Merge heights show strength of grouping <strong>because</strong> they record the distance at which clusters joined.</li><li>It needs $n - 1$ merges <strong>because</strong> each merge reduces the number of clusters by one.</li></ul>
+        <div class="formula">$$d_{\text{single}}(P, Q) = \min_{p \in P,\, q \in Q} d(p, q), \qquad d_{\text{complete}}(P, Q) = \max_{p \in P,\, q \in Q} d(p, q)$$</div>
+        <p><span class="tag pit">Pitfall</span> Mixing up single (minimum) and complete (maximum) linkage.</p>
+        <p><span class="tag fey">Feynman</span> Explain Hierarchical clustering to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-gmm.html">Gaussian mixture model (GMM)</a></h3>
+        <p class="def">a <strong>Gaussian mixture model</strong> describes the data as a weighted sum of Gaussian components and is fitted with the <strong>EM algorithm</strong>, alternating soft assignments (E-step) and parameter updates (M-step).</p>
+        <ul><li>Assignments are soft <strong>because</strong> each point gets a probability for every component.</li><li>The E-step uses Bayes' rule <strong>because</strong> it inverts "component → point" into "point → component".</li><li>The M-step uses weighted averages <strong>because</strong> each point counts in proportion to its responsibility.</li></ul>
+        <div class="formula">$$p(x) = \sum_{k=1}^{K} \pi_k \, \mathcal{N}(x \mid \mu_k, \sigma_k^2), \qquad r_{ik} = \frac{\pi_k \mathcal{N}(x_i \mid \mu_k, \sigma_k^2)}{\sum_j \pi_j \mathcal{N}(x_i \mid \mu_j, \sigma_j^2)}$$</div>
+        <p><span class="tag pit">Pitfall</span> Thinking a GMM gives hard labels; it gives probabilities (you can take the most likely component afterwards).</p>
+        <p><span class="tag fey">Feynman</span> Explain Gaussian mixture model (GMM) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-dbscan.html">DBSCAN</a></h3>
+        <p class="def"><strong>DBSCAN</strong> (density-based spatial clustering of applications with noise) forms clusters from dense regions: <strong>core</strong> points with at least minPts neighbours within ε, the <strong>border</strong> points around them, and labels the rest as <strong>noise</strong>.</p>
+        <ul><li>Clusters are dense regions <strong>because</strong> points join clusters through chains of core points.</li><li>The number of clusters is automatic <strong>because</strong> it is the number of connected dense regions.</li><li>Outliers are labelled noise <strong>because</strong> they are neither dense nor near a dense point.</li></ul>
+        <div class="formula">$$N_\varepsilon(p) = \{\, q : \lVert p - q \rVert \le \varepsilon \,\}, \qquad p \text{ is core} \iff |N_\varepsilon(p)| \ge \text{minPts}$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting that a point counts as its own neighbour (or double-counting it), which changes core decisions.</p>
+        <p><span class="tag fey">Feynman</span> Explain DBSCAN to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/mla-pca.html">Principal component analysis (PCA)</a></h3>
+        <p class="def"><strong>PCA</strong> finds orthogonal directions of maximum variance (the eigenvectors of the covariance matrix) and represents the data by its projections onto the top few of them.</p>
+        <ul><li>Eigenvalues measure variance per component <strong>because</strong> they are the variance of the data projected onto each eigenvector.</li><li>The first components keep the most information <strong>because</strong> they are sorted by variance.</li><li>Components are uncorrelated <strong>because</strong> they are orthogonal eigenvectors of the covariance matrix.</li></ul>
+        <div class="formula">$$\text{EVR}(k) = \frac{\sum_{i=1}^{k} \lambda_i}{\sum_{i=1}^{d} \lambda_i} = \frac{4 + 2}{7.5} = 0.80$$</div>
+        <p><span class="tag pit">Pitfall</span> Running PCA on unscaled features, so the biggest-unit feature becomes PC1.</p>
+        <p><span class="tag fey">Feynman</span> Explain Principal component analysis (PCA) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+    <h2 class="hub">Deep learning</h2>
+    <div class="grid">
+      <section class="block">
+        <h3><a href="topics/dl-neuron.html">The artificial neuron</a></h3>
+        <p class="def">an <strong>artificial neuron</strong> computes a weighted sum of its inputs plus a bias, $z = w^\top x + b$, and outputs $g(z)$ for a non-linear activation function $g$.</p>
+        <ul><li>A neuron is a weighted sum plus a bias <strong>because</strong> that lets each input count with its own learned importance.</li><li>The bias shifts the threshold <strong>because</strong> it is added before the activation.</li><li>The activation must be non-linear <strong>because</strong> stacked linear functions stay linear.</li></ul>
+        <div class="formula">$$a = \sigma\Big(\sum_{j} w_j x_j + b\Big) = \sigma(0.5 \cdot 2 - 0.3 \cdot 3 + 0.1) = \sigma(0.2) \approx 0.550$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the bias in $z$.</p>
+        <p><span class="tag fey">Feynman</span> Explain The artificial neuron to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-activation-functions.html">Activation functions</a></h3>
+        <p class="def">an <strong>activation function</strong> is the non-linear function applied to a neuron's weighted sum; common ones are sigmoid, tanh, ReLU, Leaky ReLU, and softmax for multi-class outputs.</p>
+        <ul><li>Sigmoid suits a single probability <strong>because</strong> it maps any score into (0, 1).</li><li>Softmax suits one-of-$K$ classes <strong>because</strong> its outputs are positive and sum to 1.</li><li>ReLU trains deep nets well <strong>because</strong> its slope is 1 for positive inputs, so gradients don't shrink.</li></ul>
+        <div class="formula">$$\sigma'(z) = \sigma(z)(1 - \sigma(z)) \le 0.25, \qquad \tanh'(z) = 1 - \tanh^2(z) \le 1, \qquad \text{ReLU}'(z) = \begin{cases} 1 & z &gt; 0 \\ 0 & z &lt; 0 \end{cases}$$</div>
+        <p><span class="tag pit">Pitfall</span> Using softmax for multi-label problems (several classes can be true at once), where independent sigmoids are right.</p>
+        <p><span class="tag fey">Feynman</span> Explain Activation functions to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-mlp.html">Multi-layer perceptron (MLP)</a></h3>
+        <p class="def">a <strong>multi-layer perceptron</strong> is a feed-forward network of fully connected layers, each computing $g(Wx + b)$, with at least one hidden layer between input and output.</p>
+        <ul><li>Hidden layers learn new features <strong>because</strong> each neuron combines the inputs in its own way.</li><li>An MLP can solve XOR <strong>because</strong> its hidden features make the classes linearly separable.</li><li>Each layer has $n_{\text{in}} n_{\text{out}} + n_{\text{out}}$ parameters <strong>because</strong> every connection has a weight and every neuron a bias.</li></ul>
+        <div class="formula">$$h = \text{ReLU}(W_1 x + b_1), \quad \hat y = \sigma(w_2^\top h + b_2), \qquad \#\text{params of a layer} = n_{\text{in}} \cdot n_{\text{out}} + n_{\text{out}}$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the biases when counting parameters.</p>
+        <p><span class="tag fey">Feynman</span> Explain Multi-layer perceptron (MLP) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-forward-propagation.html">Forward propagation</a></h3>
+        <p class="def"><strong>forward propagation</strong> computes a network's output and loss by applying each layer in order, $z_\ell = W_\ell a_{\ell-1} + b_\ell$, $a_\ell = g(z_\ell)$, storing the intermediate values for backpropagation.</p>
+        <ul><li>The order is fixed <strong>because</strong> each layer's input is the previous layer's output.</li><li>Intermediate values are cached <strong>because</strong> backpropagation needs them to compute gradients.</li><li>The loss is the last step <strong>because</strong> it compares the final prediction with the target.</li></ul>
+        <div class="formula">$$L = -\ln \sigma\big(w_2^\top \,\text{ReLU}(W_1 x + b_1) + b_2\big) = -\ln \sigma(-0.8) \approx 1.17$$</div>
+        <p><span class="tag pit">Pitfall</span> Applying the activation before adding the bias.</p>
+        <p><span class="tag fey">Feynman</span> Explain Forward propagation to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-backpropagation.html">Backpropagation</a></h3>
+        <p class="def"><strong>backpropagation</strong> computes the gradient of the loss with respect to every parameter by applying the chain rule backwards through the network, reusing values from the forward pass.</p>
+        <ul><li>Backprop uses the chain rule <strong>because</strong> the loss is a composition of simple functions.</li><li>It runs backwards <strong>because</strong> each layer's gradient needs the gradient of the layer above it.</li><li>It reuses the forward cache <strong>because</strong> local derivatives depend on the stored $z$ and $a$ values.</li></ul>
+        <div class="formula">$$\frac{\partial L}{\partial w} = \underbrace{-\frac{1}{a}}_{-1.333} \cdot \underbrace{a(1 - a)}_{0.187} \cdot \underbrace{x}_{2} = (a - y)\,x \approx -0.499, \qquad w \leftarrow w - \eta \frac{\partial L}{\partial w}$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting a factor of the chain, typically the activation's slope.</p>
+        <p><span class="tag fey">Feynman</span> Explain Backpropagation to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-loss-functions.html">Loss functions</a></h3>
+        <p class="def">a <strong>loss function</strong> measures how far a model's predictions are from the targets; <strong>MSE</strong> averages squared errors (regression), <strong>cross-entropy</strong> averages $-\ln$ of the probability given to the true class (classification).</p>
+        <ul><li>Training minimises the loss <strong>because</strong> the loss defines what "better predictions" means.</li><li>Cross-entropy punishes confident mistakes <strong>because</strong> $-\ln p$ grows without bound as $p \to 0$.</li><li>MSE suits regression <strong>because</strong> it measures squared distance between numbers.</li></ul>
+        <div class="formula">$$\text{MSE} = \tfrac13(0.1^2 + 0.2^2 + 0.4^2) = 0.07, \qquad \text{BCE} = -\tfrac13(\ln 0.9 + \ln 0.8 + \ln 0.6) \approx 0.280$$</div>
+        <p><span class="tag pit">Pitfall</span> Using $p$ instead of $1 - p$ for examples whose true label is 0.</p>
+        <p><span class="tag fey">Feynman</span> Explain Loss functions to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-gradient-descent.html">Gradient descent</a></h3>
+        <p class="def"><strong>gradient descent</strong> minimises a function by repeatedly moving the parameters a small step in the direction opposite to the gradient: $w \leftarrow w - \eta \nabla L(w)$.</p>
+        <ul><li>Stepping against the gradient lowers the loss <strong>because</strong> the gradient points in the direction of steepest increase.</li><li>Steps shrink near the minimum <strong>because</strong> the gradient approaches 0 there.</li><li>Too large a learning rate diverges <strong>because</strong> each step overshoots by more than the previous distance.</li></ul>
+        <div class="formula">$$w_{t+1} - 3 = (1 - 2\eta)(w_t - 3) \quad\Longrightarrow\quad \eta = 0.1: \text{factor } 0.8, \qquad \eta &gt; 1: |\text{factor}| &gt; 1 \text{ (diverges)}$$</div>
+        <p><span class="tag pit">Pitfall</span> Adding the gradient instead of subtracting it (gradient <em>ascent</em>).</p>
+        <p><span class="tag fey">Feynman</span> Explain Gradient descent to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-sgd.html">SGD and mini-batches</a></h3>
+        <p class="def"><strong>stochastic gradient descent</strong> updates the parameters using the gradient of one example (or a small random <strong>mini-batch</strong>) at a time, instead of the whole training set.</p>
+        <ul><li>SGD is cheap per step <strong>because</strong> it uses only a few examples to estimate the gradient.</li><li>Mini-batch gradients are noisy <strong>because</strong> a small sample doesn't represent the whole dataset exactly.</li><li>Larger batches are less noisy <strong>because</strong> averaging more examples reduces variance.</li></ul>
+        <div class="formula">$$\bar g_B = \frac{1}{m}\sum_{i \in B} \nabla L_i(w) \approx \frac{1}{n}\sum_{i=1}^{n} \nabla L_i(w), \qquad \text{noise (std)} \propto \frac{1}{\sqrt m}$$</div>
+        <p><span class="tag pit">Pitfall</span> Confusing epochs with iterations.</p>
+        <p><span class="tag fey">Feynman</span> Explain SGD and mini-batches to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-momentum.html">Momentum</a></h3>
+        <p class="def"><strong>momentum</strong> is gradient descent with a velocity term: each update is an exponentially decaying sum of past gradients, $v \leftarrow \beta v + g$, $w \leftarrow w - \eta v$.</p>
+        <ul><li>Momentum speeds up consistent directions <strong>because</strong> gradients that agree add up in the velocity.</li><li>It damps oscillations <strong>because</strong> gradients that alternate in sign cancel in the velocity.</li><li>The velocity can reach $g/(1 - \beta)$ <strong>because</strong> it sums a geometric series of past gradients.</li></ul>
+        <div class="formula">$$v_t = g_t + \beta g_{t-1} + \beta^2 g_{t-2} + \dots, \qquad \text{constant } g:\; v \to \frac{g}{1 - \beta} = 10g \text{ for } \beta = 0.9$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to carry $v$ from one step to the next (resetting it to 0).</p>
+        <p><span class="tag fey">Feynman</span> Explain Momentum to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-adam.html">Adam optimiser</a></h3>
+        <p class="def"><strong>Adam</strong> (adaptive moment estimation) updates each weight using bias-corrected moving averages of its gradient and squared gradient: $w \leftarrow w - \eta \, \hat m / (\sqrt{\hat v} + \varepsilon)$.</p>
+        <ul><li>Adam combines direction and scale <strong>because</strong> $m$ averages gradients and $v$ averages their squares.</li><li>Steps are roughly the learning rate in size <strong>because</strong> $\hat m/\sqrt{\hat v}$ is close to ±1 for consistent gradients.</li><li>Bias correction is needed <strong>because</strong> both averages start at 0 and are too small early on.</li></ul>
+        <div class="formula">$$w_{t} = w_{t-1} - \eta \frac{\hat m_t}{\sqrt{\hat v_t} + \varepsilon}, \qquad t = 1:\; w = 0 - 0.1 \cdot \frac{-6}{\sqrt{36}} = 0.1$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting bias correction, which makes early steps the wrong size.</p>
+        <p><span class="tag fey">Feynman</span> Explain Adam optimiser to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-rmsprop.html">RMSProp</a></h3>
+        <p class="def"><strong>RMSProp</strong> divides each weight's gradient by the root mean square of its recent gradients, $w \leftarrow w - \eta\, g/(\sqrt{s} + \varepsilon)$ with $s$ a running average of $g^2$.</p>
+        <ul><li>RMSProp adapts the step per weight <strong>because</strong> each weight has its own running average of squared gradients.</li><li>Large-gradient weights get smaller steps <strong>because</strong> their gradient is divided by a larger RMS.</li><li>It keeps learning on long runs <strong>because</strong> its average decays, unlike AdaGrad's ever-growing sum.</li></ul>
+        <div class="formula">$$s_t = \rho s_{t-1} + (1 - \rho) g_t^2, \qquad w_t = w_{t-1} - \eta \frac{g_t}{\sqrt{s_t} + \varepsilon}, \qquad \text{step 1: } 0.1 \cdot \frac{6}{\sqrt{3.6}} \approx 0.316$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting $\varepsilon$, which divides by zero when $s$ is 0.</p>
+        <p><span class="tag fey">Feynman</span> Explain RMSProp to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-dropout.html">Dropout</a></h3>
+        <p class="def"><strong>dropout</strong> randomly sets a fraction $p$ of a layer's outputs to zero at each training step (scaling the rest by $1/(1 - p)$), and uses all neurons at test time.</p>
+        <ul><li>Dropout reduces overfitting <strong>because</strong> neurons can't rely on specific partners and must learn robust features.</li><li>Kept outputs are scaled by $1/(1 - p)$ <strong>because</strong> that keeps the expected signal equal to the test-time signal.</li><li>A new mask is drawn every step <strong>because</strong> that trains many different thinned sub-networks.</li></ul>
+        <div class="formula">$$\tilde a_i = \frac{m_i}{1 - p}\, a_i, \quad m_i \sim \text{Bernoulli}(1 - p), \qquad \mathbb{E}[\tilde a_i] = a_i$$</div>
+        <p><span class="tag pit">Pitfall</span> Leaving dropout on at test time.</p>
+        <p><span class="tag fey">Feynman</span> Explain Dropout to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-batch-normalization.html">Batch normalization</a></h3>
+        <p class="def"><strong>batch normalization</strong> normalizes each feature to zero mean and unit variance over the mini-batch, then applies a learned scale $\gamma$ and shift $\beta$.</p>
+        <ul><li>Batch norm stabilises training <strong>because</strong> each layer receives inputs with a consistent scale.</li><li>It needs $\gamma$ and $\beta$ <strong>because</strong> the network must still be able to choose any scale and offset.</li><li>Inference uses running statistics <strong>because</strong> predictions shouldn't depend on which examples share a batch.</li></ul>
+        <div class="formula">$$\hat x_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \varepsilon}}, \quad y_i = \gamma \hat x_i + \beta, \qquad \mu_B = 4,\; \sigma_B^2 = 2.67 \Rightarrow \hat x = [-1.22, 0, 1.22]$$</div>
+        <p><span class="tag pit">Pitfall</span> Using the test batch's own statistics at inference.</p>
+        <p><span class="tag fey">Feynman</span> Explain Batch normalization to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-early-stopping.html">Early stopping</a></h3>
+        <p class="def"><strong>early stopping</strong> ends training when the validation loss has not improved for a set number of epochs (the patience) and keeps the weights from the best validation epoch.</p>
+        <ul><li>The validation loss decides <strong>because</strong> it measures generalisation, unlike the training loss.</li><li>A rising validation loss signals overfitting <strong>because</strong> the model is fitting noise in the training set.</li><li>Patience tolerates noise <strong>because</strong> one bad epoch doesn't mean the trend has turned.</li></ul>
+        <div class="formula">$$e^* = \arg\min_{e \le e_{\text{stop}}} L_{\text{val}}(e) = 5, \qquad e_{\text{stop}} = e^* + \text{patience} = 8$$</div>
+        <p><span class="tag pit">Pitfall</span> Keeping the weights from the stopping epoch instead of the best epoch.</p>
+        <p><span class="tag fey">Feynman</span> Explain Early stopping to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-cnn.html">Convolutional neural networks (CNN)</a></h3>
+        <p class="def">a <strong>convolutional neural network</strong> uses layers that slide small learned filters over the input, computing a weighted sum at each position, so the same weights detect a pattern anywhere in the image.</p>
+        <ul><li>Convolution finds patterns anywhere <strong>because</strong> the same filter is applied at every position.</li><li>CNNs need few parameters <strong>because</strong> a filter's weights are shared across the whole image.</li><li>Padding preserves size <strong>because</strong> extra border pixels let the filter cover the edges.</li></ul>
+        <div class="formula">$$\text{out} = \frac{W - F + 2P}{S} + 1 = \frac{32 - 5 + 4}{1} + 1 = 32, \qquad \#\text{params} = (F \cdot F \cdot C_{\text{in}} + 1) \cdot C_{\text{out}} = 1{,}216$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the input channels when counting parameters (a 5 × 5 filter on RGB has 75 weights, not 25).</p>
+        <p><span class="tag fey">Feynman</span> Explain Convolutional neural networks (CNN) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-pooling.html">Pooling</a></h3>
+        <p class="def"><strong>pooling</strong> downsamples each feature map by summarising small windows, taking the <strong>maximum</strong> (max pooling) or the <strong>average</strong> (average pooling) of each.</p>
+        <ul><li>Max pooling keeps the strongest response <strong>because</strong> it takes the maximum of each block.</li><li>It shrinks maps by 4× <strong>because</strong> a 2 × 2 window with stride 2 halves both height and width.</li><li>It adds shift tolerance <strong>because</strong> small moves inside a block don't change the maximum.</li></ul>
+        <div class="formula">$$\text{out} = \frac{W - F}{S} + 1 = \frac{4 - 2}{2} + 1 = 2, \qquad \text{values kept} = \tfrac14 \text{ for } 2 \times 2,\; S = 2$$</div>
+        <p><span class="tag pit">Pitfall</span> Saying pooling has learned weights.</p>
+        <p><span class="tag fey">Feynman</span> Explain Pooling to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-rnn.html">Recurrent neural networks (RNN)</a></h3>
+        <p class="def">a <strong>recurrent neural network</strong> processes a sequence step by step, updating a <strong>hidden state</strong> $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$ with the same weights at every step.</p>
+        <ul><li>An RNN handles sequences of any length <strong>because</strong> it applies the same cell at every step.</li><li>The hidden state carries memory <strong>because</strong> each new state depends on the previous one.</li><li>The same input can give different states <strong>because</strong> the state also depends on the past.</li></ul>
+        <div class="formula">$$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b), \qquad \frac{\partial h_t}{\partial h_{t-1}} = W_{hh} \,(1 - h_t^2)$$</div>
+        <p><span class="tag pit">Pitfall</span> Using different weights at each time step; an RNN shares them.</p>
+        <p><span class="tag fey">Feynman</span> Explain Recurrent neural networks (RNN) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-lstm.html">LSTM</a></h3>
+        <p class="def">an <strong>LSTM</strong> (long short-term memory) is a recurrent cell with a separate cell state updated additively under the control of forget, input and output gates, which lets it keep information over long sequences.</p>
+        <ul><li>The cell state carries long-term memory <strong>because</strong> it changes only through gated multiplication and addition.</li><li>Gradients flow far back <strong>because</strong> $\partial c_t / \partial c_{t-1} = f$, which can stay near 1.</li><li>Gates use sigmoids <strong>because</strong> their outputs between 0 and 1 act like dimmer switches.</li></ul>
+        <div class="formula">$$c_t = f \odot c_{t-1} + i \odot g = 0.731 \cdot 0.5 + 0.622 \cdot 0.664 \approx 0.779, \qquad h_t = o \odot \tanh(c_t) \approx 0.358$$</div>
+        <p><span class="tag pit">Pitfall</span> Mixing up the cell state $c$ (long-term memory) and the hidden state $h$ (the output).</p>
+        <p><span class="tag fey">Feynman</span> Explain LSTM to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-gru.html">GRU</a></h3>
+        <p class="def">a <strong>GRU</strong> (gated recurrent unit) is a recurrent cell with an update gate that blends the old hidden state with a candidate, and a reset gate that controls how much of the past the candidate uses.</p>
+        <ul><li>The update gate preserves memory <strong>because</strong> with $z$ near 0 the old state is copied forward.</li><li>The reset gate lets the cell start fresh <strong>because</strong> with $r$ near 0 the candidate ignores the past.</li><li>GRUs are lighter than LSTMs <strong>because</strong> they have three weight blocks instead of four and no cell state.</li></ul>
+        <div class="formula">$$h_t = (1 - z)\, h_{t-1} + z\, \tilde h = 0.5 \cdot 0.5 + 0.5 \cdot 0.633 \approx 0.566$$</div>
+        <p><span class="tag pit">Pitfall</span> Mixing up which gate builds the candidate (reset) and which blends (update).</p>
+        <p><span class="tag fey">Feynman</span> Explain GRU to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-attention.html">Attention (Q, K, V)</a></h3>
+        <p class="def"><strong>attention</strong> computes an output as a weighted average of value vectors, where the weights are the softmax of scaled dot products between a query and the keys: $\text{softmax}(QK^\top/\sqrt{d_k})V$.</p>
+        <ul><li>Attention focuses on matching items <strong>because</strong> softmax turns higher query–key similarity into larger weights.</li><li>The output is a blend of values <strong>because</strong> it is their weighted average.</li><li>Scores are scaled by $\sqrt{d_k}$ <strong>because</strong> raw dot products grow with dimension and would saturate softmax.</li></ul>
+        <div class="formula">$$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V, \qquad \text{cost } O(n^2 d), \text{ memory } O(n^2)$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting the $\sqrt{d_k}$ scaling.</p>
+        <p><span class="tag fey">Feynman</span> Explain Attention (Q, K, V) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-transformer.html">The Transformer</a></h3>
+        <p class="def">a <strong>Transformer</strong> is a stack of blocks, each made of multi-head self-attention and a position-wise feed-forward network with residual connections and layer normalization, applied to token embeddings plus positional encodings.</p>
+        <ul><li>Transformers process tokens in parallel <strong>because</strong> attention compares all positions at once instead of stepping through them.</li><li>Positional encodings are needed <strong>because</strong> attention by itself ignores order.</li><li>Residual connections make depth trainable <strong>because</strong> each sub-layer only adds a refinement to its input.</li></ul>
+        <div class="formula">$$\#\text{weights} = \underbrace{4 d^2}_{\text{attention}} + \underbrace{2 d\, d_{\text{ff}}}_{\text{FFN}} = 4 \cdot 512^2 + 2 \cdot 512 \cdot 2048 \approx 3.15\text{M}, \qquad \text{attention cost } O(n^2 d)$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting positional encodings, so word order is lost.</p>
+        <p><span class="tag fey">Feynman</span> Explain The Transformer to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-transfer-learning.html">Transfer learning</a></h3>
+        <p class="def"><strong>transfer learning</strong> reuses a model pretrained on a large dataset as the starting point for a new task, replacing and training its output layer (and optionally fine-tuning other layers).</p>
+        <ul><li>Pretrained features transfer <strong>because</strong> early layers learn generic patterns like edges and textures.</li><li>Only the head is replaced <strong>because</strong> the final layer is specific to the original classes.</li><li>Freezing prevents overfitting <strong>because</strong> a small dataset then trains only a few thousand weights.</li></ul>
+        <div class="formula">$$\#\text{head} = 512 \cdot 2 + 2 = 1{,}026, \qquad \frac{1{,}026}{\approx 11.2\text{M}} \approx 0.01\%$$</div>
+        <p><span class="tag pit">Pitfall</span> Forgetting to freeze the backbone, so 2,000 images overwrite millions of good weights.</p>
+        <p><span class="tag fey">Feynman</span> Explain Transfer learning to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-autoencoder.html">Autoencoder</a></h3>
+        <p class="def">an <strong>autoencoder</strong> is a network trained to reproduce its input through a smaller bottleneck code, made of an <strong>encoder</strong> $x \to z$ and a <strong>decoder</strong> $z \to \hat x$, using the reconstruction error as the loss.</p>
+        <ul><li>The bottleneck forces compression <strong>because</strong> the code has fewer numbers than the input.</li><li>No labels are needed <strong>because</strong> the training target is the input itself.</li><li>Reconstruction error flags anomalies <strong>because</strong> inputs unlike the training data don't fit the learned code.</li></ul>
+        <div class="formula">$$\min_{f,\, g} \; \frac1n \sum_{i} \lVert x_i - g(f(x_i)) \rVert^2, \qquad [1, 1, 0, 0] \to \hat x = [0.5, 0.5, 0.5, 0.5],\; \text{MSE} = 0.25$$</div>
+        <p><span class="tag pit">Pitfall</span> Using a code as large as the input without other constraints, which lets the network learn the identity.</p>
+        <p><span class="tag fey">Feynman</span> Explain Autoencoder to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-gan.html">Generative adversarial networks (GAN)</a></h3>
+        <p class="def">a <strong>generative adversarial network</strong> trains a generator to produce samples that a discriminator, trained at the same time, cannot distinguish from real data.</p>
+        <ul><li>GANs need no explicit quality measure <strong>because</strong> the discriminator learns to judge realism.</li><li>The two networks are adversaries <strong>because</strong> one's loss goes down when the other's goes up.</li><li>At equilibrium $D = 0.5$ <strong>because</strong> perfect fakes can't be told apart from real data.</li></ul>
+        <div class="formula">$$\min_G \max_D \; \mathbb{E}[\ln D(x)] + \mathbb{E}[\ln(1 - D(G(z)))], \qquad L_D = 0.33,\; L_G = 1.61$$</div>
+        <p><span class="tag pit">Pitfall</span> Updating the discriminator while training the generator (it must be held fixed in that step).</p>
+        <p><span class="tag fey">Feynman</span> Explain Generative adversarial networks (GAN) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+      <section class="block">
+        <h3><a href="topics/dl-vae.html">Variational autoencoder (VAE)</a></h3>
+        <p class="def">a <strong>variational autoencoder</strong> encodes each input as a probability distribution over codes, samples from it with the reparameterization trick, and trains with reconstruction error plus a KL penalty that keeps codes close to $\mathcal{N}(0, 1)$, which makes it a generative model.</p>
+        <ul><li>The encoder outputs a distribution <strong>because</strong> that fills the code space instead of leaving isolated points.</li><li>The KL term keeps codes near $\mathcal{N}(0, 1)$ <strong>because</strong> random samples from $\mathcal{N}(0, 1)$ must decode to sensible data.</li><li>The reparameterization trick enables training <strong>because</strong> it moves the randomness into $\varepsilon$, outside the path of the gradients.</li></ul>
+        <div class="formula">$$\underbrace{(1 - 0.8)^2 + (0 - 0.1)^2}_{0.05} + \underbrace{\tfrac12\big(0.64 + 0.25 - 1 - \ln 0.64\big)}_{\approx 0.168} \approx 0.218$$</div>
+        <p><span class="tag pit">Pitfall</span> Sampling $z$ directly from $\mathcal{N}(\mu, \sigma^2)$ in code, which blocks gradients to $\mu$ and $\sigma$.</p>
+        <p><span class="tag fey">Feynman</span> Explain Variational autoencoder (VAE) to a beginner in 2 minutes: define it, give one example, name one limitation.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

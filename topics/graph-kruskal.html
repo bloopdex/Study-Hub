@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kruskal's algorithm · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-kruskal" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Kruskal's algorithm</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four towns need connecting with the least cable. Sort the possible links by cost: A–B 1, C–D 2, B–C 3, A–C 4, B–D 5. Take the cheapest ones in order, skipping any that would close a loop: A–B, C–D, B–C. A–C and B–D would make loops, so skip them. Total 6. That's Kruskal's algorithm for a minimum spanning tree.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it builds the cheapest network that connects every vertex, in $O(E \log E)$, with one simple greedy rule. It's used for network design, clustering and approximation algorithms.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Undirected weighted graphs (see <a href="graph-representations.html">representations</a>).</li>
+          <li><a href="graph-union-find.html">Union-Find</a>, to detect loops fast.</li>
+          <li>Sorting (see <a href="sorting.html">Sorting</a>).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine building roads between villages on a tight budget. You look at the cheapest possible road first, then the next cheapest, and build each one unless the two villages are already connected some other way.</p>
+          <p>Kruskal's algorithm is that budget rule. Groups of connected villages merge as roads are built, and a road inside one group is pointless, so it's skipped.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> an <strong>undirected, connected</strong>, weighted graph. Negative weights are fine. On a disconnected graph it gives a minimum spanning forest.</p>
+        <h3>Start with the edge list by hand</h3>
+        <p>Edges sorted by weight: A–B 1, C–D 2, B–C 3, A–C 4, B–D 5. At the start every town is its own group. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Take A–B (1) and C–D (2). Predict the groups.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Both are accepted: groups {A, B} and {C, D}.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: B–C (3)?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Accepted: B and C are in different groups, so it joins them into {A, B, C, D}.</p></details>
+          <p><strong>Step 3.</strong> A–C (4) and B–D (5). Predict, and give the total.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Both rejected: their ends are already in the same group, so each would close a loop. Tree: A–B, C–D, B–C, total 1 + 2 + 3 = 6.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-kruskal-1.svg" alt="Graph A, B, C, D with weighted edges; minimum spanning tree edges A-B 1, C-D 2, B-C 3 in green, rejected edges dashed" width="560" height="290">
+          <figcaption>What you just did by hand: green edges are the minimum spanning tree (total 6); dashed edges were rejected because they would close a loop.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: when does Kruskal reject an edge?</p>
+          <details><summary>Check your answer</summary>
+            <p>When both ends are already in the same connected group, because adding it would close a cycle.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why greedy works</h3>
+        <p>Suppose someone claims a cheaper tree without A–B, the cheapest edge.</p>
+        <ul>
+          <li><strong>Add A–B to their tree.</strong> Predict what appears.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>A cycle: their tree already connects A and B some other way.</p></details></li>
+          <li><strong>Remove another edge of that cycle.</strong> Predict the new total.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Every other edge on the cycle costs more than 1, so swapping it for A–B makes the tree cheaper or equal. So the cheapest edge can always be in a minimum tree; the same argument repeats for each step.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how many edges does a spanning tree on $V$ vertices have?</p>
+          <details><summary>Check your answer</summary>
+            <p>$V - 1$: here 4 towns, 3 edges.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Sort the edges by weight. Start with every vertex in its own group.</p>
+        <p>For each edge in order: if its ends are in different groups, add it to the tree and merge the groups; otherwise skip it. Stop after $V - 1$ edges.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write Kruskal's loop in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Go through the edges from cheapest to most expensive. For each, find the group of each end. If the groups differ, keep the edge and merge the groups; otherwise skip it.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the run by hand. It will make more sense.</p>
+        <pre><code class="language-c">int find(int parent[], int x) {                     /* group representative */
+    while (parent[x] != x) x = parent[x];
+    return x;
+}</code></pre>
+        <pre><code class="language-c">int kruskal(int n, int m, int eu[], int ev[], int ew[]) {   /* edges sorted by weight */
+    int parent[100];
+    for (int i = 0; i &lt; n; i++) parent[i] = i;          /* every vertex alone */
+    int total = 0;
+    for (int j = 0; j &lt; m; j++) {
+        int a = find(parent, eu[j]), b = find(parent, ev[j]);
+        if (a != b) { parent[a] = b; total += ew[j]; }   /* joins two groups: keep */
+    }
+    return total;                                       /* weight of the MST */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>Kruskal's algorithm</strong> builds a minimum spanning tree by taking edges in increasing weight order and keeping each one that connects two different components.</p>
+          <p>A <strong>minimum spanning tree</strong> connects all vertices with $V - 1$ edges of minimum total weight.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["sort edges by weight"] --&gt; B["take the next cheapest edge u-v"]
+  B --&gt; C{"u and v in the same group?"}
+  C --&gt;|yes| D["skip: it would close a cycle"]
+  C --&gt;|no| E["keep it, merge the groups"]
+  D --&gt; F{"V - 1 edges kept?"}
+  E --&gt; F
+  F --&gt;|no| B
+  F --&gt;|yes| G["done: minimum spanning tree"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for the edge A–C (4) in our example, which arrow leaves the question box? (Answer: "yes", so skip.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: which step dominates the running time?</p>
+          <details><summary>Check your answer</summary>
+            <p>Sorting the edges: $O(E \log E)$. The Union-Find checks are almost constant each.</p>
+          </details>
+        </div>
+        <p>Sorting dominates; then each edge needs two finds and maybe one union, nearly constant with a good Union-Find:</p>
+        $$O(E \log E) + O\big(E \cdot \alpha(V)\big) \;=\; O(E \log E) \;=\; O(E \log V)$$
+        <p>$\log E$ and $\log V$ differ by at most a factor of 2, because $E &lt; V^2$.</p>
+        <table>
+          <thead>
+            <tr><th>Step</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sort the edges</td><td>$O(E \log E)$</td><td>Comparison sort</td></tr>
+            <tr><td>All find / union calls</td><td>$O(E \, \alpha(V))$</td><td>Union-Find with path compression and union by size</td></tr>
+            <tr><td>Total</td><td>$O(E \log E)$</td><td>Sorting dominates</td></tr>
+            <tr><td>Extra space</td><td>$O(V + E)$</td><td>Edge list and parent array</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>The simple <code>find</code> above has no path compression, so a long chain of parents can make each call $O(V)$. Real implementations use the Union-Find tricks to keep it almost $O(1)$.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams ask for the order in which edges are accepted and rejected. List the sorted edges, then write "accept" or "reject (cycle)" next to each.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Rejecting an edge just because one end is already in the tree; only reject when <em>both</em> ends are in the same group.</li>
+          <li>Forgetting to sort the edges first.</li>
+          <li>Running it on a directed graph: minimum spanning trees are for undirected graphs.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Edges: P–Q 2, Q–R 2, P–R 3, R–S 1. Which edges does Kruskal keep, and what is the total?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Start with the weight-1 edge.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>R–S (1), P–Q (2), Q–R (2): total 5. P–R (3) is rejected because P and R are already connected.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>If all edge weights are different, is the minimum spanning tree unique? What if two edges have the same weight, as in exercise 1? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>With all weights distinct, the MST is unique. With ties it may not be: in exercise 1, P–Q and Q–R tie, but here both are needed, so the tree is still unique. In general, swapping between tied edges can give different trees with the same total.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Joseph Kruskal published the algorithm in 1956, as a side result of a paper on the travelling salesman problem.</p>
+          <p>Stopping Kruskal early, before the last $k - 1$ merges, leaves $k$ groups: that is single-linkage clustering, used in data analysis.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Kruskal takes the cheapest safe edge <strong>because</strong> the cheapest edge between two groups is always part of some minimum tree.</li>
+          <li>It rejects edges inside one group <strong>because</strong> they would close a cycle.</li>
+          <li>It runs in $O(E \log E)$ <strong>because</strong> sorting the edges dominates.</li>
+          <li>Union-Find makes the cycle check fast <strong>because</strong> two finds tell whether two vertices are already connected.</li>
+          <li>A spanning tree has $V - 1$ edges <strong>because</strong> each kept edge merges two groups, from $V$ groups down to 1.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Kruskal like building roads on a budget?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You build the cheapest road first and keep going in order of cost, skipping any road between villages that are already connected.</p></details></li>
+          <li><strong>Walk through Kruskal on A–B 1, C–D 2, B–C 3, A–C 4, B–D 5.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Accept A–B, accept C–D, accept B–C (joins the two groups), reject A–C and B–D (cycles). Total 6.</p></details></li>
+          <li><strong>Why does the code compare <code>find(parent, u)</code> with <code>find(parent, v)</code> instead of checking the edge directly?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions indirect connections.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Two vertices can be connected through other edges without an edge between them; only their group representatives reveal whether a new edge would close a cycle.</p></details></li>
+          <li><strong>So what is Kruskal's algorithm, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It builds a minimum spanning tree by taking edges from cheapest to most expensive and keeping each one that connects two different components.</p></details></li>
+          <li><strong>Why is it safe to always take the cheapest edge between two groups?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the swap argument.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If a minimum tree didn't use it, adding it creates a cycle with a more expensive edge; swapping them gives a tree that's no more expensive. So some minimum tree contains it.</p></details></li>
+          <li><strong>What does Kruskal cost, and which step dominates?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(E \log E)$, dominated by sorting the edges; Union-Find work is almost linear.</p></details></li>
+          <li><strong>When would you choose Prim instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>On dense graphs stored as matrices, where Prim's $O(V^2)$ array version avoids sorting $O(V^2)$ edges.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the swap proof and the $\alpha(V)$ term. I'd keep the road-budget analogy, the five-edge trace with two rejections, and "sort edges, skip cycles, $O(E \log E)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/mst" target="_blank" rel="noopener">VisuAlgo: Minimum spanning tree</a>: run Kruskal and Prim on the same graph.</li>
+          <li><a href="https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2/" target="_blank" rel="noopener">GeeksforGeeks: Kruskal's algorithm</a>: code with Union-Find.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Kruskal%27s_algorithm" target="_blank" rel="noopener">Wikipedia: Kruskal's algorithm</a>: proof and complexity.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=kruskal+algorithm+minimum+spanning+tree" target="_blank" rel="noopener">YouTube search: Kruskal's algorithm</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="290" viewBox="0 0 600 290" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Cycle 0-1-2 with back edge highlighted</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="600" height="290" rx="16" fill="#f8fafc"/>
+  <text x="300" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">A back edge to a grey vertex = a cycle</text>
+  <line x1="142.0" y1="90.0" x2="278.0" y2="90.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="300.0" y1="112.0" x2="300.0" y2="198.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="282.2" y1="207.1" x2="137.8" y2="102.9" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="168.2" y="145.0" width="83.6" height="19" rx="4" fill="#f8fafc"/>
+  <text x="210.0" y="160.0" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">back edge</text>
+  <line x1="322.0" y1="220.0" x2="458.0" y2="220.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="120" cy="90" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="120" y="96" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">0</text>
+  <text x="120" y="130" text-anchor="middle" font-size="12" fill="#475569">grey</text>
+  <circle cx="300" cy="90" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="300" y="96" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">1</text>
+  <text x="300" y="130" text-anchor="middle" font-size="12" fill="#475569">grey</text>
+  <circle cx="300" cy="220" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="300" y="226" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">2</text>
+  <text x="300" y="260" text-anchor="middle" font-size="12" fill="#475569">grey</text>
+  <circle cx="480" cy="220" r="22" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="480" y="226" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">3</text>
+  <text x="480" y="260" text-anchor="middle" font-size="12" fill="#475569">white</text>
+</svg>

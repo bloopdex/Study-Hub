@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="290" viewBox="0 0 600 290" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Directed graph with negative edge and final distances</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="600" height="290" rx="16" fill="#f8fafc"/>
+  <text x="300" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Bellman-Ford from 0, with a negative edge</text>
+  <line x1="110.6" y1="137.2" x2="279.4" y2="72.8" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <rect x="186.8" y="95.0" width="16.4" height="19" rx="4" fill="#f8fafc"/>
+  <text x="195.0" y="110.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">4</text>
+  <line x1="110.6" y1="152.8" x2="279.4" y2="217.2" stroke="#22c55e" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="186.8" y="175.0" width="16.4" height="19" rx="4" fill="#f8fafc"/>
+  <text x="195.0" y="190.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">5</text>
+  <line x1="300.0" y1="203.0" x2="300.0" y2="87.0" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="287.6" y="135.0" width="24.8" height="19" rx="4" fill="#f8fafc"/>
+  <text x="300.0" y="150.0" text-anchor="middle" font-size="13" font-weight="700" fill="#b91c1c">−3</text>
+  <line x1="322.0" y1="65.0" x2="488.0" y2="65.0" stroke="#22c55e" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="396.8" y="55.0" width="16.4" height="19" rx="4" fill="#f8fafc"/>
+  <text x="405.0" y="70.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">2</text>
+  <circle cx="90" cy="145" r="22" fill="#a5b4fc" stroke="#4338ca" stroke-width="2"/>
+  <text x="90" y="151" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">0</text>
+  <text x="90" y="185" text-anchor="middle" font-size="12" fill="#475569">d = 0</text>
+  <circle cx="300" cy="65" r="22" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="300" y="71" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">1</text>
+  <text x="300" y="105" text-anchor="middle" font-size="12" fill="#475569">d = 2</text>
+  <circle cx="300" cy="225" r="22" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="300" y="231" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">2</text>
+  <text x="300" y="265" text-anchor="middle" font-size="12" fill="#475569">d = 5</text>
+  <circle cx="510" cy="65" r="22" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="510" y="71" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">3</text>
+  <text x="510" y="105" text-anchor="middle" font-size="12" fill="#475569">d = 4</text>
+</svg>

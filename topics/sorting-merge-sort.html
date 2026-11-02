@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Merge sort · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="sorting-merge-sort" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="sorting.html" class="hover:text-indigo-500">Sorting</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Sorting</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Merge sort</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>[4, 1, 3, 2]</code>. Cut it in half until every piece has one number: <code>[4] [1] [3] [2]</code>. Then glue pieces back together in order: <code>[1, 4]</code> and <code>[2, 3]</code>, then <code>[1, 2, 3, 4]</code>. Split, then merge: that's merge sort.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it sorts any input in $O(n \log n)$, whether the input is sorted, reversed or random, and it never reorders equal items. The price is $O(n)$ extra memory.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Recursion: a function that calls itself on a smaller input.</li>
+          <li>Logarithms: $\log_2 n$ is how many times you can halve $n$ before reaching 1.</li>
+          <li>Big-O notation (see Complexity analysis).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Two teachers each hold a pile of exams already sorted by name. To combine them, you look at the top sheet of each pile and always take the one that comes first.</p>
+          <p>That's the merge step. Merge sort first splits the class into piles of one exam (a pile of one is always sorted), then merges piles two at a time until one sorted pile is left.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with one merge by hand</h3>
+        <p>Splitting <code>[4, 1, 3, 2]</code> gives <code>[4] [1] [3] [2]</code>. Merging pairs gives <code>[1, 4]</code> and <code>[2, 3]</code>. Now merge those two. Guess first, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: the final merge, predict before you read</p>
+          <p><strong>Step 1.</strong> The fronts are 1 (left) and 2 (right). Predict: which goes to the output?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>1 ≤ 2, so take 1. Output: <code>[1]</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the fronts are now 4 and 2. Which one moves?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>2 is smaller. Output: <code>[1, 2]</code>.</p></details>
+          <p><strong>Step 3.</strong> The fronts are 4 and 3. Predict: what happens after this comparison?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Take 3. The right half is now empty, so copy the leftover 4 without comparing: <code>[1, 2, 3, 4]</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/sorting-merge-sort-1.svg" alt="Merging the sorted halves 1 4 and 2 3: take 1, take 2, take 3, then copy 4, giving 1 2 3 4." width="700" height="390">
+          <figcaption>What you just did by hand: yellow boxes are the two fronts being compared. Grey boxes are already used.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what must be true of the two halves before you can merge them this way?</p>
+          <details><summary>Check your answer</summary>
+            <p>Both halves must already be sorted. Only then is the smaller front the smallest remaining number overall.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture</h3>
+        <p>Now zoom out to the whole run on <code>[4, 1, 3, 2]</code>.</p>
+        <ul>
+          <li><strong>Splitting.</strong> Predict: how many levels of halving until every piece has one number?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>2 levels: 4 → 2 + 2 → 1 + 1 + 1 + 1. That's $\log_2 4 = 2$.</p></details></li>
+          <li><strong>Merging.</strong> Predict: how many comparisons in total across all merges?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>1 for <code>[1, 4]</code>, 1 for <code>[2, 3]</code> and 3 for the final merge: 5 comparisons.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why did the final merge need only 3 comparisons for 4 numbers?</p>
+          <details><summary>Check your answer</summary>
+            <p>Once one half is empty, the rest of the other half is copied with no comparisons. Here the 4 was copied for free.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>If the piece has one number, it's sorted: stop. Otherwise cut it in half and sort each half the same way.</p>
+        <p>Then merge: compare the two fronts, move the smaller one to the output, and repeat. When one half runs out, copy the rest of the other.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of merge sort in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Split the array into two halves. 2. Sort each half with merge sort. 3. Merge the two sorted halves by always taking the smaller front.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done one merge by hand. It will make more sense.</p>
+        <pre><code class="language-c">/* Merge sorted a[lo..mid) and a[mid..hi) through tmp. */
+void merge(int a[], int tmp[], int lo, int mid, int hi) {
+    int i = lo, j = mid, k = lo;
+    while (i &lt; mid &amp;&amp; j &lt; hi)
+        tmp[k++] = (a[i] &lt;= a[j]) ? a[i++] : a[j++];   /* &lt;= keeps it stable */
+    while (i &lt; mid) tmp[k++] = a[i++];                 /* copy leftovers */
+    while (j &lt; hi)  tmp[k++] = a[j++];
+    for (k = lo; k &lt; hi; k++) a[k] = tmp[k];
+}</code></pre>
+        <pre><code class="language-c">void merge_sort(int a[], int tmp[], int lo, int hi) {   /* sorts a[lo..hi) */
+    if (hi - lo &lt; 2) return;                           /* one item: sorted */
+    int mid = lo + (hi - lo) / 2;
+    merge_sort(a, tmp, lo, mid);
+    merge_sort(a, tmp, mid, hi);
+    merge(a, tmp, lo, mid, hi);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>merge sort</strong> splits the array into halves, sorts each half recursively, and <strong>merges</strong> the two sorted halves in linear time.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  A["4 1 3 2"] -->|split| B["4 1"]
+  A -->|split| C["3 2"]
+  B --> D["4"]
+  B --> E["1"]
+  C --> F["3"]
+  C --> G["2"]
+  D & E -->|merge| H["1 4"]
+  F & G -->|merge| I["2 3"]
+  H & I -->|merge| J["1 2 3 4"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the bottom half and guess: what are the two pieces just before the last merge? (Answer: <code>[1, 4]</code> and <code>[2, 3]</code>.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: on one level of the diagram, how many numbers get moved by all the merges together?</p>
+          <details><summary>Check your answer</summary>
+            <p>All $n$ of them: every level merges the whole array, just in different-sized pieces.</p>
+          </details>
+        </div>
+        <p>Halving gives $\log_2 n$ levels, and each level moves all $n$ numbers once. Multiply the two:</p>
+        $$\underbrace{n}_{\text{work per level}} \times \underbrace{\log_2 n}_{\text{levels}} \;=\; O(n \log n).$$
+        <p>Nothing here depends on the order of the input, so the best, average and worst cases are all the same.</p>
+        <table>
+          <thead>
+            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Extra space</th><th>Stable</th><th>In-place</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n \log n)$</td><td>$O(n)$</td><td>Yes</td><td>No</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Array merge sort needs the $O(n)$ scratch array <code>tmp</code>, so it is <strong>not in-place</strong>. On a machine short of memory, that can rule it out.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Merge sort is stable only if the merge takes from the <em>left</em> half on ties (<code>&lt;=</code>). Change it to <code>&lt;</code> and equal items can swap order.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to copy the leftovers after one half runs out, which silently loses numbers.</li>
+          <li>Using <code>&lt;</code> instead of <code>&lt;=</code> in the merge, which breaks stability.</li>
+          <li>Mixing up range ends: this code uses half-open ranges <code>[lo, hi)</code>, so the base case is <code>hi - lo &lt; 2</code>.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Merge <code>[2, 5]</code> and <code>[1, 3]</code> by hand. What is the result, and how many comparisons did you make?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Always compare the two fronts. Stop comparing as soon as one side is empty.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p><code>[1, 2, 3, 5]</code> with 3 comparisons (2 vs 1, 2 vs 3, 5 vs 3). Then 5 is copied for free.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>For $n = 16$, how many levels of splitting are there, and how many times is a number copied into <code>tmp</code> in total? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\log_2 16 = 4$ levels, and each level copies all 16 numbers once: $16 \times 4 = 64$ copies.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>John von Neumann described merge sort in 1945, which makes it one of the oldest computer algorithms still in daily use.</p>
+          <p>It's also how databases sort data too big for memory: they sort chunks that fit, write them to disk, then merge the chunks. That's why it's worth knowing beyond exams.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The merge works <strong>because</strong> both halves are sorted, so the smaller front is always the smallest number left.</li>
+          <li>It is $O(n \log n)$ in every case <strong>because</strong> there are $\log_2 n$ levels and each moves all $n$ numbers.</li>
+          <li>It needs $O(n)$ extra space <strong>because</strong> the merge writes into a scratch array.</li>
+          <li>It is stable <strong>because</strong> ties are taken from the left half first.</li>
+          <li>It suits linked lists and huge files <strong>because</strong> merging only reads each sequence front to back.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is merging like combining two sorted piles of exams?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You look at the top sheet of each pile and always take the one that comes first. You never need to look deeper, because each pile is already in order.</p></details></li>
+          <li><strong>Walk through merge sort on [4, 1, 3, 2].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Split to [4] [1] [3] [2], merge pairs into [1, 4] and [2, 3], then merge those: take 1, 2, 3, and copy 4, giving [1, 2, 3, 4].</p></details></li>
+          <li><strong>Why does the merge use <code>&lt;=</code> instead of <code>&lt;</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions which half wins a tie.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>On a tie it takes the element from the left half, which came first in the input. That keeps equal items in their original order, so the sort is stable.</p></details></li>
+          <li><strong>So what is merge sort, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It splits the array in half, sorts each half recursively, and merges the two sorted halves.</p></details></li>
+          <li><strong>Why is merge sort $O(n \log n)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer counts the levels and the work per level.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Halving gives $\log_2 n$ levels, and each level's merges together move all $n$ numbers once. So the total is $n \log n$.</p></details></li>
+          <li><strong>What are its best, average and worst cases, and its extra space?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n \log n)$ in all three cases, because the work doesn't depend on the input order. Extra space is $O(n)$ for the scratch array.</p></details></li>
+          <li><strong>Why is it not in-place, and when does that not matter?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The merge writes into a separate array of size $n$. On linked lists, you can merge by relinking nodes, so no extra array is needed.</p></details></li>
+          <li><strong>When would you pick merge sort over quick sort?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When you need stability or a guaranteed $O(n \log n)$ worst case, or when sorting linked lists or files too big for memory. Quick sort is usually faster on plain arrays in RAM.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the half-open ranges and the exact copy count. I'd keep "split until size one, then merge by taking the smaller front", the split/merge picture, and "$O(n \log n)$ always, stable, needs $O(n)$ memory".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/sorting" target="_blank" rel="noopener">VisuAlgo: Sorting</a>: pick "MER" and watch the split and merge phases.</li>
+          <li><a href="https://www.geeksforgeeks.org/merge-sort/" target="_blank" rel="noopener">GeeksforGeeks: Merge sort</a>: an article with code and a recursion-tree picture.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Merge_sort" target="_blank" rel="noopener">Wikipedia: Merge sort</a>: variants, including bottom-up and external merge sort.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006 Introduction to Algorithms</a>: university lectures that cover merge sort.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=merge+sort+transylvanian-saxon+folk+dance" target="_blank" rel="noopener">YouTube: merge sort as a folk dance</a>: the AlgoRythmics video for merge sort.</li>
+          <li><a href="https://www.youtube.com/results?search_query=merge+sort+explained" target="_blank" rel="noopener">YouTube search: merge sort explained</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

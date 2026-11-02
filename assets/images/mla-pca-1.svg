@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="310" viewBox="0 0 700 310" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Explained variance ratios</title>
+  <rect width="700" height="310" rx="16" fill="#f8fafc"/>
+  <text x="350" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Explained variance per component</text>
+  <text x="80" y="66" text-anchor="middle" font-size="13" fill="#475569">PC1</text>
+  <text x="172" y="66" text-anchor="middle" font-size="13" fill="#475569">PC2</text>
+  <text x="264" y="66" text-anchor="middle" font-size="13" fill="#475569">PC3</text>
+  <text x="356" y="66" text-anchor="middle" font-size="13" fill="#475569">PC4</text>
+  <rect x="40" y="76" width="80" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="80" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">λ = 4</text>
+  <rect x="132" y="76" width="80" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="172" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">λ = 2</text>
+  <rect x="224" y="76" width="80" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="264" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">λ = 1</text>
+  <rect x="316" y="76" width="80" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="356" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">λ = 0.5</text>
+  <text x="430" y="104" font-size="15" fill="#334155">eigenvalues (total 7.5)</text>
+  <text x="218" y="146" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="156" width="80" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="80" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">53.3%</text>
+  <rect x="132" y="156" width="80" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="172" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">26.7%</text>
+  <rect x="224" y="156" width="80" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="264" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8">13.3%</text>
+  <rect x="316" y="156" width="80" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="356" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8">6.7%</text>
+  <text x="430" y="184" font-size="15" fill="#334155">share of variance</text>
+  <text x="218" y="226" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="236" width="80" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="80" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">53.3%</text>
+  <rect x="132" y="236" width="80" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="172" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">80.0%</text>
+  <rect x="224" y="236" width="80" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="264" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">93.3%</text>
+  <rect x="316" y="236" width="80" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="356" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">100%</text>
+  <text x="430" y="264" font-size="15" font-weight="700" fill="#15803d">cumulative</text>
+</svg>

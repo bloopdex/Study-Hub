@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decision tree · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-decision-tree" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Decision tree</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Ten tennis days, 5 "play" and 5 "don't": maximum uncertainty, entropy 1 bit. Ask "is it sunny?" and both answers stay mixed (2/3 and 3/2): you only learn 0.03 bits. Ask "is the wind weak?" and the answers get purer (4 play of 6, 1 play of 4): you learn 0.12 bits. So the tree asks about wind first. That's a decision tree: a flowchart of questions, each chosen to make the groups as pure as possible.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> trees handle mixed feature types without scaling, capture interactions, and are readable by humans. They're also the building block of random forests and gradient boosting, the strongest methods for tabular data.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Logarithms in base 2.</li>
+          <li>Proportions within a group.</li>
+          <li><a href="mla-naive-bayes.html">The tennis dataset</a> (same numbers).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of the game "20 questions". A good first question splits the possibilities as evenly and usefully as possible, like "is it alive?", not "is it a giraffe?".</p>
+          <p>A decision tree chooses each question the same way: the split that leaves the children as "pure" as possible, measured by entropy (or Gini impurity).</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Data:</strong> play days (5): sunny 2, rainy 3; weak wind 4, strong 1. No-play days (5): sunny 3, rainy 2; weak 2, strong 3. Entropy of a group with proportions $p$ and $1 - p$: $H = -p\log_2 p - (1-p)\log_2(1-p)$.</p>
+        <h3>Start with choosing the first split</h3>
+        <p>Root: 5 play, 5 no, so $H = 1$ bit. Information gain = $H(\text{parent})$ − weighted average $H(\text{children})$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Split on outlook: sunny (2 play, 3 no) and rainy (3 play, 2 no). Predict the children's entropy and the gain.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Both children have $H(0.4) \approx 0.971$. Weighted average 0.971, so gain $= 1 - 0.971 = 0.029$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: split on wind, weak (4 play, 2 no) and strong (1 play, 3 no).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$H(4/6) \approx 0.918$ and $H(1/4) \approx 0.811$. Weighted: $0.6 \cdot 0.918 + 0.4 \cdot 0.811 \approx 0.875$. Gain $\approx 0.125$.</p></details>
+          <p><strong>Step 3.</strong> Which split goes at the root?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Wind: it has the larger information gain (0.125 &gt; 0.029).</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-decision-tree-1.svg" alt="Decision tree root split on wind: weak branch 4 play 2 no, strong branch 1 play 3 no, with entropies" width="620" height="300">
+          <figcaption>What you just chose: the wind split. Each box shows its counts and entropy; the children are purer than the root.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does an entropy of 1 bit mean for a two-class group?</p>
+          <details><summary>Check your answer</summary>
+            <p>Maximum uncertainty: the group is 50/50. A pure group has entropy 0.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: growing and stopping</h3>
+        <p>After the wind split, each child is split again in the same way, until a stopping rule applies.</p>
+        <ul>
+          <li><strong>Weak-wind child (4 play, 2 no).</strong> Predict the leaf label if we stop here.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>"Play", the majority. The tree would be right 4 times out of 6 in that branch.</p></details></li>
+          <li><strong>No stopping rule at all.</strong> Predict the training accuracy and the risk.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>The tree grows until every leaf is pure: 100% training accuracy, but it overfits. Limit the depth, require a minimum number of samples per leaf, or prune.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why can a fully grown tree reach 100% training accuracy?</p>
+          <details><summary>Check your answer</summary>
+            <p>It keeps splitting until each leaf is pure, which can mean one leaf per training example: it memorises the data.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Every logarithm and every weighted average behind the root split, then the same decision made with Gini impurity. Data: 10 days, 5 play / 5 no.</p>
+        <table>
+          <thead>
+            <tr><th>Split</th><th>Child</th><th>Play / No</th><th>Share of days</th><th>Entropy</th><th>Gini</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Outlook</td><td>sunny</td><td>2 / 3</td><td>5/10</td><td>0.971</td><td>0.480</td></tr>
+            <tr><td>Outlook</td><td>rainy</td><td>3 / 2</td><td>5/10</td><td>0.971</td><td>0.480</td></tr>
+            <tr><td>Wind</td><td>weak</td><td>4 / 2</td><td>6/10</td><td>0.918</td><td>0.444</td></tr>
+            <tr><td>Wind</td><td>strong</td><td>1 / 3</td><td>4/10</td><td>0.811</td><td>0.375</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Entropy of the root</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$H = -0.5\log_2 0.5 - 0.5\log_2 0.5 = 0.5 + 0.5 = 1 \text{ bit}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A 50/50 group is as uncertain as possible: you need one full yes/no question (1 bit) to know the answer. Every split will be judged by how much of this bit it removes.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Entropy of a 2/3 child (sunny)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$H = -0.4\log_2 0.4 - 0.6\log_2 0.6 = 0.4 \cdot 1.322 + 0.6 \cdot 0.737 = 0.529 + 0.442 = 0.971$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$\log_2 0.4 \approx -1.322$ and $\log_2 0.6 \approx -0.737$. The child is still very mixed, so its entropy is close to 1. Rainy (3/2) is the mirror image, also 0.971.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Gain of the outlook split</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{Gain} = 1 - \left(\tfrac{5}{10} \cdot 0.971 + \tfrac{5}{10} \cdot 0.971\right) = 1 - 0.971 = 0.029$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each child's entropy is weighted by its share of the days. Asking about the outlook leaves us almost as uncertain as before: only 0.029 bits gained.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Entropies of the wind children</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$H(\tfrac{4}{6}) = \tfrac{2}{3} \cdot 0.585 + \tfrac{1}{3} \cdot 1.585 = 0.918, \qquad H(\tfrac{1}{4}) = 0.25 \cdot 2 + 0.75 \cdot 0.415 = 0.811$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Weak wind (4 play, 2 no) and strong wind (1 play, 3 no) are both more lopsided than 50/50, so both have lower entropy than the root.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Gain of the wind split</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{Gain} = 1 - \left(0.6 \cdot 0.918 + 0.4 \cdot 0.811\right) = 1 - (0.551 + 0.325) = 0.125$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The weights are 6/10 and 4/10 because the children have different sizes. Wind removes 0.125 bits of uncertainty, four times more than outlook, so it becomes the root question.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Same decision with Gini impurity</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{Gini} = 1 - p^2 - (1 - p)^2: \quad \text{wind } 0.6 \cdot 0.444 + 0.4 \cdot 0.375 = 0.417 \;\;\text{vs}\;\; \text{outlook } 0.480$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Gini measures the chance of mislabelling a random item if you label randomly by the group's proportions. The root has 0.5; wind lowers it to 0.417, outlook only to 0.480. Gini and entropy agree, as they usually do.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>The root asks about wind: information gain 0.125 bits versus 0.029 for outlook (Gini: 0.083 versus 0.020 decrease).</p>
+          <p>The same calculation is repeated inside each child to choose the next question, until the leaves are pure or a stopping rule applies.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>At each node, try every feature (and threshold); pick the split with the largest information gain (or largest Gini decrease). Recurse on each child.</p>
+        <p>Stop when a node is pure, too small or too deep; label each leaf with its majority class (or mean value, for regression).</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute the information gain of a split, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the parent's entropy, compute each child's entropy, weight each child by its share of the examples, and subtract the weighted sum from the parent's entropy.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the two gains by hand. It will make more sense.</p>
+        <pre><code class="language-c">double entropy(int pos, int neg) {                       /* in bits */
+    double n = pos + neg, h = 0;
+    if (pos) h -= pos / n * log2(pos / n);
+    if (neg) h -= neg / n * log2(neg / n);
+    return h;
+}
+
+double info_gain(int lp, int ln, int rp, int rn) {         /* left and right child counts */
+    double nl = lp + ln, nr = rp + rn, n = nl + nr;
+    return entropy(lp + rp, ln + rn) - nl / n * entropy(lp, ln) - nr / n * entropy(rp, rn);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>decision tree</strong> predicts by following a sequence of feature tests from the root to a leaf, with each test chosen to maximise <strong>information gain</strong> (reduction in entropy).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["node with its examples"] --&gt; B{"pure, too small or too deep?"}
+  B --&gt;|yes| L["leaf: predict the majority class"]
+  B --&gt;|no| C["try every feature and threshold"]
+  C --&gt; D["keep the split with the largest information gain"]
+  D --&gt; E["recurse on each child"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: at the root of our example, which split comes out of "keep the split…"? (Answer: wind, gain 0.125.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what is the entropy of a group with 3 play and 1 no?</p>
+          <details><summary>Check your answer</summary>
+            <p>$-0.75\log_2 0.75 - 0.25\log_2 0.25 \approx 0.811$ bits.</p>
+          </details>
+        </div>
+        <p>Entropy and information gain for a split into children $S_1, \dots, S_k$:</p>
+        $$H(S) = -\sum_{c} p_c \log_2 p_c, \qquad \text{Gain} = H(S) - \sum_{i} \frac{|S_i|}{|S|} H(S_i)$$
+        <p>Gini impurity, $1 - \sum_c p_c^2$, is a cheaper alternative and usually picks the same splits.</p>
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training</td><td>about $O(m \, n \log n)$</td><td>Sort each of $m$ features at each level</td></tr>
+            <tr><td>Prediction</td><td>$O(\text{depth})$</td><td>One test per level</td></tr>
+            <tr><td>Memory</td><td>$O(\text{number of nodes})$</td><td>One test or label per node</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> tabular data with mixed numeric and categorical features, when you need a model people can read.</p>
+        <ul>
+          <li><strong>Pro:</strong> Interpretable: the rules can be read and explained.</li>
+          <li><strong>Pro:</strong> No scaling needed; handles interactions and non-linear boundaries.</li>
+          <li><strong>Con:</strong> Overfits easily if not limited or pruned.</li>
+          <li><strong>Con:</strong> Unstable: a small change in the data can change the whole tree.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Information gain favours features with many distinct values (an ID column would split every example into its own pure leaf). Use gain ratio or Gini, and never feed ID-like columns to a tree.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams ask you to pick the root split. Make a table per candidate: child counts, child entropies, weighted average, gain. The largest gain wins.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to weight each child's entropy by its size.</li>
+          <li>Using $\log$ in base $e$ while claiming the answer is in bits.</li>
+          <li>Letting the tree grow without limits and trusting its 100% training accuracy.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Compute the entropy of a group with 2 positives and 2 negatives, and of a group with 4 positives and 0 negatives.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Half and half is maximum uncertainty.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>1 bit and 0 bits.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A parent has 6 positives and 2 negatives. Split A gives children (4+, 0−) and (2+, 2−). Compute the information gain. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Parent $H(0.75) \approx 0.811$. Children: 0 and 1 bit, weighted $0.5 \cdot 0 + 0.5 \cdot 1 = 0.5$. Gain $\approx 0.311$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Ross Quinlan's ID3 (1986) introduced information gain for tree learning; CART (Breiman and others, 1984) uses Gini impurity and is the basis of scikit-learn's trees.</p>
+          <p>A single tree is rarely the best model, but hundreds of them, combined in random forests or gradient boosting, win most competitions on tabular data.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Splits are chosen by information gain <strong>because</strong> the best question is the one that makes the groups purest.</li>
+          <li>Entropy is 1 for a 50/50 group <strong>because</strong> that is maximum uncertainty for two classes.</li>
+          <li>Trees need no scaling <strong>because</strong> each split compares one feature with a threshold.</li>
+          <li>Unlimited trees overfit <strong>because</strong> they can split until every training example has its own leaf.</li>
+          <li>Prediction is fast <strong>because</strong> it follows one root-to-leaf path.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a decision tree like the game "20 questions"?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each question is chosen to narrow down the possibilities as much as possible, and you follow the answers down to a conclusion.</p></details></li>
+          <li><strong>Compare the outlook and wind splits on the tennis data.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Outlook gives children with entropy 0.971 each, gain 0.029. Wind gives 0.918 and 0.811, weighted 0.875, gain 0.125. Wind is chosen.</p></details></li>
+          <li><strong>Why does <code>entropy</code> skip the term when a count is 0?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions $\log 0$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$\log_2 0$ is undefined (minus infinity), but $p \log p \to 0$ as $p \to 0$, so the term is simply left out.</p></details></li>
+          <li><strong>So what is a decision tree, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A model that predicts by following feature tests from the root to a leaf, with each test chosen to maximise information gain.</p></details></li>
+          <li><strong>Why did wind give more information than outlook?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares how mixed the children are.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Outlook's children stay close to 50/50 (2/3 and 3/2), while wind's are more lopsided (4/2 and 1/3), so they are purer and their entropy is lower.</p></details></li>
+          <li><strong>What do training and prediction cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Training is roughly $O(m\,n \log n)$; prediction is $O(\text{depth})$.</p></details></li>
+          <li><strong>Give two pros and two cons of decision trees.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: interpretable, and no scaling needed. Cons: overfit easily, and unstable to small data changes.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out Gini and gain ratio. I'd keep the 20-questions analogy, the wind-versus-outlook gain calculation, and "pick the purest split, stop before it memorises".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/tree.html" target="_blank" rel="noopener">scikit-learn: Decision trees</a>: algorithms, parameters and visualisation.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Decision_tree_learning" target="_blank" rel="noopener">Wikipedia: Decision tree learning</a>: ID3, C4.5, CART and split criteria.</li>
+          <li><a href="https://developers.google.com/machine-learning/decision-forests" target="_blank" rel="noopener">Google: Decision forests course</a>: trees and forests, step by step.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+decision+trees" target="_blank" rel="noopener">YouTube search: StatQuest decision trees</a>: StatQuest builds a tree by hand.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

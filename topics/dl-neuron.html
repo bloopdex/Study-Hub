@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The artificial neuron · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-neuron" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">The artificial neuron</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">A neuron receives inputs $x = [2, 3]$. It multiplies each by a weight, $w = [0.5, -0.3]$, adds them up with a bias $b = 0.1$: $z = 1 - 0.9 + 0.1 = 0.2$. Then it passes $z$ through an activation, here the sigmoid: $\sigma(0.2) \approx 0.55$. Weighted sum, plus bias, through a squashing function: that's an artificial neuron.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it is the single building block of every neural network. Stack thousands of them in layers and train their weights, and you get image recognisers and language models.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Dot product: $w \cdot x = \sum_j w_j x_j$.</li>
+          <li>The exponential function $e^x$.</li>
+          <li><a href="mla-logistic-regression.html">Logistic regression</a>: one sigmoid neuron.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a judge on a talent show listening to several advisers. Each adviser's opinion is counted with a different trust level (the weights), the judge has a personal bias, and the total is turned into a final enthusiasm score between 0 and 1.</p>
+          <p>A neuron does exactly that: weighted votes, plus a bias, squashed by an activation function.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Formula:</strong> $z = w^\top x + b$, then output $a = g(z)$ for an activation function $g$ (sigmoid, tanh, ReLU…).</p>
+        <h3>Start with one neuron by hand</h3>
+        <p>Inputs $x = [2, 3]$, weights $w = [0.5, -0.3]$, bias $b = 0.1$, sigmoid activation. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the weighted sum $w \cdot x$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.5 \cdot 2 + (-0.3) \cdot 3 = 1 - 0.9 = 0.1$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: add the bias. What is $z$?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = 0.1 + 0.1 = 0.2$.</p></details>
+          <p><strong>Step 3.</strong> Apply the sigmoid $1/(1 + e^{-z})$, with $e^{-0.2} \approx 0.819$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$1/1.819 \approx 0.550$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-neuron-1.svg" alt="Neuron diagram: inputs 2 and 3 with weights 0.5 and -0.3, bias 0.1, sum z = 0.2, sigmoid output 0.55" width="640" height="290">
+          <figcaption>What you just computed: inputs flow along weighted edges into the sum, then through the sigmoid.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what are the two steps a neuron performs?</p>
+          <details><summary>Check your answer</summary>
+            <p>A weighted sum of the inputs plus a bias, then an activation function applied to that sum.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: what weights mean</h3>
+        <p>Change the numbers and watch the output.</p>
+        <ul>
+          <li><strong>Set $w_2 = +0.3$ instead.</strong> Predict $z$ and the output.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = 1 + 0.9 + 0.1 = 2.0$; $\sigma(2) \approx 0.88$. A positive weight makes that input push the output up.</p></details></li>
+          <li><strong>Set the bias to $-1$ (original weights).</strong> Predict the output.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = 0.1 - 1 = -0.9$; $\sigma(-0.9) \approx 0.29$. The bias shifts how easily the neuron "fires".</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why can't a single neuron learn XOR?</p>
+          <details><summary>Check your answer</summary>
+            <p>A single neuron draws one straight line (its boundary $z = 0$), and no single line separates the XOR cases; you need a hidden layer.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The neuron from the page, $x = [2, 3]$, $w = [0.5, -0.3]$, $b = 0.1$, computed one operation at a time, then with three activations, and finally: what happens to the output if one weight changes a little?</p>
+        <table>
+          <thead>
+            <tr><th>Input $i$</th><th>$x_i$</th><th>$w_i$</th><th>$w_i x_i$</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>2</td><td>0.5</td><td>1.0</td><td>pushes the sum up</td></tr>
+            <tr><td>2</td><td>3</td><td>−0.3</td><td>−0.9</td><td>pushes the sum down</td></tr>
+            <tr><td>bias</td><td></td><td></td><td>0.1</td><td>shifts the threshold</td></tr>
+            <tr><td>Sum $z$</td><td></td><td></td><td><strong>0.2</strong></td><td></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Multiply each input by its weight</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_1 x_1 = 0.5 \cdot 2 = 1.0, \qquad w_2 x_2 = -0.3 \cdot 3 = -0.9$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A weight is how much the neuron cares about an input, and in which direction. A positive weight says "more of this input means fire more"; a negative one says the opposite.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Add them and the bias</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z = 1.0 + (-0.9) + 0.1 = 0.2 \qquad (\text{vector form: } z = w^\top x + b)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The two inputs almost cancel out, and the bias tips the balance slightly positive. $z$ can be any real number; it is not yet the neuron's output.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Sigmoid activation</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma(0.2) = \frac{1}{1 + e^{-0.2}} = \frac{1}{1 + 0.8187} = \frac{1}{1.8187} \approx 0.5498$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The sigmoid turns $z$ into a number between 0 and 1. $z = 0$ would give exactly 0.5; our slightly positive $z$ gives slightly more than 0.5, a weak "yes".</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Other activations, same z</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\tanh(0.2) \approx 0.197, \qquad \text{ReLU}(0.2) = \max(0, 0.2) = 0.2$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Tanh maps into (−1, 1) and is centred on 0. ReLU passes positive values unchanged and cuts negatives to 0. The weighted sum is identical; only the final squashing differs.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>How sensitive is the output?</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{d\sigma}{dz} = \sigma(z)\,(1 - \sigma(z)) = 0.5498 \cdot 0.4502 \approx 0.2475$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Near $z = 0$ the sigmoid is at its steepest: a small change in $z$ changes the output by about a quarter as much. This number is exactly what backpropagation will use.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Nudge one weight</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_1: 0.5 \to 0.6 \;\Rightarrow\; z = 0.2 + 0.1 \cdot 2 = 0.4, \qquad \sigma(0.4) \approx 0.5987$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Changing $w_1$ by 0.1 changes $z$ by $0.1 \times x_1 = 0.2$, because the weight is multiplied by an input of 2. The output rises from 0.550 to 0.599. Learning is choosing these nudges so outputs move towards the right answers.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>A neuron computes $a = f(w^\top x + b)$: here $z = 0.2$ and $a \approx 0.55$ with the sigmoid.</p>
+          <p>Each weight's effect on $z$ is scaled by its input, which is why inputs on very different scales should be normalised before training.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Multiply each input by its weight and add them, then add the bias: $z = w^\top x + b$.</p>
+        <p>Pass $z$ through a non-linear activation $g$ to get the output $a = g(z)$. Learning means adjusting $w$ and $b$.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute a neuron's output, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Start from the bias, add each input times its weight, then apply the activation function to the total.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the neuron by hand. It will make more sense.</p>
+        <pre><code class="language-c">double neuron(double w[], double x[], int d, double b) {   /* sigmoid neuron */
+    double z = b;
+    for (int j = 0; j &lt; d; j++) z += w[j] * x[j];             /* weighted sum + bias */
+    return 1 / (1 + exp(-z));                                 /* activation */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: an <strong>artificial neuron</strong> computes a weighted sum of its inputs plus a bias, $z = w^\top x + b$, and outputs $g(z)$ for a non-linear activation function $g$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X1["x1 = 2"] --&gt;|"× 0.5"| S["sum + bias 0.1"]
+  X2["x2 = 3"] --&gt;|"× -0.3"| S
+  S --&gt;|"z = 0.2"| G["sigmoid"]
+  G --&gt;|"a = 0.55"| OUT["output"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if $x_2$ were 0, what would the output be? (Answer: $z = 1.1$, $\sigma(1.1) \approx 0.75$.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: if all weights and the bias are 0, what does a sigmoid neuron output for any input?</p>
+          <details><summary>Check your answer</summary>
+            <p>0.5, because $\sigma(0) = 0.5$.</p>
+          </details>
+        </div>
+        <p>The neuron in one line, with our numbers:</p>
+        $$a = \sigma\Big(\sum_{j} w_j x_j + b\Big) = \sigma(0.5 \cdot 2 - 0.3 \cdot 3 + 0.1) = \sigma(0.2) \approx 0.550$$
+        <table>
+          <thead>
+            <tr><th>Part</th><th>Role</th><th>In our example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Inputs $x_j$</td><td>Data or previous layer's outputs</td><td>2, 3</td></tr>
+            <tr><td>Weights $w_j$</td><td>How much each input matters (learned)</td><td>0.5, −0.3</td></tr>
+            <tr><td>Bias $b$</td><td>Shifts the threshold (learned)</td><td>0.1</td></tr>
+            <tr><td>Pre-activation $z$</td><td>Weighted sum + bias</td><td>0.2</td></tr>
+            <tr><td>Activation $g$</td><td>Adds non-linearity</td><td>sigmoid → 0.55</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Without a non-linear activation, stacking neurons gains nothing: a composition of linear functions is still linear, so a deep "network" would collapse into one linear model.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Write the computation in two lines, $z$ then $a$, and show the numbers. Exams often add "what if the bias changes?" or "which input matters most?" (largest $|w_j x_j|$).</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the bias in $z$.</li>
+          <li>Applying the activation to each input instead of to the sum.</li>
+          <li>Thinking a neuron "fires" only at 1; with sigmoid the output is a graded value between 0 and 1.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Inputs $x = [1, 1]$, weights $w = [2, -1]$, bias $b = -0.5$, sigmoid. Compute the output.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$e^{-0.5} \approx 0.607$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$z = 2 - 1 - 0.5 = 0.5$; $a = 1/1.607 \approx 0.62$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Find weights and a bias for one neuron with a step activation (output 1 if $z \ge 0$) that computes AND of two binary inputs. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>For example $w = [1, 1]$, $b = -1.5$: only $x = [1, 1]$ gives $z = 0.5 \ge 0$; the other inputs give $z \le -0.5$. A single neuron can do AND and OR, but not XOR.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>McCulloch and Pitts proposed the first artificial neuron in 1943; Frank Rosenblatt built the perceptron, a trainable neuron, in hardware in 1958.</p>
+          <p>In 1969 Minsky and Papert showed that a single perceptron cannot learn XOR, which helped cause the first "AI winter" until multi-layer networks and backpropagation arrived.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>A neuron is a weighted sum plus a bias <strong>because</strong> that lets each input count with its own learned importance.</li>
+          <li>The bias shifts the threshold <strong>because</strong> it is added before the activation.</li>
+          <li>The activation must be non-linear <strong>because</strong> stacked linear functions stay linear.</li>
+          <li>One neuron can't do XOR <strong>because</strong> its decision boundary is a single straight line.</li>
+          <li>Learning adjusts $w$ and $b$ <strong>because</strong> they are the only free numbers in the neuron.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a neuron like a judge listening to advisers?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each adviser's opinion is weighted by trust, the judge adds a personal bias, and the total becomes a final score between 0 and 1.</p></details></li>
+          <li><strong>Compute the neuron output for $x = [2, 3]$, $w = [0.5, -0.3]$, $b = 0.1$ with sigmoid.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$z = 0.2$, output $\sigma(0.2) \approx 0.55$.</p></details></li>
+          <li><strong>Why does the code start <code>z</code> at <code>b</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what $z$ must contain.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$z$ is the weighted sum plus the bias; starting at $b$ and adding each $w_j x_j$ builds exactly that in one loop.</p></details></li>
+          <li><strong>So what is an artificial neuron, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A unit that computes a weighted sum of its inputs plus a bias and passes it through a non-linear activation.</p></details></li>
+          <li><strong>Why must the activation be non-linear?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer composes two linear layers.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Two linear layers $W_2(W_1 x)$ equal one linear layer $(W_2 W_1) x$, so without non-linearity depth adds no power.</p></details></li>
+          <li><strong>What does each part of the neuron do?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Weights scale the inputs, the bias shifts the threshold, the sum combines them, and the activation adds non-linearity.</p></details></li>
+          <li><strong>Why can't a single neuron compute XOR?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Its boundary $w^\top x + b = 0$ is a straight line, and XOR's positive and negative cases can't be split by one line.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out XOR and the history. I'd keep the judge analogy, the $z = 0.2 \to 0.55$ example, and "weighted sum + bias, then activation".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.3blue1brown.com/lessons/neural-networks" target="_blank" rel="noopener">3Blue1Brown: But what is a neural network?</a>: the visual introduction to neurons and layers.</li>
+          <li><a href="http://neuralnetworksanddeeplearning.com/chap1.html" target="_blank" rel="noopener">Neural Networks and Deep Learning, chapter 1</a>: Michael Nielsen's free book: perceptrons and sigmoid neurons.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Artificial_neuron" target="_blank" rel="noopener">Wikipedia: Artificial neuron</a>: history and variants.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=aircAruvnKk" target="_blank" rel="noopener">3Blue1Brown: But what is a neural network?</a>: chapter 1 of the deep learning series.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

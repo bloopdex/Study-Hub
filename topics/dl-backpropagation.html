@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backpropagation · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-backpropagation" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Backpropagation</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">One neuron: $x = 2$, $w = 0.5$, $b = 0.1$, sigmoid, true label 1. Forward: $z = 1.1$, $a = \sigma(1.1) \approx 0.750$, loss $-\ln a \approx 0.287$. Backward: the loss changes with $z$ at rate $a - y = -0.250$, so with $w$ at rate $(a - y)\,x = -0.499$ and with $b$ at $-0.250$. A negative gradient means "increase $w$": the step $w \leftarrow 0.5 + 0.1 \cdot 0.499 \approx 0.550$ lowers the loss. That's backpropagation.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it computes the gradient of the loss with respect to <em>every</em> weight in one backward pass, at about the cost of one forward pass. Without it, training networks with millions of weights would be impossible.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-forward-propagation.html">Forward propagation</a>.</li>
+          <li>Derivatives and the chain rule: $\frac{dL}{dw} = \frac{dL}{da} \cdot \frac{da}{dz} \cdot \frac{dz}{dw}$.</li>
+          <li><a href="dl-loss-functions.html">Cross-entropy loss</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a recipe that came out too salty. You trace back: the sauce was too salty, because the stock was too salty, because too much salt went into the stock. Each step passes the blame back to its ingredients, in proportion to how much they affected the result.</p>
+          <p>Backpropagation passes "blame" (the gradient) backwards through the network, layer by layer, with the chain rule.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Chain rule here:</strong> $\frac{\partial L}{\partial w} = \frac{\partial L}{\partial a} \cdot \frac{\partial a}{\partial z} \cdot \frac{\partial z}{\partial w}$ with $L = -\ln a$, $a = \sigma(z)$, $z = wx + b$.</p>
+        <h3>Start with one gradient by hand</h3>
+        <p>Forward pass first: $z = 0.5 \cdot 2 + 0.1 = 1.1$, $a = \sigma(1.1) \approx 0.750$. Predict each backward factor, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> $\partial L / \partial a = -1/a$ and $\partial a / \partial z = a(1 - a)$. Compute both.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$-1/0.750 \approx -1.333$ and $0.750 \cdot 0.250 \approx 0.187$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: multiply them to get $\partial L/\partial z$. Compare with $a - y$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$-1.333 \cdot 0.187 \approx -0.250$, exactly $a - y = 0.750 - 1$. Sigmoid with cross-entropy simplifies to that.</p></details>
+          <p><strong>Step 3.</strong> $\partial z/\partial w = x = 2$ and $\partial z/\partial b = 1$. Predict both gradients and the update with learning rate 0.1.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$\partial L/\partial w \approx -0.499$, $\partial L/\partial b \approx -0.250$. New $w \approx 0.550$, new $b \approx 0.125$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-backpropagation-1.svg" alt="Forward chain w, z, a, loss with values, and backward arrows with the local derivatives multiplied by the chain rule" width="700" height="300">
+          <figcaption>What you just did: forward values on top, gradients flowing back underneath. Each backward step multiplies by one local derivative.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the sign of $\partial L/\partial w$ tell you?</p>
+          <details><summary>Check your answer</summary>
+            <p>Negative means increasing $w$ lowers the loss; positive means decreasing $w$ lowers it. Gradient descent moves against the sign.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: did the step help?</h3>
+        <p>Use the updated parameters $w = 0.550$, $b = 0.125$.</p>
+        <ul>
+          <li><strong>New forward pass.</strong> Predict $z$, $a$ and the loss.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = 1.1 + 0.125 = 1.225$, $a = \sigma(1.225) \approx 0.773$, loss $\approx 0.257$, down from 0.287.</p></details></li>
+          <li><strong>A hidden layer.</strong> Predict how the gradient reaches a weight one layer earlier.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Multiply the output's $\partial L/\partial z$ by the weight connecting to the hidden neuron, then by that neuron's activation slope, then by its input: the same chain rule, one more link.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: in a two-layer network, what does the gradient for a hidden weight need from the layer above?</p>
+          <details><summary>Check your answer</summary>
+            <p>The gradient flowing back from the next layer (its $\partial L/\partial z$ times the connecting weight), multiplied by the local activation slope and input.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Backpropagation through the whole two-layer network from the forward-propagation page, for $x = [1, 2]$ and $y = 1$. The forward pass gave $z_1 = [-1.5, 2.5]$, $a_1 = [0, 2.5]$, $z_2 = -0.8$, $\hat y = 0.31$, loss 1.171. We go backwards, layer by layer, then apply one update with learning rate 0.5.</p>
+        <table>
+          <thead>
+            <tr><th>Quantity</th><th>Formula</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$\partial L/\partial z_2$</td><td>$\hat y - y$</td><td>−0.69</td></tr>
+            <tr><td>$\partial L/\partial w_2$</td><td>$\partial L/\partial z_2 \cdot a_1$</td><td>[0, −1.725]</td></tr>
+            <tr><td>$\partial L/\partial b_2$</td><td>$\partial L/\partial z_2$</td><td>−0.69</td></tr>
+            <tr><td>$\partial L/\partial a_1$</td><td>$\partial L/\partial z_2 \cdot w_2$</td><td>[−0.69, 0.276]</td></tr>
+            <tr><td>$\partial L/\partial z_1$</td><td>times ReLU$'(z_1) = [0, 1]$</td><td>[0, 0.276]</td></tr>
+            <tr><td>$\partial L/\partial W_1$</td><td>$\partial L/\partial z_1 \otimes x$</td><td>[[0, 0], [0.276, 0.552]]</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Start at the output</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial L}{\partial z_2} = \hat y - y = 0.31 - 1 = -0.69$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For sigmoid plus cross-entropy the derivatives simplify to "prediction minus truth". Negative means "the score $z_2$ should go up".</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Gradients of the output layer</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial L}{\partial w_2} = -0.69 \cdot [0,\; 2.5] = [0,\; -1.725], \qquad \frac{\partial L}{\partial b_2} = -0.69$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A weight's gradient is the error at its output times the input it multiplies. Hidden neuron 1 output 0, so its outgoing weight gets no blame at all.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Send the error back to the hidden layer</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial L}{\partial a_1} = -0.69 \cdot [1,\; -0.4] = [-0.69,\; 0.276]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each hidden output receives the output error times the weight that connects it. Hidden neuron 2 has a negative weight (−0.4), so to raise $z_2$ its activation should go <em>down</em>: positive gradient.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Through the ReLU</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{ReLU}'(z_1) = [0,\; 1] \;\Rightarrow\; \frac{\partial L}{\partial z_1} = [-0.69 \cdot 0,\; 0.276 \cdot 1] = [0,\; 0.276]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">ReLU's slope is 0 where its input was negative (−1.5) and 1 where it was positive (2.5). The switched-off neuron blocks the gradient completely: it will not learn from this example.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Gradients of the first layer</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial L}{\partial W_1} = \begin{bmatrix} 0 \\ 0.276 \end{bmatrix} [1,\; 2] = \begin{bmatrix} 0 & 0 \\ 0.276 & 0.552 \end{bmatrix}, \qquad \frac{\partial L}{\partial b_1} = [0,\; 0.276]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Same rule as before: error at the neuron times its input. The second input is 2, so its weight gets twice the gradient of the first.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Update every parameter (η = 0.5)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w_2 = [1,\; -0.4 + 0.862] = [1,\; 0.462], \quad b_2 = 0.545, \quad W_1 \text{ row 2} = [0.862,\; 0.224], \quad b_1 = [0,\; 0.362]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$\theta \leftarrow \theta - 0.5 \cdot \partial L / \partial \theta$. The biggest change is $w_2$'s second entry, which flips from negative to positive.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Check: forward again</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_1 = [-1.5,\; 1.672], \quad z_2 = 0.462 \cdot 1.672 + 0.545 = 1.318, \quad \hat y = 0.789, \quad L = 0.237$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The prediction moved from 0.31 to 0.79 and the loss fell from 1.171 to 0.237. One backward pass computed all 9 gradients for the price of about one forward pass.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Backpropagation is the chain rule applied from the loss backwards: at every layer, gradient of the weights = incoming error × the layer's input, and the error is passed back through the weights and the activation's slope.</p>
+          <p>A ReLU that was off (hidden neuron 1) passes no gradient; if it stays off for every example it never learns, the "dead ReLU" problem.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Do a forward pass and cache every $z$ and $a$. Start the backward pass with $\partial L/\partial \hat y$ and, layer by layer from the output, multiply by each local derivative (chain rule).</p>
+        <p>For each layer: $\delta = \partial L/\partial z$; weight gradient = $\delta \times$ input; pass $W^\top \delta$ times the previous activation's slope down to the layer below.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the backward pass for one sigmoid neuron with cross-entropy, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the output $a$; the error signal is $a - y$; the gradient for each weight is that signal times its input, and for the bias it is the signal itself.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the gradients by hand. It will make more sense.</p>
+        <pre><code class="language-c">void grads(double w, double b, double x, int y, double out[]) {   /* out = {dL/dw, dL/db, loss} */
+    double z = w * x + b;                         /* forward */
+    double a = 1 / (1 + exp(-z));
+    double dz = a - y;                            /* dL/dz for sigmoid + cross-entropy */
+    out[0] = dz * x;                              /* chain rule: dz/dw = x */
+    out[1] = dz;                                  /* dz/db = 1 */
+    out[2] = y ? -log(a) : -log(1 - a);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>backpropagation</strong> computes the gradient of the loss with respect to every parameter by applying the chain rule backwards through the network, reusing values from the forward pass.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart RL
+  L["loss L"] --&gt;|"dL/da = -1/a"| A["a = sigmoid(z)"]
+  A --&gt;|"da/dz = a(1 - a)"| Z["z = w x + b"]
+  Z --&gt;|"dz/dw = x"| W["gradient for w"]
+  Z --&gt;|"dz/db = 1"| Bb["gradient for b"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if $x$ were 0, what would $\partial L/\partial w$ be? (Answer: 0; an input of 0 gives its weight no blame.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how does the cost of backpropagation compare with one forward pass?</p>
+          <details><summary>Check your answer</summary>
+            <p>About the same order, roughly two to three times, because it reuses the cached values and visits each layer once.</p>
+          </details>
+        </div>
+        <p>The chain rule for our neuron, and the gradient-descent update:</p>
+        $$\frac{\partial L}{\partial w} = \underbrace{-\frac{1}{a}}_{-1.333} \cdot \underbrace{a(1 - a)}_{0.187} \cdot \underbrace{x}_{2} = (a - y)\,x \approx -0.499, \qquad w \leftarrow w - \eta \frac{\partial L}{\partial w}$$
+        <table>
+          <thead>
+            <tr><th>Quantity</th><th>Formula</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$\partial L/\partial a$</td><td>$-1/a$</td><td>$-1.333$</td></tr>
+            <tr><td>$\partial a/\partial z$</td><td>$a(1 - a)$</td><td>$0.187$</td></tr>
+            <tr><td>$\partial L/\partial z$</td><td>$a - y$</td><td>$-0.250$</td></tr>
+            <tr><td>$\partial L/\partial w$</td><td>$(a - y)\,x$</td><td>$-0.499$</td></tr>
+            <tr><td>$\partial L/\partial b$</td><td>$a - y$</td><td>$-0.250$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Gradients multiply through the layers. With sigmoid or tanh slopes below 1 they can shrink exponentially (vanishing gradients); with large weights they can blow up (exploding gradients). ReLU, careful initialisation, normalization and gradient clipping help.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Always do the forward pass first and write down every intermediate value; then write the chain of local derivatives as a product and plug in. Remember the shortcut $\partial L/\partial z = a - y$ for sigmoid + cross-entropy (and softmax + cross-entropy).</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting a factor of the chain, typically the activation's slope.</li>
+          <li>Using the updated weights for some layers and the old ones for others in the same backward pass.</li>
+          <li>Getting the sign of the update wrong: subtract the gradient, don't add it.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Same neuron but true label $y = 0$. Compute $\partial L/\partial z$, $\partial L/\partial w$, and the direction $w$ should move.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$\partial L/\partial z = a - y$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$\partial L/\partial z = 0.750$, $\partial L/\partial w = 1.50$: positive, so $w$ should decrease to lower $a$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Use squared error $L = \tfrac12 (a - y)^2$ instead of cross-entropy, with $y = 1$. Compute $\partial L/\partial w$ and compare it with the cross-entropy gradient. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\partial L/\partial a = a - y = -0.250$; times $a(1 - a) = 0.187$ gives $-0.047$; times $x = 2$ gives $\partial L/\partial w \approx -0.094$, about 5 times smaller than $-0.499$. The sigmoid slope shrinks squared-error gradients, which is why classification uses cross-entropy.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Backpropagation was popularised by Rumelhart, Hinton and Williams in 1986, building on earlier work by Linnainmaa (1970) and Werbos (1974).</p>
+          <p>It is a special case of reverse-mode automatic differentiation; PyTorch's <code>loss.backward()</code> runs exactly this for whatever network you define.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Backprop uses the chain rule <strong>because</strong> the loss is a composition of simple functions.</li>
+          <li>It runs backwards <strong>because</strong> each layer's gradient needs the gradient of the layer above it.</li>
+          <li>It reuses the forward cache <strong>because</strong> local derivatives depend on the stored $z$ and $a$ values.</li>
+          <li>The gradient for a weight is signal × input <strong>because</strong> $\partial z/\partial w$ is the input it multiplies.</li>
+          <li>Gradients can vanish <strong>because</strong> many slopes below 1 are multiplied together.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is backpropagation like tracing back a recipe that came out too salty?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You pass the blame back step by step to the ingredients that caused it, in proportion to their effect, just as gradients flow back layer by layer.</p></details></li>
+          <li><strong>Compute $\partial L/\partial w$ for $x = 2$, $w = 0.5$, $b = 0.1$, $y = 1$, sigmoid with cross-entropy.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$a \approx 0.750$, $\partial L/\partial z = a - y = -0.250$, so $\partial L/\partial w = -0.250 \cdot 2 \approx -0.499$.</p></details></li>
+          <li><strong>Why does the code compute <code>dz = a - y</code> instead of multiplying $-1/a$ by $a(1 - a)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer simplifies the product.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$-\frac{1}{a} \cdot a(1 - a) = -(1 - a) = a - 1 = a - y$ for $y = 1$ (and similarly for $y = 0$), so the simple form is exact and avoids dividing by $a$.</p></details></li>
+          <li><strong>So what is backpropagation, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An algorithm that computes the gradient of the loss for every parameter by applying the chain rule backwards through the network.</p></details></li>
+          <li><strong>Why does a negative gradient mean the weight should increase?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the update rule.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The update is $w \leftarrow w - \eta\,\partial L/\partial w$; subtracting a negative number increases $w$, which is the direction that lowers the loss.</p></details></li>
+          <li><strong>What do the gradients for $w$ and $b$ equal for a sigmoid neuron with cross-entropy?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$\partial L/\partial w = (a - y)\,x$ and $\partial L/\partial b = a - y$.</p></details></li>
+          <li><strong>What are vanishing gradients, and why do they happen?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Gradients that shrink to almost 0 in early layers, because backprop multiplies many slopes below 1 (e.g. sigmoid's at most 0.25).</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out vanishing gradients and the squared-error comparison. I'd keep the salty-recipe analogy, the one-neuron gradient $-0.499$, and "forward, then chain rule backwards, then update".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.3blue1brown.com/lessons/backpropagation-calculus" target="_blank" rel="noopener">3Blue1Brown: Backpropagation calculus</a>: the chain rule in a network, visually.</li>
+          <li><a href="http://neuralnetworksanddeeplearning.com/chap2.html" target="_blank" rel="noopener">Neural Networks and Deep Learning, chapter 2</a>: how backpropagation works, with the four equations.</li>
+          <li><a href="https://cs231n.github.io/optimization-2/" target="_blank" rel="noopener">Stanford CS231n: Backpropagation</a>: local gradients on computational graphs.</li>
+          <li><a href="https://pytorch.org/tutorials/beginner/basics/autogradqs_tutorial.html" target="_blank" rel="noopener">PyTorch tutorial: Autograd</a>: automatic backpropagation in practice.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/watch?v=Ilg3gGewQ5U" target="_blank" rel="noopener">3Blue1Brown: What is backpropagation really doing?</a>: the intuition before the calculus.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

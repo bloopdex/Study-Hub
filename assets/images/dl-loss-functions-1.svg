@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="580" height="350" viewBox="0 0 580 350" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Cross-entropy curve</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="580" height="350" rx="16" fill="#f8fafc"/>
+  <text x="290" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Cross-entropy cost: −ln(probability of the true class)</text>
+  <rect x="80" y="55" width="440" height="230" fill="#ffffff" stroke="#cbd5e1"/>
+  <line x1="80" y1="285" x2="80" y2="290" stroke="#94a3b8"/>  <text x="80" y="304" text-anchor="middle" font-size="12" fill="#64748b">0</text>
+  <line x1="168" y1="285" x2="168" y2="290" stroke="#94a3b8"/>  <text x="168" y="304" text-anchor="middle" font-size="12" fill="#64748b">0.2</text>
+  <line x1="256" y1="285" x2="256" y2="290" stroke="#94a3b8"/>  <text x="256" y="304" text-anchor="middle" font-size="12" fill="#64748b">0.4</text>
+  <line x1="344" y1="285" x2="344" y2="290" stroke="#94a3b8"/>  <text x="344" y="304" text-anchor="middle" font-size="12" fill="#64748b">0.6</text>
+  <line x1="432" y1="285" x2="432" y2="290" stroke="#94a3b8"/>  <text x="432" y="304" text-anchor="middle" font-size="12" fill="#64748b">0.8</text>
+  <line x1="520" y1="285" x2="520" y2="290" stroke="#94a3b8"/>  <text x="520" y="304" text-anchor="middle" font-size="12" fill="#64748b">1</text>
+  <line x1="75" y1="285" x2="80" y2="285" stroke="#94a3b8"/>  <text x="71" y="289" text-anchor="end" font-size="12" fill="#64748b">0</text>
+  <line x1="75" y1="224.47368421052633" x2="80" y2="224.47368421052633" stroke="#94a3b8"/>  <text x="71" y="228.47368421052633" text-anchor="end" font-size="12" fill="#64748b">1</text>
+  <line x1="75" y1="163.94736842105266" x2="80" y2="163.94736842105266" stroke="#94a3b8"/>  <text x="71" y="167.94736842105266" text-anchor="end" font-size="12" fill="#64748b">2</text>
+  <line x1="75" y1="103.42105263157893" x2="80" y2="103.42105263157893" stroke="#94a3b8"/>  <text x="71" y="107.42105263157893" text-anchor="end" font-size="12" fill="#64748b">3</text>
+  <text x="300" y="323" text-anchor="middle" font-size="13" fill="#475569">probability given to the true class</text>
+  <text x="44" y="170" text-anchor="middle" font-size="13" fill="#475569" transform="rotate(-90 44 170)">loss</text>
+  <polyline points="91.0,61.7 102.0,103.7 113.0,128.2 124.0,145.6 135.0,159.1 146.0,170.2 157.0,179.5 168.0,187.6 179.0,194.7 190.0,201.1 201.0,206.9 212.0,212.1 223.0,217.0 234.0,221.5 245.0,225.6 256.0,229.5 267.0,233.2 278.0,236.7 289.0,239.9 300.0,243.0 311.0,246.0 322.0,248.8 333.0,251.5 344.0,254.1 355.0,256.6 366.0,258.9 377.0,261.2 388.0,263.4 399.0,265.5 410.0,267.6 421.0,269.6 432.0,271.5 443.0,273.4 454.0,275.2 465.0,276.9 476.0,278.6 487.0,280.3 498.0,281.9 509.0,283.5 520.0,285.0" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+  <circle cx="476.0" cy="278.6" r="6" fill="#22c55e" stroke="#0f172a" stroke-width="1"/>
+  <text x="476.0" y="263.6" text-anchor="middle" font-size="12" fill="#334155">0.105</text>
+  <circle cx="432.0" cy="271.5" r="6" fill="#22c55e" stroke="#0f172a" stroke-width="1"/>
+  <text x="432.0" y="256.5" text-anchor="middle" font-size="12" fill="#334155">0.223</text>
+  <circle cx="344.0" cy="254.1" r="6" fill="#22c55e" stroke="#0f172a" stroke-width="1"/>
+  <text x="344.0" y="239.1" text-anchor="middle" font-size="12" fill="#334155">0.511</text>
+  <circle cx="124.0" cy="145.6" r="6" fill="#ef4444" stroke="#0f172a" stroke-width="1"/>
+  <text x="214.0" y="140.6" text-anchor="middle" font-size="12" fill="#334155">confident and wrong: 2.30</text>
+</svg>

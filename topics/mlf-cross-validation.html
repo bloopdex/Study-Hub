@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cross-validation · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-cross-validation" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Cross-validation</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">You have 100 labelled examples. Cut them into 5 blocks of 20. Train on blocks 2–5 and test on block 1; then train on 1, 3, 4, 5 and test on block 2; and so on, five times. Every example is tested exactly once, and you get five scores, 0.82, 0.78, 0.85, 0.80, 0.75, with mean 0.80. That's 5-fold cross-validation.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> one train/test split gives one noisy score that depends on luck. Cross-validation uses all the data for both training and testing and reports how much the score varies, which makes model and λ choices far more reliable.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-bias-variance.html">Overfitting</a> and why test data must be unseen.</li>
+          <li>Mean and standard deviation.</li>
+          <li><a href="mlf-classification-metrics.html">A metric</a> to score each fold.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a teacher with 5 sets of exam questions. Instead of one exam, they let you study 4 sets and test you on the fifth, then rotate, five times. Your average mark says much more than one lucky (or unlucky) exam.</p>
+          <p>Cross-validation does the same for a model: every block of data gets its turn as the unseen exam.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Rule:</strong> each fold's test block must be <strong>completely unseen</strong> during that fold's training, including any preprocessing fitted on the data.</p>
+        <h3>Start with a 5-fold split on 100 samples</h3>
+        <p>Samples are numbered 1–100 (shuffled beforehand). Fold $f$ tests on block $f$ and trains on the other four. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> How many samples are in each test block, and in each training set?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>20 test, 80 training, in every fold.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: which samples are the test block of fold 3?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Samples 41–60.</p></details>
+          <p><strong>Step 3.</strong> The fold scores are 0.82, 0.78, 0.85, 0.80, 0.75. Predict the mean and roughly the spread.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Mean 0.80; standard deviation about 0.034. Report "0.80 ± 0.03".</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-cross-validation-1.svg" alt="Five rows of five blocks; in row f, block f is the test block and the others are training blocks, with each fold's score" width="720" height="450">
+          <figcaption>What you just did: each row is one fold. The yellow block is tested, the indigo blocks train the model.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: how many times is each sample used for testing in $k$-fold cross-validation?</p>
+          <details><summary>Check your answer</summary>
+            <p>Exactly once.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: choosing with CV</h3>
+        <p>Two settings of a model give these 5-fold mean scores: setting A 0.80 ± 0.03, setting B 0.81 ± 0.08.</p>
+        <ul>
+          <li><strong>Is B clearly better?</strong> Predict.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No. The difference (0.01) is far smaller than B's spread (0.08); the two are statistically hard to tell apart, and A is more stable.</p></details></li>
+          <li><strong>After choosing, what do you train?</strong> Predict.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>One final model on all 100 samples with the chosen setting. CV was only for choosing; a separate untouched test set gives the final honest score.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why use stratified folds for a dataset with 5% positives?</p>
+          <details><summary>Check your answer</summary>
+            <p>A random block might contain almost no positives; stratifying keeps about 5% positives in every fold, so every score is meaningful.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's 5-fold cross-validation on $n = 100$ shuffled samples, with fold scores 0.82, 0.78, 0.85, 0.80, 0.75. We compute the fold boundaries with the code's formula, the mean and spread, and then use them to compare two settings.</p>
+        <table>
+          <thead>
+            <tr><th>Fold</th><th>Test indices</th><th>Training indices</th><th>Score $s_f$</th><th>$s_f - \bar s$</th><th>$(s_f - \bar s)^2$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>0–19</td><td>20–99</td><td>0.82</td><td>+0.02</td><td>0.0004</td></tr>
+            <tr><td>2</td><td>20–39</td><td>0–19, 40–99</td><td>0.78</td><td>−0.02</td><td>0.0004</td></tr>
+            <tr><td>3</td><td>40–59</td><td>0–39, 60–99</td><td>0.85</td><td>+0.05</td><td>0.0025</td></tr>
+            <tr><td>4</td><td>60–79</td><td>0–59, 80–99</td><td>0.80</td><td>0</td><td>0</td></tr>
+            <tr><td>5</td><td>80–99</td><td>0–79</td><td>0.75</td><td>−0.05</td><td>0.0025</td></tr>
+            <tr><td>Sum</td><td></td><td></td><td>4.00</td><td>0</td><td>0.0058</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Fold boundaries</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{start} = \left\lfloor \frac{f \cdot n}{k} \right\rfloor, \quad \text{end} = \left\lfloor \frac{(f + 1)\, n}{k} \right\rfloor \;\Rightarrow\; f = 2:\; \left[\tfrac{200}{5}, \tfrac{300}{5}\right) = [40, 60)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With 0-based indices, fold 3 ($f = 2$ in code) tests on indices 40–59, which are samples 41–60. The other 80 samples train the model for that fold.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>When n does not divide evenly</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$n = 10,\; k = 3: \quad [0, 3),\; [3, 6),\; [6, 10) \quad \text{sizes } 3, 3, 4$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Integer division spreads the leftover sample so block sizes differ by at most 1. Every sample still lands in exactly one test block.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Mean score</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\bar s = \frac{0.82 + 0.78 + 0.85 + 0.80 + 0.75}{5} = \frac{4.00}{5} = 0.80$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each of the 100 samples was scored exactly once by a model that never saw it, so 0.80 uses all the data for testing without cheating.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Spread across folds</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{sd} = \sqrt{\frac{0.0058}{5}} = \sqrt{0.00116} \approx 0.034$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Squared deviations from the table, averaged, then square-rooted. Dividing by $k - 1 = 4$ instead gives 0.038; either way, report "0.80 ± 0.03".</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>What one split would have told you</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{single 80/20 split: anywhere from } 0.75 \text{ to } 0.85$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A plain hold-out set is just one of these folds. Depending on luck, you would have reported 0.75 or 0.85: a gap of 0.10 that has nothing to do with the model.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Compare two settings</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$A: 0.80 \pm 0.03, \quad B: 0.81 \pm 0.08 \;\Rightarrow\; 0.81 - 0.80 = 0.01 \ll 0.08$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The difference is eight times smaller than B's fold-to-fold noise. Prefer A: the same score, and far more stable.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>The cost</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$k = 5: \; 5 \text{ trainings on } 80 \text{ samples}, \qquad k = 100 \text{ (leave-one-out)}: \; 100 \text{ trainings on } 99$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">More folds mean bigger training sets (less pessimistic scores) but more compute. 5 or 10 is the usual compromise.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>5-fold CV turned 100 samples into five honest scores; their mean, 0.80, and spread, 0.034, are both needed to compare models.</p>
+          <p>After choosing, train one final model on all 100 samples; a separate untouched test set gives the final score.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Shuffle, then split the data into $k$ equal folds. For each fold, train on the other $k - 1$ folds and score on this one.</p>
+        <p>Report the mean and spread of the $k$ scores. Use it to compare models or tune settings, never touching the final test set.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to compute the test indices of fold $f$, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>The block starts at $f \cdot n / k$ and ends just before $(f + 1) \cdot n / k$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have laid out the folds by hand. It will make more sense.</p>
+        <pre><code class="language-c">void fold_range(int n, int k, int f, int range[]) {   /* test indices [range[0], range[1]) */
+    range[0] = (f * n) / k;
+    range[1] = ((f + 1) * n) / k;                     /* sizes differ by at most 1 */
+}</code></pre>
+        <pre><code class="language-c">double mean_score(double s[], int k) {               /* average of the k fold scores */
+    double m = 0;
+    for (int i = 0; i &lt; k; i++) m += s[i] / k;
+    return m;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>$k$-fold cross-validation</strong> splits the data into $k$ parts, trains $k$ times on $k - 1$ parts while testing on the remaining one, and averages the $k$ scores.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["shuffle and split data into k folds"] --&gt; B["fold i = test, others = train"]
+  B --&gt; C["fit the model (and preprocessing) on train only"]
+  C --&gt; D["score on fold i"]
+  D --&gt; E{"all k folds done?"}
+  E --&gt;|no| B
+  E --&gt;|yes| F["report mean ± spread of the k scores"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: in 5-fold CV, how many times do you pass through "fit the model"? (Answer: 5.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many models does 10-fold cross-validation train?</p>
+          <details><summary>Check your answer</summary>
+            <p>10, one per fold (plus usually one final model on all the data).</p>
+          </details>
+        </div>
+        <p>The cross-validation score is the mean of the fold scores, reported with their standard deviation:</p>
+        $$\text{CV} = \frac{1}{k}\sum_{f=1}^{k} s_f = \frac{0.82 + 0.78 + 0.85 + 0.80 + 0.75}{5} = 0.80, \qquad \text{sd} \approx 0.034$$
+        <p>The cost is $k$ trainings, so 10-fold CV is about 10 times slower than one split.</p>
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Trainings</th><th>Test size per run</th><th>When</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Hold-out split</td><td>1</td><td>e.g. 20%</td><td>Lots of data, quick check</td></tr>
+            <tr><td>$k$-fold (5 or 10)</td><td>$k$</td><td>$n / k$</td><td>The usual default</td></tr>
+            <tr><td>Stratified $k$-fold</td><td>$k$</td><td>$n / k$, same class mix</td><td>Imbalanced classes</td></tr>
+            <tr><td>Leave-one-out</td><td>$n$</td><td>1</td><td>Very small datasets</td></tr>
+            <tr><td>Time-series split</td><td>several</td><td>Always later in time</td><td>Data with a time order</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Fit preprocessing (scaling, feature selection) <strong>inside</strong> each fold, on that fold's training part only. Fitting it on all the data first leaks the test fold into training and inflates the score.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Be precise about the three sets: training (fit), validation (choose, here the CV folds) and test (final score, used once). CV replaces a single validation set, not the final test set.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Reporting only the mean, without the spread across folds.</li>
+          <li>Using plain random folds on time-series data, so the model trains on the future.</li>
+          <li>Tuning on the test set after cross-validation, which makes the final score optimistic.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>10-fold CV on 250 samples: how many test samples per fold, and how many models are trained?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$n / k$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>25 test samples per fold, 10 models (plus a final one on all data).</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A dataset has 1,000 samples, 50 of them positive. With plain 5-fold CV, could a fold contain no positives? What does stratified CV guarantee? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>With random folds it's possible but unlikely (expected 10 per fold); counts will vary noticeably, making fold scores unstable. Stratified CV puts 10 positives in every fold.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Leave-one-out cross-validation was studied in the 1970s by Stone and others; for linear regression it can be computed exactly from one fit, without training $n$ models.</p>
+          <p>Kaggle competitors often overfit the public leaderboard; those who trust their own cross-validation scores tend to rank better on the hidden final test set.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>CV gives a more reliable score <strong>because</strong> it averages over several different test blocks.</li>
+          <li>Every sample is tested once <strong>because</strong> each fold serves as the test block exactly once.</li>
+          <li>The spread matters <strong>because</strong> a small difference in mean can be pure noise.</li>
+          <li>Preprocessing goes inside the folds <strong>because</strong> fitting it on all data leaks test information.</li>
+          <li>CV costs $k$ trainings <strong>because</strong> a fresh model is trained for every fold.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is cross-validation like rotating exam sets?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You study 4 sets and are tested on the fifth, rotating until every set has been the exam; the average mark is more trustworthy than one exam.</p></details></li>
+          <li><strong>Describe 5-fold CV on 100 samples and compute the mean of 0.82, 0.78, 0.85, 0.80, 0.75.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Five blocks of 20; each fold trains on 80 and tests on 20. The mean score is 0.80.</p></details></li>
+          <li><strong>Why does <code>fold_range</code> compute <code>(f * n) / k</code> with the multiplication first?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions integer division.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>In integer arithmetic, dividing first would round $n / k$ down and could skip samples. Multiplying first makes the blocks cover all $n$ samples, with sizes differing by at most one.</p></details></li>
+          <li><strong>So what is $k$-fold cross-validation, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Splitting the data into $k$ folds and training $k$ times, each time testing on a different fold, then averaging the scores.</p></details></li>
+          <li><strong>Why is a single train/test split less reliable?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions luck.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Its score depends on which samples happened to land in the test set; CV averages over $k$ different test sets and shows the spread.</p></details></li>
+          <li><strong>How many models does $k$-fold CV train, and what is leave-one-out?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$k$ models. Leave-one-out is $k = n$: each sample is a test set on its own.</p></details></li>
+          <li><strong>How do you avoid leakage inside cross-validation?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Fit every preprocessing step on the training part of each fold only, then apply it to that fold's test part, ideally with a pipeline.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out stratified and time-series variants. I'd keep the rotating-exam analogy, the 5 × 20 split with its scores, and "every sample tested once, report mean ± spread".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/cross_validation.html" target="_blank" rel="noopener">scikit-learn: Cross-validation</a>: all CV strategies with diagrams and code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Cross-validation_(statistics)" target="_blank" rel="noopener">Wikipedia: Cross-validation</a>: types and theory.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/overfitting/dividing-datasets" target="_blank" rel="noopener">Google ML Crash Course: Dividing datasets</a>: training, validation and test sets.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+cross+validation" target="_blank" rel="noopener">YouTube search: StatQuest cross-validation</a>: StatQuest's short explainer.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="300" viewBox="0 0 620 300" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Decision tree root split on wind</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="620" height="300" rx="16" fill="#f8fafc"/>
+  <text x="310" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Root split chosen by information gain</text>
+  <line x1="283.5" y1="108.0" x2="186.5" y2="192.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="214.2" y="140.0" width="41.6" height="19" rx="4" fill="#f8fafc"/>
+  <text x="235.0" y="155.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">weak</text>
+  <line x1="336.5" y1="108.0" x2="433.5" y2="192.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="355.8" y="140.0" width="58.4" height="19" rx="4" fill="#f8fafc"/>
+  <text x="385.0" y="155.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">strong</text>
+  <rect x="210" y="62" width="200" height="46" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="310" y="83" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">wind?</text>
+  <text x="310" y="100" text-anchor="middle" font-size="12" fill="#475569">5 play / 5 no · H = 1.00</text>
+  <rect x="60" y="192" width="200" height="46" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="160" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">weak</text>
+  <text x="160" y="230" text-anchor="middle" font-size="12" fill="#475569">4 play / 2 no · H = 0.92</text>
+  <rect x="360" y="192" width="200" height="46" rx="8" fill="#fecaca" stroke="#ef4444" stroke-width="2"/>
+  <text x="460" y="213" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">strong</text>
+  <text x="460" y="230" text-anchor="middle" font-size="12" fill="#475569">1 play / 3 no · H = 0.81</text>
+  <text x="310" y="285" text-anchor="middle" font-size="15" font-weight="700" fill="#15803d">gain = 1 − (0.6·0.92 + 0.4·0.81) ≈ 0.125 bits</text>
+</svg>

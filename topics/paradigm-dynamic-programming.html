@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynamic programming · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="paradigm-dynamic-programming" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="paradigms.html" class="hover:text-indigo-500">Paradigms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Paradigms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Dynamic programming</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Compute Fibonacci: fib(6) = fib(5) + fib(4), and fib(5) needs fib(4) again, and fib(3) is needed three times… The naive recursion makes 25 calls for fib(6). Instead, write each answer in a table the first time: 0, 1, 1, 2, 3, 5, 8. Seven entries, each computed once. That's dynamic programming: solve each subproblem once and reuse it.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> when the same subproblems keep coming back, storing their answers turns exponential time into polynomial time. Fibonacci goes from about $1.618^n$ calls to $n$ additions.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Recursion.</li>
+          <li><a href="paradigm-divide-and-conquer.html">Divide and conquer</a>, to see what changes.</li>
+          <li>Arrays used as lookup tables.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>If someone asks you "what's 1 + 1 + 1 + 1 + 1?", you count 5. If they add "+ 1", you don't recount: you remember 5 and say 6.</p>
+          <p>Dynamic programming is that memory. Each answer to a smaller question is written down once, then reused instead of recomputed.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>When DP applies:</strong> <strong>overlapping subproblems</strong> (the same smaller problems appear again and again) and <strong>optimal substructure</strong> (the answer is built from answers to smaller problems).</p>
+        <h3>Start with the Fibonacci table by hand</h3>
+        <p>$fib(0) = 0$, $fib(1) = 1$, and $fib(n) = fib(n-1) + fib(n-2)$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Fill the table from fib(0) to fib(6).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>0, 1, 1, 2, 3, 5, 8. Each entry is the sum of the two before it.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: in the naive recursion for fib(6), how many times is fib(2) computed?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>5 times. fib(1) is reached 8 times, and there are 25 calls in total.</p></details>
+          <p><strong>Step 3.</strong> How many additions does the table need for fib(6)?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>5 additions, one for each entry from fib(2) to fib(6). Nothing is computed twice.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/paradigm-dynamic-programming-1.svg" alt="Fibonacci table 0 to 6 with values 0 1 1 2 3 5 8, and how many times the naive recursion recomputes each entry for fib(6)" width="760" height="230">
+          <figcaption>What you just filled: the top row is the DP table (each entry once); the bottom row shows how often naive recursion recomputes each fib(i) while computing fib(6).</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what makes naive recursive Fibonacci so slow?</p>
+          <details><summary>Check your answer</summary>
+            <p>It solves the same subproblems again and again: fib(2) alone is recomputed 5 times for fib(6).</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: coins, where greedy failed</h3>
+        <p>Fewest coins for amount 6 with coins {1, 3, 4}. Let dp[a] be the fewest coins for amount a: dp[a] = 1 + min(dp[a − c]) over coins c ≤ a.</p>
+        <ul>
+          <li><strong>Fill dp[0..5].</strong> Predict the values.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>dp = 0, 1, 2, 1, 1, 2 (for example dp[5] = 1 + dp[1] using the coin 4).</p></details></li>
+          <li><strong>dp[6].</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>1 + min(dp[5], dp[3], dp[2]) = 1 + min(2, 1, 2) = 2, using 3 + 3. Greedy gave 3 coins.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is dp[6] = 2 for coins {1, 3, 4}?</p>
+          <details><summary>Check your answer</summary>
+            <p>If the last coin is 3, the rest is amount 3, which needs dp[3] = 1 coin, so 2 coins in total. Ending with 4 or 1 leaves amounts needing 2 coins, giving 3. The best is 2.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Define the subproblem (here, fib(i) or dp[a]) and a <strong>recurrence</strong> that builds it from smaller ones, plus the base cases.</p>
+        <p>Then either <strong>memoise</strong> the recursion (top-down) or fill a table from the smallest case up (bottom-up), so each subproblem is solved once.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the difference between memoisation and a bottom-up table, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Memoisation keeps the recursion but stores each answer the first time and returns it on later calls. Bottom-up fills the table in order from the smallest case, with a loop and no recursion.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have filled the table by hand. It will make more sense.</p>
+        <pre><code class="language-c">int fib_memo(int n, int memo[]) {              /* memo[i] = -1: not computed yet */
+    if (n &lt; 2) return n;                          /* base cases */
+    if (memo[n] != -1) return memo[n];            /* reuse a stored answer */
+    memo[n] = fib_memo(n - 1, memo) + fib_memo(n - 2, memo);
+    return memo[n];
+}
+
+int fib_table(int n) {                            /* bottom-up: fill the table */
+    int t[100];
+    t[0] = 0; t[1] = 1;
+    for (int i = 2; i &lt;= n; i++) t[i] = t[i - 1] + t[i - 2];
+    return t[n];
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>dynamic programming</strong> solves a problem by breaking it into overlapping subproblems, solving each one once, and storing the answers in a table for reuse.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  F6["fib(6)"] --&gt; F5["fib(5)"]
+  F6 --&gt; F4a["fib(4)"]
+  F5 --&gt; F4b["fib(4)"]
+  F5 --&gt; F3a["fib(3)"]
+  F4a --&gt; F3b["fib(3)"]
+  F4a --&gt; F2a["fib(2)"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: with memoisation, which of these boxes are actually computed? (Answer: one of each: fib(6), fib(5), fib(4), fib(3), fib(2); the repeats are table lookups.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: roughly how many naive calls does fib(30) make?</p>
+          <details><summary>Check your answer</summary>
+            <p>About 2.7 million ($2 \cdot fib(31) - 1$), versus 29 additions with a table.</p>
+          </details>
+        </div>
+        <p>The naive recursion makes a number of calls that grows like Fibonacci itself; the table does one addition per entry:</p>
+        $$\text{naive calls}(n) = 2\,fib(n+1) - 1 = O(1.618^n), \qquad \text{DP} = O(n)$$
+        <p>For fib(6): $2 \cdot 13 - 1 = 25$ calls versus 5 additions. In general, DP time = number of subproblems × work per subproblem.</p>
+        <table>
+          <thead>
+            <tr><th>Approach</th><th>Time</th><th>Extra space</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Naive recursion</td><td>$O(1.618^n)$</td><td>$O(n)$ call stack</td></tr>
+            <tr><td>Memoisation (top-down)</td><td>$O(n)$</td><td>$O(n)$ table + stack</td></tr>
+            <tr><td>Bottom-up table</td><td>$O(n)$</td><td>$O(n)$ table</td></tr>
+            <tr><td>Keep only the last two values</td><td>$O(n)$</td><td>$O(1)$</td></tr>
+            <tr><td>Coin change, amount $A$, $k$ coins</td><td>$O(A \cdot k)$</td><td>$O(A)$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>DP needs <strong>overlapping</strong> subproblems to pay off. Merge sort's halves never repeat, so memoising them only wastes memory; that's plain divide and conquer.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>For any DP question, write three things first: what dp[i] means in words, the recurrence, and the base cases. The code follows almost mechanically.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Not defining precisely what a table entry means, so the recurrence comes out wrong.</li>
+          <li>Filling the table in the wrong order, reading entries that aren't computed yet.</li>
+          <li>Forgetting base cases (fib(0), fib(1), dp[0] = 0).</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>You can climb 1 or 2 stairs at a time. In how many ways can you climb 5 stairs? Use a table ways[0..5] with ways[0] = 1, ways[1] = 1.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>ways[n] = ways[n − 1] + ways[n − 2].</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>ways = 1, 1, 2, 3, 5, 8, so 8 ways. It's Fibonacci in disguise.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Fewest coins for amount 7 with coins {1, 3, 4}. Fill dp[0..7] and give the coins used. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>dp = 0, 1, 2, 1, 1, 2, 2, 2. dp[7] = 1 + min(dp[6], dp[4], dp[3]) = 1 + 1 = 2: coins 3 + 4.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Richard Bellman named it "dynamic programming" in the 1950s partly to sound impressive to a defence secretary who disliked the word "research"; "programming" meant planning, not coding.</p>
+          <p>DP is everywhere: spell-checkers (edit distance), DNA sequence alignment, route planning, and the Viterbi algorithm in speech recognition.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>DP is fast <strong>because</strong> each subproblem is solved once and then looked up.</li>
+          <li>Naive Fibonacci is exponential <strong>because</strong> the same subproblems are recomputed in every branch.</li>
+          <li>DP time is subproblems × work each <strong>because</strong> every table entry is filled exactly once.</li>
+          <li>Bottom-up order matters <strong>because</strong> an entry can only use entries that are already filled.</li>
+          <li>DP fixes greedy's coin failure <strong>because</strong> it compares every coin choice instead of committing to one.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is dynamic programming like remembering that 1 + 1 + 1 + 1 + 1 = 5?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When asked to add one more, you reuse the 5 instead of recounting; DP stores each sub-answer and reuses it.</p></details></li>
+          <li><strong>Fill the Fibonacci table up to fib(6) and say how many additions it took.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>0, 1, 1, 2, 3, 5, 8; five additions, one per entry from fib(2) to fib(6).</p></details></li>
+          <li><strong>Why does <code>fib_memo</code> check <code>memo[n] != -1</code> before recursing?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what −1 means.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>−1 marks "not computed yet". If the entry is filled, the stored answer is returned immediately, which is what stops the exponential blow-up.</p></details></li>
+          <li><strong>So what is dynamic programming, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Solving a problem by splitting it into overlapping subproblems, solving each once and storing the answers for reuse.</p></details></li>
+          <li><strong>Why is naive recursive Fibonacci exponential while the table is linear?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer counts how often fib(2) is computed.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The recursion tree recomputes the same values in every branch (fib(2) five times for fib(6)), so calls grow like $1.618^n$. The table computes each value once: $n$ steps.</p></details></li>
+          <li><strong>What do memoisation, bottom-up and the two-variable version cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>All $O(n)$ time; $O(n)$ space for the first two, $O(1)$ for the last.</p></details></li>
+          <li><strong>How does DP solve the coin problem where greedy fails?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>dp[a] tries every coin as the last coin and takes the best: dp[6] = 1 + min(dp[5], dp[3], dp[2]) = 2, using 3 + 3.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the call-count formula and the two-variable trick. I'd keep the "remember 5" analogy, the Fibonacci table, the coin example, and "solve each subproblem once, store it".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/dynamic-programming/" target="_blank" rel="noopener">GeeksforGeeks: Dynamic programming</a>: tutorials and classic problems.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Dynamic_programming" target="_blank" rel="noopener">Wikipedia: Dynamic programming</a>: history and theory.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: four lectures on dynamic programming.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=dynamic+programming+fibonacci+memoization" target="_blank" rel="noopener">YouTube search: DP with Fibonacci and memoisation</a>: pick a short introduction.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

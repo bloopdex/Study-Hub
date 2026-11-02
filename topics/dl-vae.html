@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Variational autoencoder (VAE) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-vae" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Variational autoencoder (VAE)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">A VAE's encoder doesn't output one code; it outputs a little cloud: mean $\mu = 0.5$ and spread $\sigma = 0.8$. Draw a code from it, $z = 0.5 + 0.8 \cdot 0.5 = 0.9$, and decode. The loss has two parts: the <strong>reconstruction</strong> error (here 0.05) and a <strong>KL</strong> penalty (here 0.17) that keeps every cloud close to a standard normal. Total 0.22. Because all codes stay near $\mathcal{N}(0, 1)$, decoding random samples gives new, sensible data. That's a VAE.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it turns an autoencoder into a generator: its code space is smooth and filled in, so you can sample new data, interpolate between examples, and get a principled probabilistic model.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-autoencoder.html">Autoencoders</a>.</li>
+          <li>Normal distributions: mean $\mu$, standard deviation $\sigma$.</li>
+          <li><a href="mla-gmm.html">Probabilistic models</a> (helpful).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>A plain autoencoder files each photo at one exact spot on a shelf, leaving empty gaps; pick a random spot and you find nothing.</p>
+          <p>A VAE files each photo as a fuzzy region, and a rule (the KL term) packs all regions tightly around the middle of the shelf. Now any spot you pick is covered by something, so the decoder can produce a sensible photo from it.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Loss:</strong> $L = \underbrace{\lVert x - \hat x \rVert^2}_{\text{reconstruction}} + \underbrace{\tfrac12 \big(\sigma^2 + \mu^2 - 1 - \ln \sigma^2\big)}_{\text{KL}(\mathcal{N}(\mu, \sigma^2) \,\|\, \mathcal{N}(0, 1))}$ per latent dimension; $z = \mu + \sigma \varepsilon$ with $\varepsilon \sim \mathcal{N}(0, 1)$.</p>
+        <h3>Start with one VAE step by hand</h3>
+        <p>1-D code: the encoder gives $\mu = 0.5$, $\sigma = 0.8$. The random draw is $\varepsilon = 0.5$. The input is $x = [1, 0]$ and the decoder outputs $\hat x = [0.8, 0.1]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Sample the code with the reparameterization trick: $z = \mu + \sigma \varepsilon$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$z = 0.5 + 0.8 \cdot 0.5 = 0.9$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the reconstruction error $\lVert x - \hat x \rVert^2$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.2^2 + 0.1^2 = 0.04 + 0.01 = 0.05$.</p></details>
+          <p><strong>Step 3.</strong> The KL term $\tfrac12(\sigma^2 + \mu^2 - 1 - \ln \sigma^2)$ (use $\ln 0.64 \approx -0.446$), and the total loss.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$\tfrac12(0.64 + 0.25 - 1 + 0.446) \approx 0.168$. Total $\approx 0.05 + 0.168 = 0.218$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-vae-1.svg" alt="VAE diagram: encoder outputs mu 0.5 and sigma 0.8, sample z = mu + sigma times epsilon = 0.9, decoder reconstructs; loss is reconstruction 0.05 plus KL 0.17" width="700" height="300">
+          <figcaption>What you just computed: the encoder outputs a distribution, a sample from it is decoded, and the loss adds reconstruction error and the KL penalty.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does a VAE's encoder output, compared with a plain autoencoder?</p>
+          <details><summary>Check your answer</summary>
+            <p>A distribution (a mean and a standard deviation per latent dimension) instead of a single code.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the two forces</h3>
+        <p>The two loss terms pull in different directions.</p>
+        <ul>
+          <li><strong>Reconstruction alone.</strong> Predict what the encoder would do to $\sigma$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Shrink $\sigma$ towards 0 and spread the means apart, to make each code precise: the VAE would turn back into a plain autoencoder with gaps.</p></details></li>
+          <li><strong>KL alone.</strong> Predict the codes.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Every input would get $\mu = 0$, $\sigma = 1$: a perfectly regular code space that carries no information about the input. The sum balances precision against regularity.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what is the KL term when $\mu = 0$ and $\sigma = 1$?</p>
+          <details><summary>Check your answer</summary>
+            <p>0: the code distribution is exactly the standard normal, so there is no penalty.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>A VAE with a 2-D latent space. For one input the encoder outputs $\mu = [0.5, -1]$ and $\sigma = [0.8, 0.5]$. We sample a code with the reparameterization trick, compute the KL term per dimension, and assemble the loss.</p>
+        <table>
+          <thead>
+            <tr><th>Latent dim</th><th>$\mu$</th><th>$\sigma$</th><th>$\varepsilon$ (drawn)</th><th>$z = \mu + \sigma\varepsilon$</th><th>KL term</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>0.5</td><td>0.8</td><td>0.5</td><td>0.9</td><td>0.168</td></tr>
+            <tr><td>2</td><td>−1</td><td>0.5</td><td>−1</td><td>−1.5</td><td>0.818</td></tr>
+            <tr><td>Total</td><td></td><td></td><td></td><td></td><td><strong>0.986</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>The encoder outputs a distribution</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$q(z \mid x) = \mathcal N\big([0.5, -1],\; \text{diag}(0.8^2, 0.5^2)\big)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Instead of one code, the encoder describes a small cloud of plausible codes: a centre $\mu$ and a spread $\sigma$ per dimension.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Reparameterization: sample</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\varepsilon \sim \mathcal N(0, 1) = [0.5, -1] \;\Rightarrow\; z = [0.5 + 0.8 \cdot 0.5,\; -1 + 0.5 \cdot (-1)] = [0.9,\; -1.5]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The randomness is drawn separately, then shifted and scaled. Because $z$ is now a simple formula in $\mu$ and $\sigma$, gradients can flow through the sampling into the encoder.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>KL term, dimension 1</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\tfrac12\big(\mu^2 + \sigma^2 - 1 - \ln\sigma^2\big) = \tfrac12\big(0.25 + 0.64 - 1 + 0.446\big) = 0.168$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">This measures how different this dimension's cloud is from the standard normal $\mathcal N(0, 1)$. It is 0 only when $\mu = 0$ and $\sigma = 1$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>KL term, dimension 2</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\tfrac12\big(1 + 0.25 - 1 + 1.386\big) = 0.818$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Dimension 2 is penalised much more: its centre is far from 0 ($\mu = -1$) and its cloud is narrow ($\sigma = 0.5$, so $-\ln\sigma^2 = 1.386$). The KL pushes clouds to stay wide and centred.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Total loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L = \underbrace{\lVert x - \hat x \rVert^2}_{\text{reconstruction}} + \underbrace{0.168 + 0.818}_{\text{KL} = 0.986}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The decoder turns $z = [0.9, -1.5]$ into $\hat x$; its error is the first part. With a reconstruction error of 0.05 the total would be 1.036. The two parts pull in opposite directions: precise codes vs. well-organised latent space.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Generating new data</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z \sim \mathcal N(0, I), \quad \text{e.g. } z = [0.3, -0.2] \;\Rightarrow\; \hat x = \text{decoder}(z)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Because the KL kept every cloud close to $\mathcal N(0, 1)$, codes drawn from it land in regions the decoder knows. That is what a plain autoencoder cannot do.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>VAE loss = reconstruction + KL. The KL per dimension is $\tfrac12(\mu^2 + \sigma^2 - 1 - \ln\sigma^2)$: here 0.168 + 0.818 = 0.986.</p>
+          <p>The reparameterization trick $z = \mu + \sigma\varepsilon$ is what makes the random sampling step trainable with backpropagation.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Encode $x$ into $\mu$ and $\sigma$; sample $z = \mu + \sigma \varepsilon$; decode to $\hat x$. Minimise reconstruction error + KL divergence from $\mathcal{N}(0, 1)$.</p>
+        <p>To generate, sample $z \sim \mathcal{N}(0, 1)$ and decode. Nearby codes give similar outputs, so you can interpolate between examples.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the reparameterization trick in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Instead of sampling $z$ directly, sample a standard normal $\varepsilon$ and compute $z = \mu + \sigma \varepsilon$, so gradients can flow through $\mu$ and $\sigma$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the loss by hand. It will make more sense.</p>
+        <pre><code class="language-c">double reparam(double mu, double sigma, double eps) { return mu + sigma * eps; }
+
+double kl_term(double mu, double sigma) {               /* KL(N(mu, sigma^2) || N(0, 1)) */
+    return 0.5 * (sigma * sigma + mu * mu - 1 - log(sigma * sigma));
+}
+
+double vae_loss(double x[], double xh[], int d, double mu, double sigma) {
+    double rec = 0;
+    for (int j = 0; j &lt; d; j++) rec += (x[j] - xh[j]) * (x[j] - xh[j]);   /* reconstruction */
+    return rec + kl_term(mu, sigma);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>variational autoencoder</strong> encodes each input as a probability distribution over codes, samples from it with the reparameterization trick, and trains with reconstruction error plus a KL penalty that keeps codes close to $\mathcal{N}(0, 1)$, which makes it a generative model.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X["x"] --&gt; ENC["encoder"]
+  ENC --&gt; MU["μ"]
+  ENC --&gt; SG["σ"]
+  EPS["ε ~ N(0, 1)"] --&gt; Z["z = μ + σ ε"]
+  MU --&gt; Z
+  SG --&gt; Z
+  Z --&gt; DEC["decoder"]
+  DEC --&gt; XH["x̂"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: which input is the only random one? (Answer: $\varepsilon$; that's why gradients can still flow through $\mu$ and $\sigma$.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how do you generate a brand-new sample after training?</p>
+          <details><summary>Check your answer</summary>
+            <p>Draw $z$ from $\mathcal{N}(0, 1)$ and run only the decoder.</p>
+          </details>
+        </div>
+        <p>The two loss terms for our example:</p>
+        $$\underbrace{(1 - 0.8)^2 + (0 - 0.1)^2}_{0.05} + \underbrace{\tfrac12\big(0.64 + 0.25 - 1 - \ln 0.64\big)}_{\approx 0.168} \approx 0.218$$
+        <table>
+          <thead>
+            <tr><th>$\mu$</th><th>$\sigma$</th><th>KL term</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>1</td><td>0</td><td>Exactly the prior: no penalty</td></tr>
+            <tr><td>0.5</td><td>0.8</td><td>0.168</td><td>Our example</td></tr>
+            <tr><td>2</td><td>1</td><td>2.0</td><td>Mean far from 0 is costly</td></tr>
+            <tr><td>0</td><td>0.1</td><td>≈ 1.81</td><td>Very precise code is costly</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>VAE samples are often <strong>blurry</strong>: with a squared-error reconstruction loss, the decoder averages over plausible outputs. GANs and diffusion models usually produce sharper images.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Name the two loss terms and what each does (reconstruction: be accurate; KL: be regular), write $z = \mu + \sigma\varepsilon$, and explain why this trick is needed for backpropagation.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Sampling $z$ directly from $\mathcal{N}(\mu, \sigma^2)$ in code, which blocks gradients to $\mu$ and $\sigma$.</li>
+          <li>Forgetting the KL term, which turns the VAE into a plain autoencoder with a gappy code space.</li>
+          <li>Having the encoder output $\sigma$ directly; in practice it outputs $\ln \sigma^2$ so that $\sigma$ stays positive.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Compute the KL term for $\mu = 0$, $\sigma = 1$, and for $\mu = 1$, $\sigma = 1$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$\ln 1 = 0$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>0 and $\tfrac12(1 + 1 - 1 - 0) = 0.5$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>With $\mu = 0.5$, $\sigma = 0.8$, compute $z$ for $\varepsilon = -1$ and $\varepsilon = 2$. How does that show what the encoder "believes" about the input? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$z = -0.3$ and $z = 2.1$. The encoder says the input's code is most likely near 0.5 but uncertain by about ±0.8; different draws explore that region, and the decoder must handle all of them.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Kingma and Welling published the VAE in 2013 ("Auto-Encoding Variational Bayes"), the same Kingma who co-created the Adam optimiser.</p>
+          <p>Latent diffusion image generators use a VAE to compress images into a small latent space, then run the diffusion process there.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The encoder outputs a distribution <strong>because</strong> that fills the code space instead of leaving isolated points.</li>
+          <li>The KL term keeps codes near $\mathcal{N}(0, 1)$ <strong>because</strong> random samples from $\mathcal{N}(0, 1)$ must decode to sensible data.</li>
+          <li>The reparameterization trick enables training <strong>because</strong> it moves the randomness into $\varepsilon$, outside the path of the gradients.</li>
+          <li>The two loss terms compete <strong>because</strong> precise codes help reconstruction but cost KL.</li>
+          <li>VAEs can generate <strong>because</strong> decoding any sample from the prior lands in a region the decoder learned.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a VAE like filing photos as fuzzy regions on a shelf?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each photo covers a region, and a rule packs the regions around the middle, so any spot you pick decodes to something sensible.</p></details></li>
+          <li><strong>Compute $z$, the reconstruction error, the KL term and the total loss for the example.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$z = 0.9$; reconstruction 0.05; KL ≈ 0.168; total ≈ 0.218.</p></details></li>
+          <li><strong>Why does <code>reparam</code> take <code>eps</code> as an input rather than sampling inside?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions gradients.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Keeping the random draw $\varepsilon$ outside makes $z$ a simple deterministic function of $\mu$ and $\sigma$, so backpropagation can compute gradients for them.</p></details></li>
+          <li><strong>So what is a VAE, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An autoencoder whose encoder outputs a distribution, trained with reconstruction error plus a KL penalty towards $\mathcal{N}(0, 1)$, so it can generate new data.</p></details></li>
+          <li><strong>Why does a plain autoencoder generate poorly while a VAE generates well?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions gaps in the code space.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A plain autoencoder's codes are isolated points with gaps that decode to garbage; the VAE's KL term and sampling fill the space around $\mathcal{N}(0, 1)$ with decodable codes.</p></details></li>
+          <li><strong>What is the KL term for one latent dimension?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$\tfrac12(\sigma^2 + \mu^2 - 1 - \ln \sigma^2)$.</p></details></li>
+          <li><strong>How do you generate a new sample with a trained VAE?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Sample $z$ from $\mathcal{N}(0, 1)$ and pass it through the decoder only.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the KL formula and the blurriness issue. I'd keep the fuzzy-shelf analogy, $z = \mu + \sigma\varepsilon = 0.9$, and "loss = reconstruction + KL; sample from $\mathcal{N}(0, 1)$ to generate".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://arxiv.org/abs/1312.6114" target="_blank" rel="noopener">Kingma and Welling: Auto-Encoding Variational Bayes (arXiv)</a>: the original VAE paper.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Variational_autoencoder" target="_blank" rel="noopener">Wikipedia: Variational autoencoder</a>: the model, loss and reparameterization trick.</li>
+          <li><a href="https://www.jeremyjordan.me/variational-autoencoders/" target="_blank" rel="noopener">Jeremy Jordan: Variational autoencoders</a>: an illustrated, intuitive explanation.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=variational+autoencoder+explained" target="_blank" rel="noopener">YouTube search: variational autoencoders explained</a>: pick a visual explanation of the latent space.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

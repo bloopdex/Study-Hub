@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Naive Bayes · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-naive-bayes" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Naive Bayes</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Ten days of tennis records: 5 sunny and 5 rainy, 5 "play" and 5 "don't play". Today is sunny with weak wind. Count how often "sunny" and "weak wind" happened on play days (2/5 and 4/5) and on no-play days (3/5 and 2/5), multiply each pair with the prior 1/2, and compare: 0.16 versus 0.12. Play wins, with 57% probability. That's Naive Bayes.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it trains with a single pass of counting, works well even with little data or thousands of features (like words in emails), and gives probabilities. It's a classic for text classification and spam filtering.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Probability: $P(A)$, $P(A \mid B)$.</li>
+          <li>Bayes' rule: $P(c \mid x) \propto P(x \mid c)\,P(c)$.</li>
+          <li><a href="mlf-paradigms.html">Classification</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>A doctor diagnosing flu looks at each symptom separately: "fever is common with flu, a cough is common with flu", and combines them, as if each symptom were independent evidence.</p>
+          <p>Naive Bayes does the same. It multiplies how typical each feature is for each class, ignoring how the features relate to each other. That's the "naive" part.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>The table:</strong> play days (5): sunny 2, rainy 3; weak wind 4, strong 1. No-play days (5): sunny 3, rainy 2; weak wind 2, strong 3.</p>
+        <h3>Start with today's prediction by hand</h3>
+        <p>Today: sunny, weak wind. Priors $P(\text{play}) = P(\text{no}) = 5/10$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Read the likelihoods for play days.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$P(\text{sunny} \mid \text{play}) = 2/5 = 0.4$; $P(\text{weak} \mid \text{play}) = 4/5 = 0.8$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the score for "play" and the score for "no".</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Play: $0.5 \cdot 0.4 \cdot 0.8 = 0.16$. No: $0.5 \cdot 0.6 \cdot 0.4 = 0.12$.</p></details>
+          <p><strong>Step 3.</strong> Normalise the two scores. Predict the probability of play and the decision.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.16 / (0.16 + 0.12) \approx 0.57$. Predict "play".</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-naive-bayes-1.svg" alt="Two rows multiplying prior and likelihoods: play 0.5 × 0.4 × 0.8 = 0.16, no 0.5 × 0.6 × 0.4 = 0.12" width="640" height="230">
+          <figcaption>What you just computed: each class score is prior × likelihood of each feature. The larger score wins.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what is "naive" about Naive Bayes?</p>
+          <details><summary>Check your answer</summary>
+            <p>It assumes the features are independent given the class, so their likelihoods can simply be multiplied.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a value never seen</h3>
+        <p>Suppose "overcast" never appeared on a no-play day in the data. Today is overcast.</p>
+        <ul>
+          <li><strong>Without smoothing.</strong> Predict $P(\text{overcast} \mid \text{no})$ and its effect.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0/5 = 0, so the "no" score is 0 whatever the wind: the model is certain, from a single missing count.</p></details></li>
+          <li><strong>Laplace (add-one) smoothing.</strong> Predict the new estimate, with 3 possible outlook values.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(0 + 1)/(5 + 3) = 0.125$: small but not zero, so the other evidence still counts.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does one zero count wipe out a whole class?</p>
+          <details><summary>Check your answer</summary>
+            <p>The class score is a product, so a single factor of 0 makes the whole product 0, no matter how strong the other evidence is.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>From the raw counts to the final probability, then the same calculation with Laplace smoothing and with logarithms, which is how real implementations do it. Query: a sunny day with weak wind.</p>
+        <table>
+          <thead>
+            <tr><th>Class</th><th>Days</th><th>Prior</th><th>Sunny</th><th>$P(\text{sunny}\mid c)$</th><th>Weak wind</th><th>$P(\text{weak}\mid c)$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Play</td><td>5</td><td>5/10 = 0.5</td><td>2</td><td>2/5 = 0.4</td><td>4</td><td>4/5 = 0.8</td></tr>
+            <tr><td>No play</td><td>5</td><td>5/10 = 0.5</td><td>3</td><td>3/5 = 0.6</td><td>2</td><td>2/5 = 0.4</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Priors from the class counts</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$P(\text{play}) = \frac{5}{10} = 0.5, \qquad P(\text{no}) = \frac{5}{10} = 0.5$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Before looking at today's weather, both outcomes are equally common in the records. With unbalanced data, the prior would favour the more frequent class.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Likelihoods from the counts</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$P(\text{sunny} \mid \text{play}) = \frac{2}{5}, \quad P(\text{weak} \mid \text{play}) = \frac{4}{5}, \quad P(\text{sunny} \mid \text{no}) = \frac{3}{5}, \quad P(\text{weak} \mid \text{no}) = \frac{2}{5}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each likelihood answers "among days of this class, how often did this feature value appear?". Training Naive Bayes is nothing more than building this table.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Multiply (the naive step)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{score(play)} = 0.5 \cdot 0.4 \cdot 0.8 = 0.16, \qquad \text{score(no)} = 0.5 \cdot 0.6 \cdot 0.4 = 0.12$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Assuming outlook and wind are independent within each class, the joint likelihood is just the product. Sunny pushes towards "no" (0.6 vs 0.4), weak wind pushes harder towards "play" (0.8 vs 0.4).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Normalise into probabilities</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$P(\text{play} \mid \text{sunny, weak}) = \frac{0.16}{0.16 + 0.12} = \frac{0.16}{0.28} \approx 0.571$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The two scores are proportional to the posterior probabilities; dividing by their sum makes them add up to 1. The model predicts "play" with 57% confidence.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Laplace smoothing (add one)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$P(\text{sunny} \mid \text{play}) = \frac{2 + 1}{5 + 2} = \frac{3}{7}, \quad P(\text{weak} \mid \text{play}) = \frac{4 + 1}{5 + 2} = \frac{5}{7} \;\Rightarrow\; \text{play } 0.153,\; \text{no } 0.122,\; P \approx 0.556$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Adding 1 to every count (and 2, the number of possible values, to the total) guarantees no probability is 0. The answer barely changes here, but it would save us if some count had been 0.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>The same with logarithms</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\ln 0.16 \approx -1.833, \qquad \ln 0.12 \approx -2.120 \quad\Rightarrow\quad \text{play wins}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With hundreds of features (words in an email), the products become tiny and underflow to 0. Adding logs instead of multiplying probabilities gives the same winner, because the log preserves order.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Naive Bayes is three operations: count, multiply, normalise. Today: 57% play (55.6% with smoothing).</p>
+          <p>Each feature contributes one factor, so you can see exactly which evidence pushed the decision and by how much: weak wind doubled the odds for "play".</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Training: estimate the prior $P(c)$ of each class and, for each feature, $P(x_j \mid c)$ by counting (with smoothing).</p>
+        <p>Prediction: for each class, multiply the prior by the likelihood of every observed feature value; pick the class with the largest product (normalise to get probabilities).</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to turn priors and likelihoods into a probability, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Multiply the prior of each class by the likelihood of every observed feature, then divide each product by the sum of the products.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the two scores by hand. It will make more sense.</p>
+        <pre><code class="language-c">double nb_posterior_yes(double prior_yes, double l_yes[], double l_no[], int m) {
+    double yes = prior_yes, no = 1 - prior_yes;
+    for (int j = 0; j &lt; m; j++) { yes *= l_yes[j]; no *= l_no[j]; }   /* naive: multiply */
+    return yes / (yes + no);                                          /* normalise */
+}
+
+double laplace(int count, int class_total, int n_values) {   /* add-one smoothing */
+    return (count + 1.0) / (class_total + n_values);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>Naive Bayes</strong> classifies by Bayes' rule, assuming features are independent given the class: $P(c \mid x) \propto P(c) \prod_j P(x_j \mid c)$.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  D["training data"] --&gt;|count| P["priors P(c)"]
+  D --&gt;|count| L["likelihoods P(feature | c)"]
+  P --&gt; S["score(c) = P(c) × product of likelihoods"]
+  L --&gt; S
+  S --&gt; N["normalise → probabilities"]
+  N --&gt; A["predict the largest"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if today were rainy with strong wind, which class would win? (Answer: no play: $0.5 \cdot 0.4 \cdot 0.6 = 0.12$ vs play $0.5 \cdot 0.6 \cdot 0.2 = 0.06$.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what does training Naive Bayes consist of?</p>
+          <details><summary>Check your answer</summary>
+            <p>Counting: class frequencies and how often each feature value appears in each class. One pass over the data.</p>
+          </details>
+        </div>
+        <p>Bayes' rule with the independence assumption:</p>
+        $$P(c \mid x_1, \dots, x_m) \;=\; \frac{P(c) \prod_{j=1}^{m} P(x_j \mid c)}{\sum_{c'} P(c') \prod_{j} P(x_j \mid c')}$$
+        <p>In practice the logs of the probabilities are added instead of multiplying many small numbers, which would underflow to 0.</p>
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training</td><td>$O(nm)$</td><td>One counting pass over $n$ examples, $m$ features</td></tr>
+            <tr><td>Prediction</td><td>$O(mC)$</td><td>One product per class, $C$ classes</td></tr>
+            <tr><td>Memory</td><td>$O(m \cdot V \cdot C)$</td><td>A count per feature value per class</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> text classification (spam, sentiment, topics) and quick baselines with many categorical features.</p>
+        <ul>
+          <li><strong>Pro:</strong> Very fast training (counting) and prediction.</li>
+          <li><strong>Pro:</strong> Works well with little data and very many features.</li>
+          <li><strong>Con:</strong> The independence assumption is usually false, so probabilities are often over-confident.</li>
+          <li><strong>Con:</strong> Zero counts need smoothing, and correlated features are double-counted.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Multiplying hundreds of small probabilities underflows to 0 in floating point. Real implementations add <strong>log-probabilities</strong> instead; the class with the largest sum wins.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Lay out a table: class, prior, one likelihood per feature, product. Then normalise. Mention Laplace smoothing whenever a count is 0.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the prior $P(c)$ in the product.</li>
+          <li>Leaving zero counts unsmoothed, so one unseen value decides everything.</li>
+          <li>Reading the output probabilities as well calibrated; they are often too extreme.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Using the tennis table, predict for a rainy day with strong wind.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Play: rainy 3/5, strong 1/5. No: rainy 2/5, strong 3/5.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Play: $0.5 \cdot 0.6 \cdot 0.2 = 0.06$. No: $0.5 \cdot 0.4 \cdot 0.6 = 0.12$. Predict no play (67%).</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Spam filter: $P(\text{spam}) = 0.4$. The word "free" appears in 50% of spam and 5% of normal mail; "meeting" in 2% of spam and 20% of normal mail. An email contains both words. Compute $P(\text{spam} \mid \text{email})$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Spam: $0.4 \cdot 0.5 \cdot 0.02 = 0.004$. Normal: $0.6 \cdot 0.05 \cdot 0.2 = 0.006$. $P(\text{spam}) = 0.004 / 0.010 = 0.4$: not enough to call it spam.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Paul Graham's 2002 essay "A Plan for Spam" popularised Bayesian spam filtering, and within a few years almost every email client used it.</p>
+          <p>Despite its wrong independence assumption, Naive Bayes often classifies well: the ranking of classes can be right even when the probabilities themselves are off.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Training is just counting <strong>because</strong> every probability is a frequency in the training data.</li>
+          <li>Likelihoods are multiplied <strong>because</strong> features are assumed independent given the class.</li>
+          <li>Smoothing is needed <strong>because</strong> one zero count makes a class's whole product zero.</li>
+          <li>Logs are used in practice <strong>because</strong> products of many small probabilities underflow.</li>
+          <li>It scales to huge vocabularies <strong>because</strong> each feature adds just one factor per class.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Naive Bayes like a doctor weighing symptoms one at a time?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each symptom is judged on its own as evidence for a disease and the evidence is combined, as if symptoms were independent.</p></details></li>
+          <li><strong>Predict play for a sunny day with weak wind.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Play: $0.5 \cdot 0.4 \cdot 0.8 = 0.16$; no: $0.5 \cdot 0.6 \cdot 0.4 = 0.12$; so play, with probability about 0.57.</p></details></li>
+          <li><strong>Why does <code>laplace</code> add 1 to the count and the number of values to the total?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer checks that the probabilities still sum to 1.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Adding 1 to every value's count removes zeros; adding the number of values to the denominator keeps the probabilities summing to 1.</p></details></li>
+          <li><strong>So what is Naive Bayes, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A classifier that applies Bayes' rule assuming features are independent given the class, multiplying the prior by each feature's likelihood.</p></details></li>
+          <li><strong>Why is the independence assumption called naive, and why does the method still work?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer separates probabilities from rankings.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Features are rarely independent (cloudy and humid go together), so probabilities are distorted; but the class with the highest score is often still the right one.</p></details></li>
+          <li><strong>What do training and prediction cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Training is one counting pass, $O(nm)$; prediction is $O(mC)$ for $m$ features and $C$ classes.</p></details></li>
+          <li><strong>Give two pros and two cons of Naive Bayes.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: very fast, works with little data and many features. Cons: over-confident probabilities, and it needs smoothing and ignores feature correlations.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out log-probabilities and the full Bayes formula. I'd keep the doctor analogy, the sunny/weak-wind calculation, and "multiply prior and likelihoods, smooth zeros".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/naive_bayes.html" target="_blank" rel="noopener">scikit-learn: Naive Bayes</a>: Gaussian, multinomial and Bernoulli variants.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Naive_Bayes_classifier" target="_blank" rel="noopener">Wikipedia: Naive Bayes classifier</a>: derivation and spam example.</li>
+          <li><a href="https://www.paulgraham.com/spam.html" target="_blank" rel="noopener">Paul Graham: A Plan for Spam</a>: the essay that made Bayesian spam filters popular.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+naive+bayes" target="_blank" rel="noopener">YouTube search: StatQuest Naive Bayes</a>: StatQuest's clear explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

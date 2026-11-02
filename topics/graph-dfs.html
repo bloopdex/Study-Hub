@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Depth-first search (DFS) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-dfs" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Depth-first search (DFS)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Start at vertex 0 and always go as deep as you can: 0 → 1 → 3 → 2. At 2 every neighbour is already visited, so <em>backtrack</em> to 3 and try its other neighbour, 4. That's depth-first search: dive down one path, back up only when stuck.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> DFS visits every reachable vertex in $O(V + E)$ with just a stack (or recursion), and the order in which it enters and leaves vertices is what detects cycles, orders tasks topologically and finds connected components.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="graph-representations.html">Graph representations</a>.</li>
+          <li><a href="structure-stack.html">Stack</a> and recursion.</li>
+          <li><a href="graph-bfs.html">BFS</a>, to compare.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Explore a maze with one rule: keep a hand on the wall and walk until you hit a dead end, then go back to the last junction and take the next corridor.</p>
+          <p>DFS explores a graph exactly like that. The recursion (or an explicit stack) remembers the junctions, so backtracking always returns to the most recent unfinished one.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> none. Any graph, directed or undirected, weighted or not. DFS does not find shortest paths.</p>
+        <h3>Start with one DFS by hand</h3>
+        <p>Same graph as BFS: 0–1, 0–2, 1–3, 2–3, 3–4. Start at 0 and always try neighbours in increasing order. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> From 0, which vertex do you visit next, and then from there?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>0 → 1 (smallest unvisited neighbour of 0), then 1 → 3 (1's neighbours are 0, visited, and 3).</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: from 3, where do you go?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>3's neighbours are 1 (visited), 2 and 4. Take 2. From 2, both neighbours 0 and 3 are visited: dead end.</p></details>
+          <p><strong>Step 3.</strong> Backtrack. Predict the final visit order.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Back to 3, which still has 4 unvisited: visit 4. Then everything is finished. Order: 0, 1, 3, 2, 4.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-dfs-1.svg" alt="DFS from vertex 0 with visit order numbers; tree edges in green and the non-tree edge 0-2 dashed" width="600" height="280">
+          <figcaption>What you just did by hand: green edges form the DFS tree; the dashed edge 0–2 was never used to discover anything. Small numbers are the visit order.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: when does DFS backtrack?</p>
+          <details><summary>Check your answer</summary>
+            <p>When the current vertex has no unvisited neighbour left; it returns to the vertex it came from.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: discovery and finish times</h3>
+        <p>Number each event: entering a vertex, and leaving it after all its neighbours are done.</p>
+        <ul>
+          <li><strong>Order of entering.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0, 1, 3, 2, 4 (the visit order above).</p></details></li>
+          <li><strong>Order of finishing.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>2 finishes first (dead end), then 4, then 3, then 1, then 0. Finish order is what topological sort uses.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why do DFS and BFS give different orders on the same graph?</p>
+          <details><summary>Check your answer</summary>
+            <p>BFS finishes a whole layer before going deeper (queue); DFS follows one path to the end first (stack).</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Visit a vertex: mark it, then for each unvisited neighbour, visit it recursively. When no unvisited neighbour remains, return (backtrack).</p>
+        <p>Run it from every still-unvisited vertex to cover a disconnected graph; each run explores one connected component.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the recursive DFS in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Mark the vertex visited and record it. For each neighbour, if it is unvisited, run DFS from it. When the loop ends, return.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the DFS by hand. It will make more sense.</p>
+        <pre><code class="language-c">int dfs(int adj[][5], int n, int u, int visited[], int order[], int k) {
+    visited[u] = 1;
+    order[k++] = u;                                   /* record when first reached */
+    for (int v = 0; v &lt; n; v++)
+        if (adj[u][v] &amp;&amp; !visited[v])
+            k = dfs(adj, n, v, visited, order, k);    /* go deep first */
+    return k;                                         /* all neighbours done: backtrack */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>depth-first search</strong> explores a graph by following one path as deep as possible and backtracking at dead ends, using recursion or a stack.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["visit u: mark it"] --&gt; B{"u has an unvisited neighbour v?"}
+  B --&gt;|yes| C["visit v (go deeper)"]
+  C --&gt; B
+  B --&gt;|no| D["backtrack: return to the caller"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: at vertex 2 in our example, which arrow do you take? (Answer: "no", straight to backtrack, since 0 and 3 are visited.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does DFS cost more or less than BFS?</p>
+          <details><summary>Check your answer</summary>
+            <p>The same, $O(V + E)$: each vertex is visited once and each edge examined a constant number of times.</p>
+          </details>
+        </div>
+        <p>Each vertex is visited once, and its adjacency list is scanned once during that visit:</p>
+        $$O\Big(V + \sum_{v} \deg(v)\Big) \;=\; O(V + E)$$
+        <p>The recursion depth can reach $V$ (on a long path), so the stack needs $O(V)$ space.</p>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Time (adjacency lists)</td><td>$O(V + E)$</td><td>Each vertex and edge handled once</td></tr>
+            <tr><td>Time (adjacency matrix)</td><td>$O(V^2)$</td><td>Each visit scans a full row</td></tr>
+            <tr><td>Extra space</td><td>$O(V)$</td><td>Visited flags plus recursion depth</td></tr>
+            <tr><td>Shortest paths</td><td>No</td><td>It may reach a vertex by a long detour first</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Recursive DFS on a graph with a very long path (say $10^6$ vertices in a line) can overflow the call stack. Use an explicit stack in that case.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Know which problems DFS solves: cycle detection, topological sort, connected components, and path existence. Shortest unweighted path is BFS's job, not DFS's.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Marking a vertex after exploring its neighbours, so cycles cause infinite recursion.</li>
+          <li>Expecting DFS to find shortest paths.</li>
+          <li>Running it only from vertex 0 on a disconnected graph and missing other components.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Run DFS from vertex 3 on the same graph (neighbours in increasing order). Give the visit order.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>3's smallest neighbour is 1.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>3, 1, 0, 2, 4. From 1 go to 0, from 0 to 2, then 2 is stuck, so back up to 3, which still has 4.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A graph has edges 0–1, 2–3, 3–4 and an isolated vertex 5. How many DFS runs from unvisited vertices are needed to visit everything, and what does that number mean? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>3 runs: from 0 (visits 0, 1), from 2 (visits 2, 3, 4) and from 5. The number of runs is the number of connected components.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>DFS goes back to the 19th century: Charles Pierre Trémaux described it as a method for escaping mazes using chalk marks on the walls.</p>
+          <p>Your computer uses DFS ideas to find which objects are still reachable during garbage collection, and in tools like <code>find</code> that walk a directory tree.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>DFS dives deep first <strong>because</strong> it recurses into a neighbour before looking at the next one.</li>
+          <li>It backtracks to the latest junction <strong>because</strong> the call stack is last-in, first-out.</li>
+          <li>It is $O(V + E)$ <strong>because</strong> each vertex is visited once and each adjacency list scanned once.</li>
+          <li>It does not give shortest paths <strong>because</strong> it may reach a vertex through a long detour first.</li>
+          <li>Finish order matters <strong>because</strong> a vertex finishes only after everything reachable from it.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is DFS like exploring a maze with a hand on the wall?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You follow one corridor to its end, then go back to the last junction and try the next corridor.</p></details></li>
+          <li><strong>Walk through DFS from 0 on the graph 0–1, 0–2, 1–3, 2–3, 3–4.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>0 → 1 → 3 → 2; 2 is a dead end, so back to 3 → 4; then everything finishes. Order 0, 1, 3, 2, 4.</p></details></li>
+          <li><strong>Why does the code mark <code>visited[u]</code> before looping over neighbours?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions cycles.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If u weren't marked first, a cycle could lead back to u and start visiting it again forever.</p></details></li>
+          <li><strong>So what is DFS, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A traversal that follows one path as deep as possible, backtracking at dead ends, using recursion or a stack.</p></details></li>
+          <li><strong>Why can't DFS be used for shortest paths?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses vertex 2 in the example.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>DFS reached 2 via 0 → 1 → 3 → 2, three edges, although 2 is a direct neighbour of 0. The first arrival is not necessarily the shortest.</p></details></li>
+          <li><strong>What are DFS's time and space costs?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(V + E)$ time on adjacency lists and $O(V)$ space for visited flags and the recursion stack.</p></details></li>
+          <li><strong>What problems is DFS good for?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Cycle detection, topological sorting, finding connected components, and checking whether a path exists.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out finish times and the stack-overflow issue. I'd keep the maze analogy, the 0, 1, 3, 2, 4 trace with the backtrack at 2, and "deep first, $O(V + E)$, not for shortest paths".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/dfsbfs" target="_blank" rel="noopener">VisuAlgo: DFS and BFS</a>: run DFS and see the recursion and edge types.</li>
+          <li><a href="https://www.geeksforgeeks.org/depth-first-search-or-dfs-for-a-graph/" target="_blank" rel="noopener">GeeksforGeeks: DFS</a>: recursive and iterative code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Depth-first_search" target="_blank" rel="noopener">Wikipedia: Depth-first search</a>: history, edge classification and uses.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=depth+first+search+explained" target="_blank" rel="noopener">YouTube search: DFS explained</a>: pick a walkthrough with backtracking shown.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

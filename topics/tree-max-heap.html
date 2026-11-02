@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Max-heap · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="tree-max-heap" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="trees.html" class="hover:text-indigo-500">Trees</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Trees</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Max-heap</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>[3, 1, 4, 1, 5]</code> again, but now make every parent ≥ its children. Fix the last parent (1 swaps with 5), then the root (3 swaps with 5): <code>[5, 3, 4, 1, 1]</code>. The largest value sits at the root. That's a max-heap, the mirror image of a min-heap.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> the maximum is always at index 0, so you can repeatedly take the biggest item in $O(\log n)$: the engine behind heap sort, "top-k largest" queries and max-priority schedulers.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="tree-min-heap.html">Min-heap</a>: the same idea with the comparison flipped.</li>
+          <li>Array indices: children of $i$ at $2i+1$ and $2i+2$.</li>
+          <li>Logarithms.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a sports league table drawn as a bracket where every team is ranked above the teams that feed into it. The best team is always at the top.</p>
+          <p>A max-heap keeps that rule between every parent and its children. Remove the champion, promote the right challengers along one path, and the new best is at the top again.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with heapify on paper</h3>
+        <p>Heapify <code>[3, 1, 4, 1, 5]</code> into a <em>max</em>-heap: from the last parent back to the root, sink each node below its <em>bigger</em> child while it is smaller. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Index 1 holds 1, with children 1 and 5. Predict the swap.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>It swaps with 5, the bigger child: <code>[3, 5, 4, 1, 1]</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the root 3 has children 5 and 4. What happens?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>3 swaps with 5: <code>[5, 3, 4, 1, 1]</code>.</p></details>
+          <p><strong>Step 3.</strong> 3 is now at index 1 with children 1 and 1. Predict: does it keep sinking?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>No, 3 is bigger than both. Final max-heap: <code>[5, 3, 4, 1, 1]</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/tree-max-heap-1.svg" alt="Max-heap built from 3 1 4 1 5: root 5, children 3 and 4, and 1 and 1 under 3" width="560" height="330">
+          <figcaption>What you just built: the maximum is at the root. Small labels show array indices.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: in a max-heap, which child does a sinking node swap with, and why?</p>
+          <details><summary>Check your answer</summary>
+            <p>The bigger child. Swapping with the smaller one would put a smaller value above a bigger one and break the rule.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: insert and remove the maximum</h3>
+        <p>Work on <code>[5, 3, 4, 1, 1]</code>.</p>
+        <ul>
+          <li><strong>Insert 6 at index 5 (child of index 2).</strong> Predict where it ends.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>6 &gt; 4: swap → <code>[5, 3, 6, 1, 1, 4]</code>; 6 &gt; 5: swap → <code>[6, 3, 5, 1, 1, 4]</code>. It's the new root.</p></details></li>
+          <li><strong>Remove the max.</strong> Predict the heap afterwards.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Return 6; the last leaf 4 goes to the root: <code>[4, 3, 5, 1, 1]</code>; 4 &lt; 5, swap: <code>[5, 3, 4, 1, 1]</code>.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: after removing the max, what goes to the root first?</p>
+          <details><summary>Check your answer</summary>
+            <p>The last leaf. Then it sinks below its bigger child until the rule holds.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>Heap rule</strong>: every parent is ≥ its children, in a complete tree stored in an array.</p>
+        <p><strong>Insert</strong>: append, then sift up while bigger than the parent. <strong>Remove max</strong>: move the last leaf to the root, then sift down below the bigger child.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the steps of max-insert in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Put the new value at the end. 2. While it is bigger than its parent, swap them. 3. Stop at the root or when the parent is bigger or equal.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the insert by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct { int a[100]; int n; } MaxHeap;
+
+void max_insert(MaxHeap *h, int v) {                 /* caller checks n &lt; 100 */
+    int i = h-&gt;n++;
+    h-&gt;a[i] = v;
+    while (i &gt; 0 &amp;&amp; h-&gt;a[(i - 1) / 2] &lt; h-&gt;a[i]) {   /* parent smaller: swap up */
+        int p = (i - 1) / 2, t = h-&gt;a[p];
+        h-&gt;a[p] = h-&gt;a[i]; h-&gt;a[i] = t;
+        i = p;
+    }
+}</code></pre>
+        <pre><code class="language-c">void max_sift_down(int a[], int n, int i) {
+    for (;;) {
+        int b = i, l = 2 * i + 1, r = 2 * i + 2;
+        if (l &lt; n &amp;&amp; a[l] &gt; a[b]) b = l;            /* b = biggest of the three */
+        if (r &lt; n &amp;&amp; a[r] &gt; a[b]) b = r;
+        if (b == i) return;
+        int t = a[i]; a[i] = a[b]; a[b] = t;
+        i = b;
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>max-heap</strong> is a complete binary tree, stored in an array, where every parent is greater than or equal to its children, so the maximum is at the root.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  A((5)) --&gt; B((3))
+  A --&gt; C((4))
+  B --&gt; D((1))
+  B --&gt; E((1))
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after inserting 6, which two nodes swap first? (Answer: 6 and 4, because 6 starts as 4's child.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: to find the 3 largest of 1,000,000 values with a max-heap, how many heap operations do you need after building it?</p>
+          <details><summary>Check your answer</summary>
+            <p>Three remove-max operations, each $O(\log n)$, about 20 steps each.</p>
+          </details>
+        </div>
+        <p>Finding the $k$ largest values: build a max-heap once, then remove the max $k$ times:</p>
+        $$\underbrace{O(n)}_{\text{build}} + \underbrace{k \cdot O(\log n)}_{k \text{ removals}} \;=\; O(n + k \log n)$$
+        <p>For a small $k$ this beats sorting everything, which costs $O(n \log n)$.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Build (heapify)</td><td>$O(n)$</td><td>Bottom-up sift-downs</td></tr>
+            <tr><td>Insert</td><td>$O(\log n)$</td><td>Sift up one path</td></tr>
+            <tr><td>Remove max</td><td>$O(\log n)$</td><td>Sift down one path</td></tr>
+            <tr><td>Peek max</td><td>$O(1)$</td><td>It's <code>a[0]</code></td></tr>
+            <tr><td>Heap sort ($n$ removals)</td><td>$O(n \log n)$</td><td>See <a href="sorting-heap-sort.html">Heap sort</a></td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Don't mix the two kinds. Running min-heap code (swap with the <em>smaller</em> child) on a max-heap silently breaks it. In C you can keep one min-heap implementation and store negated values to get a max-heap.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Heap sort uses a <strong>max</strong>-heap to sort ascending: each removed maximum goes to the end of the array. If asked "which heap for ascending heap sort", answer max-heap.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Swapping with the smaller child when sifting down a max-heap.</li>
+          <li>Comparing with <code>&gt;</code> where <code>&lt;</code> belongs in the sift-up loop: a parent <em>smaller</em> than the new value must move down.</li>
+          <li>Assuming the second-largest value is always at index 1; it can be at index 2.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Is <code>[9, 7, 8, 3, 5]</code> a valid max-heap?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Check each parent against its children.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Yes: 9 ≥ 7 and 8; 7 ≥ 3 and 5.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Insert 10 into the max-heap <code>[9, 7, 8, 3, 5]</code>, then remove the max twice. Show the array after each step. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Insert: 10 goes to index 5 under 8, swaps with 8, then with 9 → [10, 7, 9, 3, 5, 8]. Remove 10: 8 to the root, sinks below 9 → [9, 7, 8, 3, 5]. Remove 9: 5 to the root, sinks below 8 → [8, 7, 5, 3].</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>A max-heap with a fixed size, used the other way round (a <em>min</em>-heap of size $k$), finds the $k$ largest items of a stream that's too big to store, in $O(n \log k)$.</p>
+          <p>The same structure ranks bids in auction systems and picks the next highest-priority job in schedulers.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The maximum is at the root <strong>because</strong> every parent is ≥ its children.</li>
+          <li>Sinking swaps with the bigger child <strong>because</strong> that child is the only safe new parent.</li>
+          <li>Insert and remove-max are $O(\log n)$ <strong>because</strong> the complete tree has height $\lfloor \log_2 n \rfloor$.</li>
+          <li>Top-$k$ costs $O(n + k \log n)$ <strong>because</strong> building is linear and each removal is logarithmic.</li>
+          <li>Heap sort uses a max-heap <strong>because</strong> each removed maximum goes into its final place at the end of the array.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a max-heap like a ranked tournament bracket?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Every team is ranked above the teams feeding into it, so the best team is always at the top.</p></details></li>
+          <li><strong>Walk through heapifying [3, 1, 4, 1, 5] into a max-heap.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Index 1 (1) swaps with 5, giving [3, 5, 4, 1, 1]; the root 3 swaps with 5, giving [5, 3, 4, 1, 1]; 3 then stays above two 1s.</p></details></li>
+          <li><strong>Why does <code>max_insert</code> loop while the parent is <em>smaller</em> than the new value?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer states the rule being repaired.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The rule is parent ≥ child. A smaller parent violates it, so they swap and the check repeats one level higher.</p></details></li>
+          <li><strong>So what is a max-heap, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A complete binary tree in an array where every parent is ≥ its children, so the maximum is at the root.</p></details></li>
+          <li><strong>Why must a sinking node swap with the bigger child?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer tries the smaller child.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If it swapped with the smaller child, that child would become the parent of the bigger one, breaking the rule. The bigger child is ≥ everything below it.</p></details></li>
+          <li><strong>What do build, insert, remove-max and peek cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Build $O(n)$, insert and remove-max $O(\log n)$, peek $O(1)$.</p></details></li>
+          <li><strong>When is a max-heap better than sorting for "the 10 largest values"?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When $n$ is large: building is $O(n)$ and 10 removals cost $O(10 \log n)$, much less than sorting in $O(n \log n)$.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out top-$k$ and the negation trick. I'd keep the tournament analogy, heapifying [3, 1, 4, 1, 5] into [5, 3, 4, 1, 1], and "max at the root, $O(\log n)$ insert and remove".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/heap" target="_blank" rel="noopener">VisuAlgo: Binary heap</a>: a max-heap by default: insert and extract-max step by step.</li>
+          <li><a href="https://www.geeksforgeeks.org/max-heap-in-java/" target="_blank" rel="noopener">GeeksforGeeks: Max-heap</a>: operations with code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Heap_(data_structure)" target="_blank" rel="noopener">Wikipedia: Heap</a>: variants and applications.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=max+heap+insert+delete+explained" target="_blank" rel="noopener">YouTube search: max heap insert and delete</a>: pick a short walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

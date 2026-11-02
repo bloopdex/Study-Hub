@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data preprocessing · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-preprocessing" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Data preprocessing</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Ages <code>[20, 30, 40, 50]</code> and incomes in tens of thousands live on very different scales. <strong>Standardize</strong> the ages: subtract the mean 35 and divide by the standard deviation 11.18, giving <code>[−1.34, −0.45, 0.45, 1.34]</code>. Turn the colour "red / green / blue" into three 0/1 columns (<strong>one-hot</strong>). Fill a missing age with the mean of the others (<strong>imputation</strong>). That's preprocessing: making raw data fit for a model.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> most models assume numbers on comparable scales with no gaps. Distance-based and gradient-based methods (KNN, SVM, neural networks) can fail badly on raw data, and preprocessing often matters more than the choice of model.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Mean and standard deviation.</li>
+          <li>Numeric versus categorical features.</li>
+          <li><a href="mlf-cross-validation.html">Training versus test data</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a recipe that mixes "2 cups", "300 grams" and "a pinch". Before comparing quantities, a cook converts everything into the same unit.</p>
+          <p>Preprocessing converts features into comparable units, turns words into numbers, and fills in missing ingredients, so the model compares like with like.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Golden rule:</strong> learn every preprocessing parameter (means, standard deviations, categories) from the <strong>training data only</strong>, then apply the same parameters to validation and test data.</p>
+        <h3>Start with one column by hand</h3>
+        <p>Ages $[20, 30, 40, 50]$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the mean and the (population) standard deviation.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Mean 35. Squared deviations 225, 25, 25, 225, average 125, so sd $= \sqrt{125} \approx 11.18$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the standardized values $z = (x - 35)/11.18$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$[-1.34, -0.45, 0.45, 1.34]$: mean 0, standard deviation 1.</p></details>
+          <p><strong>Step 3.</strong> Min-max scaling: $(x - \min)/(\max - \min)$. Predict the result.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$[0, 0.33, 0.67, 1]$: everything between 0 and 1.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-preprocessing-1.svg" alt="Ages 20 30 40 50 shown raw, standardized and min-max scaled" width="640" height="290">
+          <figcaption>What you just computed: the same four ages on three scales. The order and spacing never change, only the units.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: after standardization, what are the mean and standard deviation of a column?</p>
+          <details><summary>Check your answer</summary>
+            <p>Mean 0 and standard deviation 1.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: categories and gaps</h3>
+        <p>Now handle a categorical column and a missing value.</p>
+        <ul>
+          <li><strong>Colours red, green, blue, green.</strong> Predict the one-hot columns.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Three columns (is_red, is_green, is_blue): rows [1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 1, 0].</p></details></li>
+          <li><strong>Ages $[20, ?, 40, 50]$.</strong> Predict the mean imputation, and one risk.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Fill with $(20 + 40 + 50)/3 \approx 36.7$. Risk: it shrinks the spread and hides that the value was missing; adding an "age_missing" flag column helps.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why not encode red, green, blue as 1, 2, 3?</p>
+          <details><summary>Check your answer</summary>
+            <p>That invents an order and distances (blue would be "twice" green). One-hot encoding gives each colour its own column with no fake order.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's age column $[20, 30, 40, 50]$, preprocessed three ways, then a new test age of 60 run through the same steps. Last: what mean imputation does to the spread of $[20, ?, 40, 50]$.</p>
+        <table>
+          <thead>
+            <tr><th>Age $x$</th><th>$x - \mu$</th><th>$(x - \mu)^2$</th><th>Standardized $z$</th><th>Min-max $x'$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>20</td><td>−15</td><td>225</td><td>−1.342</td><td>0</td></tr>
+            <tr><td>30</td><td>−5</td><td>25</td><td>−0.447</td><td>0.333</td></tr>
+            <tr><td>40</td><td>5</td><td>25</td><td>0.447</td><td>0.667</td></tr>
+            <tr><td>50</td><td>15</td><td>225</td><td>1.342</td><td>1</td></tr>
+            <tr><td>60 (test)</td><td>25</td><td></td><td><strong>2.236</strong></td><td><strong>1.333</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Mean</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mu = \frac{20 + 30 + 40 + 50}{4} = 35$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The centre of the column. Subtracting it makes "average age" become 0.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Standard deviation</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma = \sqrt{\frac{225 + 25 + 25 + 225}{4}} = \sqrt{125} = 11.18$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The typical distance from the mean. Dividing by it makes the unit "one standard deviation" instead of "one year", so ages and incomes become comparable.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Standardize each value</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z = \frac{x - 35}{11.18}: \quad 20 \mapsto -1.342, \quad 30 \mapsto -0.447, \quad 40 \mapsto 0.447, \quad 50 \mapsto 1.342$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The new column has mean 0 and standard deviation 1. Gradient descent, k-NN and SVMs all behave better when every feature is on this scale.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Min-max scaling</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$x' = \frac{x - 20}{50 - 20}: \quad [0,\; 0.333,\; 0.667,\; 1]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">An alternative that squeezes the training values into $[0, 1]$. Useful for pixel values or when a bounded range matters.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>A test value, with training statistics</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_{60} = \frac{60 - 35}{11.18} = 2.236, \qquad x'_{60} = \frac{60 - 20}{30} = 1.333$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The test row uses $\mu$, $\sigma$, min and max from training, unchanged. Min-max output above 1 is normal for unseen data: the range is only guaranteed on the training set.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>One-hot encoding</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{red} \mapsto [1, 0, 0], \quad \text{green} \mapsto [0, 1, 0], \quad \text{blue} \mapsto [0, 0, 1]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Coding colours as 1, 2, 3 would tell the model "blue is three times red". Separate 0/1 columns carry no fake order.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Mean imputation shrinks the spread</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$[20, ?, 40, 50]: \; \mu = 36.67, \;\; \sigma_{\text{observed}} = 12.47 \;\longrightarrow\; [20, 36.67, 40, 50]: \; \sigma = 10.80$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The filled value sits exactly on the mean, so it adds a row with zero deviation. The column now looks 13% less spread out than it really is. Adding an "age_missing" column keeps the information that a value was invented.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Standardizing gave $[-1.34, -0.45, 0.45, 1.34]$ with mean 35 and sd 11.18 stored for later. A test age of 60 becomes $z = 2.24$ using those stored values.</p>
+          <p>Every preprocessing step is fitted on the training data and replayed unchanged on new data; imputing with the mean is simple but makes the data look less varied.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>Scale</strong> numeric features (standardize, or min-max). <strong>Encode</strong> categories (one-hot for unordered, ordinal codes only for truly ordered ones). <strong>Impute</strong> missing values (mean, median or most frequent, plus a missing flag).</p>
+        <p>Fit all of these on the training data, store the parameters, and apply exactly the same transformation to every later dataset.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the steps of standardizing a column, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the mean, compute the standard deviation, replace each value by (value − mean) / sd, and keep the mean and sd to transform new data.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have standardized the ages by hand. It will make more sense.</p>
+        <pre><code class="language-c">void standardize(double x[], int n, double stats[]) {     /* z = (x - mean) / sd */
+    double mean = 0, variance = 0;
+    for (int i = 0; i &lt; n; i++) mean += x[i] / n;
+    for (int i = 0; i &lt; n; i++) variance += (x[i] - mean) * (x[i] - mean) / n;
+    double sd = sqrt(variance);
+    for (int i = 0; i &lt; n; i++) x[i] = (x[i] - mean) / sd;
+    stats[0] = mean; stats[1] = sd;           /* keep them to transform test data */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>preprocessing</strong> transforms raw data into a model-ready form: <strong>scaling</strong> numeric features to comparable ranges, <strong>encoding</strong> categories as numbers, and <strong>imputing</strong> missing values.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"What kind of column?"} --&gt;|numeric| B{"Missing values?"}
+  B --&gt;|yes| C["impute (median or mean) + missing flag"]
+  B --&gt;|no| D["scale: standardize or min-max"]
+  C --&gt; D
+  A --&gt;|"categorical, no order"| E["one-hot encode"]
+  A --&gt;|"categorical, ordered (S &lt; M &lt; L)"| F["ordinal codes 0, 1, 2"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: a "T-shirt size" column with values S, M, L, which box? (Answer: "ordinal codes", since the sizes have a real order.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: a test age of 80 with the training mean and sd above. What is its z-score?</p>
+          <details><summary>Check your answer</summary>
+            <p>$(80 - 35)/11.18 \approx 4.0$: four standard deviations above the training mean.</p>
+          </details>
+        </div>
+        <p>The two common scalings, with our ages:</p>
+        $$z = \frac{x - \mu}{\sigma} = \frac{20 - 35}{11.18} \approx -1.34, \qquad x' = \frac{x - \min}{\max - \min} = \frac{30 - 20}{50 - 20} \approx 0.33$$
+        <table>
+          <thead>
+            <tr><th>Technique</th><th>Formula / rule</th><th>Use when</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Standardization</td><td>$(x - \mu)/\sigma$</td><td>Linear models, SVM, neural networks, PCA</td></tr>
+            <tr><td>Min-max scaling</td><td>$(x - \min)/(\max - \min)$</td><td>Bounded inputs, e.g. pixel values</td></tr>
+            <tr><td>One-hot encoding</td><td>One 0/1 column per category</td><td>Unordered categories</td></tr>
+            <tr><td>Mean / median imputation</td><td>Fill with the training mean / median</td><td>A few missing numeric values</td></tr>
+            <tr><td>Log transform</td><td>$\log(1 + x)$</td><td>Skewed values such as income</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Tree-based models (decision trees, random forests, gradient boosting) don't need scaling, but distance-based and gradient-based models do. Scaling is never harmful to correctness, but forgetting it can ruin KNN or SVM.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>For any preprocessing step, say where its parameters come from: "fitted on training data, applied to test data". That single sentence prevents the most common exam (and real-world) mistake.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Computing the mean and sd on the full dataset before splitting (data leakage).</li>
+          <li>Label-encoding unordered categories as 1, 2, 3, which invents an order.</li>
+          <li>Min-max scaling with data containing extreme outliers, which squashes all normal values together.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Min-max scale the incomes $[30, 45, 60, 90]$ (thousands).</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>min = 30, max = 90.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$[0, 0.25, 0.5, 1]$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Training ages $[20, 30, 40, 50]$ (mean 35, sd 11.18). A test person is 25. What z-score do they get, and why must you <em>not</em> recompute the mean including them? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$(25 - 35)/11.18 \approx -0.89$. Recomputing would let test data change the transformation, so the test score would no longer reflect truly unseen data: that's leakage.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Many data scientists say they spend most of their time on data cleaning and preparation rather than on modelling.</p>
+          <p>Neural networks apply the same idea inside the model: batch normalization standardizes each layer's inputs during training.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Scaling matters <strong>because</strong> distance and gradient methods treat a big-number feature as more important.</li>
+          <li>Standardization gives mean 0 and sd 1 <strong>because</strong> it subtracts the mean and divides by the sd.</li>
+          <li>One-hot encoding avoids fake order <strong>because</strong> each category gets its own independent column.</li>
+          <li>Parameters come from training data only <strong>because</strong> using test data would leak information.</li>
+          <li>A missing flag helps <strong>because</strong> the fact that a value was missing can itself be informative.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is preprocessing like converting units in a recipe?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Before comparing "2 cups" and "300 grams" you convert to one unit; preprocessing puts features on comparable scales and turns words into numbers.</p></details></li>
+          <li><strong>Standardize the ages [20, 30, 40, 50].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Mean 35, sd about 11.18, so z ≈ [−1.34, −0.45, 0.45, 1.34].</p></details></li>
+          <li><strong>Why does <code>standardize</code> store the mean and sd in <code>stats</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions test data.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The same mean and sd, learned from training data, must be reused to transform test data and new data in production.</p></details></li>
+          <li><strong>So what is preprocessing, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Transforming raw data into a model-ready form by scaling numbers, encoding categories and filling missing values.</p></details></li>
+          <li><strong>Why does KNN need scaling but a decision tree doesn't?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares distances with splits.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>KNN measures distances, so a feature with large numbers dominates. A tree splits one feature at a time on thresholds, which is unaffected by the feature's scale.</p></details></li>
+          <li><strong>What are the formulas for standardization and min-max scaling?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$(x - \mu)/\sigma$ and $(x - \min)/(\max - \min)$.</p></details></li>
+          <li><strong>How should a categorical colour column be encoded?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>One-hot: one 0/1 column per colour, because the colours have no natural order.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out log transforms and missing flags. I'd keep the recipe-units analogy, the four-age standardization, one-hot colours, and "fit on training data, apply everywhere".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/preprocessing.html" target="_blank" rel="noopener">scikit-learn: Preprocessing data</a>: scalers, encoders and imputers with code.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/numerical-data/normalization" target="_blank" rel="noopener">Google ML Crash Course: Normalization</a>: scaling numerical data, visually.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Feature_scaling" target="_blank" rel="noopener">Wikipedia: Feature scaling</a>: methods and motivation.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=feature+scaling+standardization+normalization+machine+learning" target="_blank" rel="noopener">YouTube search: feature scaling explained</a>: standardization versus normalization.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

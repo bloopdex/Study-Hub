@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Linear regression · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-linear-regression" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Linear regression</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Three points: (1, 2), (2, 4), (3, 5). Find the straight line $\hat y = wx + b$ that fits them best in the least-squares sense: slope $w = 1.5$, intercept $b \approx 0.67$. It predicts 2.17, 3.67, 5.17 for the three points, and 6.67 for a new $x = 4$. That's linear regression: the line with the smallest sum of squared errors.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it's the simplest supervised model, has an exact formula, trains instantly and is easy to explain: each weight says how much the prediction changes per unit of its feature.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-regression-metrics.html">MSE</a>.</li>
+          <li>Mean of a list of numbers.</li>
+          <li>The equation of a line, $y = wx + b$.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of stretching a rubber band through a scatter of nails so that it sits as close to all of them as possible, with long gaps pulling hardest.</p>
+          <p>Least squares does exactly that: each point "pulls" the line with a force that grows with the square of its distance, and the line settles where those pulls balance.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Model:</strong> $\hat y = w x + b$ (one feature) or $\hat y = w^\top x + b$ (several). The fit minimises the mean squared error on the training data.</p>
+        <h3>Start with three points by hand</h3>
+        <p>Points (1, 2), (2, 4), (3, 5). For one feature: $w = \sum (x_i - \bar x)(y_i - \bar y) / \sum (x_i - \bar x)^2$ and $b = \bar y - w \bar x$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute $\bar x$ and $\bar y$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$\bar x = 2$, $\bar y = 11/3 \approx 3.67$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the numerator and denominator of $w$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Numerator $(-1)(-1.67) + 0 + (1)(1.33) = 3$. Denominator $1 + 0 + 1 = 2$. So $w = 1.5$.</p></details>
+          <p><strong>Step 3.</strong> Compute $b$ and the prediction for $x = 4$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$b = 3.67 - 1.5 \cdot 2 \approx 0.67$. Prediction $1.5 \cdot 4 + 0.67 \approx 6.67$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-linear-regression-1.svg" alt="Three points (1,2), (2,4), (3,5) with the least-squares line y = 1.5x + 0.67 and small residuals" width="560" height="330">
+          <figcaption>What you just computed: the line $\hat y = 1.5x + 0.67$. Red segments are the residuals the fit makes as small as possible (in squared terms).</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the slope $w = 1.5$ mean?</p>
+          <details><summary>Check your answer</summary>
+            <p>Each extra unit of $x$ adds 1.5 to the predicted $y$.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: check the fit</h3>
+        <p>Use the fitted line $\hat y = 1.5x + 0.67$ on the three training points.</p>
+        <ul>
+          <li><strong>Residuals $y - \hat y$.</strong> Predict them.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$2 - 2.17 = -0.17$, $4 - 3.67 = 0.33$, $5 - 5.17 = -0.17$.</p></details></li>
+          <li><strong>Training MSE.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(0.028 + 0.111 + 0.028)/3 \approx 0.056$. No other line has a smaller MSE on these points.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what are the three residuals, and what is their sum?</p>
+          <details><summary>Check your answer</summary>
+            <p>−0.17, 0.33, −0.17. They sum to 0, which always happens for a least-squares line with an intercept.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Now the whole fit on the three points (1, 2), (2, 4), (3, 5), with every intermediate number, then how good the line is. Keep the table in view: each column is used by one step.</p>
+        <table>
+          <thead>
+            <tr><th>Point</th><th>$x_i$</th><th>$y_i$</th><th>$x_i - \bar x$</th><th>$y_i - \bar y$</th><th>product</th><th>$(x_i - \bar x)^2$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>2</td><td>−1</td><td>−1.667</td><td>1.667</td><td>1</td></tr>
+            <tr><td>2</td><td>2</td><td>4</td><td>0</td><td>0.333</td><td>0</td><td>0</td></tr>
+            <tr><td>3</td><td>3</td><td>5</td><td>1</td><td>1.333</td><td>1.333</td><td>1</td></tr>
+            <tr><td>Sum</td><td>6</td><td>11</td><td>0</td><td>0</td><td><strong>3</strong></td><td><strong>2</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Compute the means</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\bar x = \frac{1 + 2 + 3}{3} = 2, \qquad \bar y = \frac{2 + 4 + 5}{3} = \frac{11}{3} \approx 3.667$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The best line always passes through the "centre of gravity" of the data, $(\bar x, \bar y)$, so we need it first. Every later number is measured relative to these two means.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Measure how x and y move together</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$S_{xy} = \sum (x_i - \bar x)(y_i - \bar y) = 1.667 + 0 + 1.333 = 3$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each product is positive when a point is above average in both $x$ and $y$ (or below in both). A positive total means $y$ tends to rise with $x$. This is the "product" column of the table.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Measure how much x varies</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$S_{xx} = \sum (x_i - \bar x)^2 = 1 + 0 + 1 = 2$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">This is the spread of the inputs. Dividing by it turns "how much $x$ and $y$ move together" into "how much $y$ moves per unit of $x$".</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Slope and intercept</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w = \frac{S_{xy}}{S_{xx}} = \frac{3}{2} = 1.5, \qquad b = \bar y - w\bar x = 3.667 - 1.5 \cdot 2 = 0.667$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The slope says each extra unit of $x$ adds 1.5 to the prediction. The intercept is chosen so the line passes exactly through $(\bar x, \bar y) = (2, 3.667)$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Predictions and residuals</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat y = [2.167,\; 3.667,\; 5.167], \qquad e = y - \hat y = [-0.167,\; 0.333,\; -0.167]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Plug each $x$ into $1.5x + 0.667$. The residuals add up to exactly 0: a least-squares line with an intercept always balances points above and below it.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Training error (MSE)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{MSE} = \frac{(-0.167)^2 + 0.333^2 + (-0.167)^2}{3} = \frac{0.0278 + 0.1111 + 0.0278}{3} \approx 0.0556$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">On average the squared miss is 0.056, i.e. a typical error of $\sqrt{0.0556} \approx 0.24$ in the units of $y$. No other straight line has a smaller MSE on these three points.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>How much variation is explained (R²)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{SS}_{\text{tot}} = \sum (y_i - \bar y)^2 = 2.778 + 0.111 + 1.778 = 4.667, \qquad R^2 = 1 - \frac{0.1667}{4.667} \approx 0.964$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$\text{SS}_{\text{tot}}$ is the error of the lazy model "always predict 3.667". Our line removes 96.4% of that error, so $x$ explains most of the variation in $y$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">8</span>Use the model on new data</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat y(4) = 1.5 \cdot 4 + 0.667 = 6.667$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Prediction is just one multiplication and one addition. Be careful with values far outside 1–3: the model has never seen them, and the straight-line assumption may not hold there.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Three sums ($\bar x$, $\bar y$, $S_{xy}$, $S_{xx}$) are all you need to fit a line exactly: $w = 1.5$, $b \approx 0.667$.</p>
+          <p>The fit is very good here ($R^2 \approx 0.96$, typical error about 0.24). If $R^2$ were near 0, a straight line would be the wrong model for this data.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Choose $w$ and $b$ to minimise $\frac{1}{n}\sum (y_i - w x_i - b)^2$. With one feature, use the closed-form slope and intercept above.</p>
+        <p>With many features, solve the normal equations $w = (X^\top X)^{-1} X^\top y$, or use gradient descent when the data is large.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the steps to fit $w$ and $b$, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the means of $x$ and $y$. Sum the products of the deviations and the squared $x$ deviations; their ratio is $w$. Then $b$ is the mean of $y$ minus $w$ times the mean of $x$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have fitted the line by hand. It will make more sense.</p>
+        <pre><code class="language-c">void fit_line(double x[], double y[], int n, double out[]) {   /* out = {w, b} */
+    double mx = 0, my = 0, sxy = 0, sxx = 0;
+    for (int i = 0; i &lt; n; i++) { mx += x[i] / n; my += y[i] / n; }
+    for (int i = 0; i &lt; n; i++) {
+        sxy += (x[i] - mx) * (y[i] - my);      /* how x and y move together */
+        sxx += (x[i] - mx) * (x[i] - mx);      /* how much x varies */
+    }
+    out[0] = sxy / sxx;                        /* slope w */
+    out[1] = my - out[0] * mx;                 /* intercept b */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>linear regression</strong> models the target as a weighted sum of the features plus a bias, $\hat y = w^\top x + b$, with weights chosen to minimise the mean squared error.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X["features x"] --&gt; M["ŷ = w·x + b"]
+  M --&gt; L["MSE against y"]
+  L --&gt;|"closed form or gradient descent"| W["update w, b"]
+  W --&gt; M
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for three points and one feature, do you need the gradient-descent loop? (Answer: no; the closed-form formula gives $w$ and $b$ in one step.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why minimise squared errors instead of absolute errors?</p>
+          <details><summary>Check your answer</summary>
+            <p>Squares give a smooth objective with a closed-form solution, and they punish big errors more.</p>
+          </details>
+        </div>
+        <p>Training minimises the mean squared error; for several features the exact solution is:</p>
+        $$\min_{w, b} \; \frac{1}{n}\sum_{i=1}^{n} \big(y_i - (w^\top x_i + b)\big)^2 \quad\Longrightarrow\quad w = (X^\top X)^{-1} X^\top y$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training, one feature</td><td>$O(n)$</td><td>Two passes over the data</td></tr>
+            <tr><td>Training, $d$ features (normal equations)</td><td>$O(nd^2 + d^3)$</td><td>Build $X^\top X$, then invert it</td></tr>
+            <tr><td>Training, gradient descent</td><td>$O(nd)$ per epoch</td><td>One pass per epoch</td></tr>
+            <tr><td>Prediction</td><td>$O(d)$</td><td>One dot product</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> numeric targets with roughly linear relationships, and whenever you need an interpretable baseline.</p>
+        <ul>
+          <li><strong>Pro:</strong> Fast to train, exact closed-form solution.</li>
+          <li><strong>Pro:</strong> Weights are directly interpretable.</li>
+          <li><strong>Con:</strong> Cannot capture curves or interactions unless you add such features yourself.</li>
+          <li><strong>Con:</strong> Sensitive to outliers, because errors are squared.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Linear regression assumes the relationship is roughly linear. Fitting a line to a U-shaped pattern gives a bad model with a perfectly valid-looking formula; always plot the residuals.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Be able to compute $w$ and $b$ by hand for 3–4 points with the deviation formulas, and to interpret them in words ("each extra room adds 20,000 € to the price").</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Dividing the slope formula the wrong way round ($\sum (x - \bar x)^2$ is the denominator).</li>
+          <li>Extrapolating far outside the range of the training $x$ values.</li>
+          <li>Interpreting weights of unscaled, correlated features as importance.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Fit a line to (0, 1), (1, 3), (2, 5).</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>The points lie exactly on a line.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$w = 2$, $b = 1$: $\hat y = 2x + 1$, with zero error.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Fit a line to (1, 1), (2, 3), (3, 2), (4, 4) and predict $x = 5$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\bar x = 2.5$, $\bar y = 2.5$; numerator $= 2.25 - 0.25 - 0.25 + 2.25 = 4$; denominator $= 5$; $w = 0.8$, $b = 2.5 - 2 = 0.5$. Prediction at 5: $4.5$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The word "regression" comes from Francis Galton (1886): very tall parents tended to have children closer to average height, "regressing towards the mean".</p>
+          <p>Neural networks end with a linear layer, and logistic regression is linear regression passed through a sigmoid, so this simple model is a building block of much bigger ones.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The slope is a ratio of covariance to variance <strong>because</strong> it measures how much $y$ moves per unit move of $x$.</li>
+          <li>The line passes through $(\bar x, \bar y)$ <strong>because</strong> $b = \bar y - w \bar x$.</li>
+          <li>Residuals sum to zero <strong>because</strong> the least-squares intercept balances positive and negative errors.</li>
+          <li>Outliers have a big influence <strong>because</strong> squared errors grow fast with distance.</li>
+          <li>Prediction is cheap <strong>because</strong> it is a single weighted sum.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a least-squares line like a rubber band through nails?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each point pulls the line towards itself, more strongly the further away it is, and the line settles where the pulls balance.</p></details></li>
+          <li><strong>Fit a line to (1, 2), (2, 4), (3, 5).</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$\bar x = 2$, $\bar y = 3.67$; $w = 3/2 = 1.5$; $b = 3.67 - 3 = 0.67$. So $\hat y = 1.5x + 0.67$.</p></details></li>
+          <li><strong>Why does the code compute the means in a first loop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions deviations.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The slope uses deviations from the means, $x_i - \bar x$ and $y_i - \bar y$, so the means must be known before those sums are built.</p></details></li>
+          <li><strong>So what is linear regression, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A model that predicts a number as a weighted sum of the features plus a bias, fitted by minimising the mean squared error.</p></details></li>
+          <li><strong>Why does the least-squares line always pass through the point of means?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the formula for $b$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Because $b = \bar y - w \bar x$, so at $x = \bar x$ the prediction is $w\bar x + \bar y - w \bar x = \bar y$.</p></details></li>
+          <li><strong>What do training and prediction cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Training is $O(n)$ for one feature, $O(nd^2 + d^3)$ with the normal equations for $d$ features; prediction is $O(d)$.</p></details></li>
+          <li><strong>Give two pros and two cons of linear regression.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: fast exact training and interpretable weights. Cons: only linear patterns, and sensitive to outliers.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the normal equations and the residual-sum property. I'd keep the rubber-band analogy, the 3-point fit with $w = 1.5$, and "line that minimises squared errors".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares" target="_blank" rel="noopener">scikit-learn: Ordinary least squares</a>: LinearRegression with examples.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/linear-regression" target="_blank" rel="noopener">Google ML Crash Course: Linear regression</a>: interactive introduction.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Simple_linear_regression" target="_blank" rel="noopener">Wikipedia: Simple linear regression</a>: the slope and intercept formulas.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+linear+regression" target="_blank" rel="noopener">YouTube search: StatQuest linear regression</a>: StatQuest's clear walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

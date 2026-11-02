@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="370" viewBox="0 0 760 370" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Array operations on 3 8 5: read, insert with shifting, delete with shifting, append</title>
+  <rect width="760" height="370" rx="16" fill="#f8fafc"/>
+  <text x="380" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Array operations, capacity 5</text>
+  <rect x="40" y="56" width="60" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="70" y="85" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">3</text>
+  <rect x="112" y="56" width="60" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="142" y="85" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">8</text>
+  <rect x="184" y="56" width="60" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="214" y="85" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">5</text>
+  <rect x="256" y="56" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="286" y="85" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <rect x="328" y="56" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="358" y="85" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <text x="420" y="84" font-size="15" fill="#334155">read a[1] = 8: one step</text>
+  <text x="214" y="126" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="136" width="60" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="70" y="165" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">3</text>
+  <rect x="112" y="136" width="60" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="142" y="165" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">7</text>
+  <rect x="184" y="136" width="60" height="44" rx="8" fill="#bae6fd" stroke="#38bdf8" stroke-width="2"/><text x="214" y="165" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">8</text>
+  <rect x="256" y="136" width="60" height="44" rx="8" fill="#bae6fd" stroke="#38bdf8" stroke-width="2"/><text x="286" y="165" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">5</text>
+  <rect x="328" y="136" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="358" y="165" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <text x="420" y="164" font-size="15" fill="#334155">insert 7 at 1: shift 8, 5 right</text>
+  <text x="214" y="206" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="216" width="60" height="44" rx="8" fill="#bae6fd" stroke="#38bdf8" stroke-width="2"/><text x="70" y="245" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">7</text>
+  <rect x="112" y="216" width="60" height="44" rx="8" fill="#bae6fd" stroke="#38bdf8" stroke-width="2"/><text x="142" y="245" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">8</text>
+  <rect x="184" y="216" width="60" height="44" rx="8" fill="#bae6fd" stroke="#38bdf8" stroke-width="2"/><text x="214" y="245" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">5</text>
+  <rect x="256" y="216" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="286" y="245" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <rect x="328" y="216" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="358" y="245" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <text x="420" y="244" font-size="15" fill="#334155">delete a[0]: shift 7, 8, 5 left</text>
+  <text x="214" y="286" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="296" width="60" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="70" y="325" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">7</text>
+  <rect x="112" y="296" width="60" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="142" y="325" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">8</text>
+  <rect x="184" y="296" width="60" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="214" y="325" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">5</text>
+  <rect x="256" y="296" width="60" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="286" y="325" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">9</text>
+  <rect x="328" y="296" width="60" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="358" y="325" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <text x="420" y="324" font-size="15" font-weight="700" fill="#15803d">append 9: no shifting</text>
+</svg>

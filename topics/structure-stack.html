@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stack · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="structure-stack" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="linear-structures.html" class="hover:text-indigo-500">Linear structures</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Linear structures</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Stack</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Push 5, push 3, then pop: you get 3 back, the last thing you put in. Push 8 and peek: the top is 8. A stack only lets you touch the top. That's it: last in, first out (LIFO).</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> push, pop and peek all take $O(1)$, and the "last in, first out" order is exactly what you need to undo actions, match brackets, and track function calls.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="structure-array.html">Arrays</a> and indices.</li>
+          <li>Structs in C.</li>
+          <li>The idea of "the most recent" item.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a stack of plates. You put clean plates on top, and you take plates from the top. You never pull one from the middle.</p>
+          <p>A software stack works the same way. The last value pushed is the first one popped, so the most recent item is always the one you get back.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>Start with an empty stack. The array version keeps <code>top</code>, the index of the top item (−1 when empty). Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> <code>push 5</code>, <code>push 3</code>. Predict the contents, bottom to top, and the value of <code>top</code>.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p><code>[5, 3]</code> with 3 on top, and <code>top = 1</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: what does <code>pop</code> return?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>3, the last item pushed. The stack is now <code>[5]</code> and <code>top = 0</code>.</p></details>
+          <p><strong>Step 3.</strong> <code>push 8</code>, then <code>peek</code>. Predict what peek returns and whether the stack changes.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>peek returns 8 and changes nothing: the stack stays <code>[5, 8]</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/structure-stack-1.svg" alt="Stack contents after push 5, push 3, pop, push 8; the top element is highlighted" width="560" height="370">
+          <figcaption>What you just did by hand, bottom of the stack on the left. The yellow box is the top.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which item does <code>pop</code> always return?</p>
+          <details><summary>Check your answer</summary>
+            <p>The most recently pushed item still on the stack, the top.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: matching brackets</h3>
+        <p>Check <code>"([])"</code>: push every open bracket; at a close bracket, pop and check it matches.</p>
+        <ul>
+          <li><strong><code>( [ ]</code>.</strong> Predict the stack after reading these three characters.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Push <code>(</code>, push <code>[</code>, then <code>]</code> pops <code>[</code>, a match. The stack is <code>[(]</code>.</p></details></li>
+          <li><strong>The final <code>)</code>.</strong> Predict the result.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It pops <code>(</code>, a match. The stack is empty at the end, so the string is balanced.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does <code>"([)]"</code> fail the bracket check?</p>
+          <details><summary>Check your answer</summary>
+            <p>When <code>)</code> arrives, the top of the stack is <code>[</code>, not <code>(</code>. The most recent open bracket must be closed first.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Keep the items in an array and an index <code>top</code> (−1 when empty). <strong>push</strong>: increase <code>top</code>, store. <strong>pop</strong>: read at <code>top</code>, decrease it. <strong>peek</strong>: read at <code>top</code> only.</p>
+        <p>Only the top is ever touched, so every operation is a constant amount of work.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write what push and pop do to <code>top</code> in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>push: move <code>top</code> up one, then store the value there. pop: read the value at <code>top</code>, then move <code>top</code> down one.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the operations by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct { int data[100]; int top; } Stack;    /* top = -1 when empty */
+
+void push(Stack *s, int v)    { s-&gt;data[++s-&gt;top] = v; }    /* caller checks top &lt; 99 */
+int  pop(Stack *s)            { return s-&gt;data[s-&gt;top--]; } /* caller checks !is_empty */
+int  peek(const Stack *s)     { return s-&gt;data[s-&gt;top]; }
+int  is_empty(const Stack *s) { return s-&gt;top == -1; }</code></pre>
+        <pre><code class="language-c">int balanced(const char *s) {                /* "([])" -&gt; 1, "([)]" -&gt; 0 */
+    char st[100]; int top = -1;
+    for (int i = 0; s[i]; i++) {
+        char c = s[i];
+        if (c == '(' || c == '[') st[++top] = c;
+        else if (c == ')' || c == ']') {
+            char want = c == ')' ? '(' : '[';
+            if (top &lt; 0 || st[top--] != want) return 0;   /* nothing open, or wrong kind */
+        }
+    }
+    return top == -1;                         /* every bracket was closed */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>stack</strong> is a collection where you add (<strong>push</strong>) and remove (<strong>pop</strong>) only at the top, so the last item in is the first out (LIFO).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["read next character"] --&gt; B{"open bracket?"}
+  B --&gt;|yes| C["push it"]
+  B --&gt;|no| D{"close bracket?"}
+  D --&gt;|yes| E{"stack empty or top doesn't match?"}
+  E --&gt;|yes| F["not balanced"]
+  E --&gt;|no| G["pop"]
+  C --&gt; A
+  G --&gt; A
+  D --&gt;|"no more characters"| H{"stack empty?"}
+  H --&gt;|yes| I["balanced"]
+  H --&gt;|no| F
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for <code>"(("</code>, which final box do you reach? (Answer: "not balanced", because the stack still holds two brackets at the end.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the table, predict: does pop get slower when the stack holds a million items?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. It only touches the top slot, so it is $O(1)$ whatever the size.</p>
+          </details>
+        </div>
+        <p>Each operation touches only the top slot. For a string of $n$ characters, the bracket check does at most one push and one pop per character:</p>
+        $$\text{work} \;\le\; n \cdot O(1) \;=\; O(n), \qquad \text{extra space} \le n$$
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>push</td><td>$O(1)$</td><td>Write one slot at <code>top + 1</code></td></tr>
+            <tr><td>pop</td><td>$O(1)$</td><td>Read one slot, move <code>top</code></td></tr>
+            <tr><td>peek / is_empty</td><td>$O(1)$</td><td>Look at <code>top</code> only</td></tr>
+            <tr><td>Search for a value</td><td>$O(n)$</td><td>Not what a stack is for: you'd have to pop through</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>These short functions don't check bounds. Popping an empty stack (<em>underflow</em>) or pushing onto a full one (<em>overflow</em>) reads or writes outside the array. Check <code>is_empty</code> before pop and the capacity before push.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Expect a trace question: "push 1, push 2, pop, push 3, pop, pop: what is printed?" Answer: 2, 3, 1. Write the stack after every step.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Popping without checking that the stack is non-empty.</li>
+          <li>Confusing stack and queue order: a stack returns the <em>newest</em> item.</li>
+          <li>Forgetting to check that the stack is empty at the end of the bracket check: <code>"(("</code> must fail.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Starting empty: push 1, push 2, pop, push 3, pop, pop. Which values are popped, in order?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Write the stack after each step.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>2, then 3, then 1.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Use a stack to evaluate the postfix expression <code>3 4 + 2 *</code> (numbers are pushed; an operator pops two numbers and pushes the result). What is the result, and what is on the stack just before <code>*</code>? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Push 3, push 4; <code>+</code> pops them and pushes 7; push 2. Before <code>*</code> the stack is <code>[7, 2]</code>; <code>*</code> pushes 14. The result is 14.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Every running program has a stack built in: the <em>call stack</em>. Each function call pushes a frame with its local variables, and returning pops it. A "stack overflow" error is literally that stack running out of space, often from runaway recursion.</p>
+          <p>Undo in an editor, the back button of a browser, and depth-first search all use a stack, so this tiny structure is everywhere.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The last item pushed is the first popped <strong>because</strong> both push and pop work at the same end, the top.</li>
+          <li>Every operation is $O(1)$ <strong>because</strong> only the top slot is ever read or written.</li>
+          <li>Bracket matching works <strong>because</strong> the most recent unclosed bracket is always the one that must close next.</li>
+          <li>Underflow and overflow must be checked <strong>because</strong> the array has fixed bounds.</li>
+          <li>Recursion uses a stack <strong>because</strong> the most recent call must finish first.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a stack like a pile of plates?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You add and remove plates only at the top, so the last plate added is the first one taken.</p></details></li>
+          <li><strong>Walk through push 5, push 3, pop, push 8, peek.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>After the pushes the stack is [5, 3]; pop returns 3, leaving [5]; push 8 gives [5, 8]; peek returns 8 without removing it.</p></details></li>
+          <li><strong>Why does <code>push</code> use <code>++s-&gt;top</code> but <code>pop</code> uses <code>s-&gt;top--</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says when <code>top</code> changes relative to the read or write.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>push must move to the next free slot <em>before</em> writing; pop must read the current top <em>before</em> moving down. Prefix and postfix give exactly those orders.</p></details></li>
+          <li><strong>So what is a stack, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A last-in, first-out collection where you push and pop only at the top.</p></details></li>
+          <li><strong>Why does a stack solve bracket matching?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the most recent open bracket.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A closing bracket must match the most recent unclosed opening bracket, and the stack's top is exactly that bracket.</p></details></li>
+          <li><strong>What do push, pop, peek and search cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>push, pop and peek are $O(1)$; searching for an arbitrary value is $O(n)$, but that isn't a stack operation.</p></details></li>
+          <li><strong>What happens if you pop an empty stack, and how do you prevent it?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It reads outside the array (underflow). Check <code>is_empty</code> before popping and report an error instead.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the postfix example and the <code>++top</code> details. I'd keep the plate analogy, push 5, push 3, pop → 3, and "LIFO, everything $O(1)$, used for undo and brackets".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/list" target="_blank" rel="noopener">VisuAlgo: Stack</a>: choose "Stack" and animate push and pop.</li>
+          <li><a href="https://www.geeksforgeeks.org/stack-data-structure/" target="_blank" rel="noopener">GeeksforGeeks: Stack data structure</a>: array and linked-list versions with applications.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Stack_(abstract_data_type)" target="_blank" rel="noopener">Wikipedia: Stack</a>: history and uses such as the call stack.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=stack+data+structure+balanced+parentheses" target="_blank" rel="noopener">YouTube search: stack and balanced parentheses</a>: pick a walkthrough of the bracket check.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

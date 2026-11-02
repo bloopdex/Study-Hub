@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data leakage · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-data-leakage" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Data leakage</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Training ages are 20, 30, 40 and one test person is 80. Scale correctly, with the training mean 30, and the test person gets z = 6.1: clearly unusual. Scale the whole dataset at once (mean 42.5) and they get only z = 1.6, because the test value helped set the scale. The test set has leaked into training. That's data leakage: information from outside the training data sneaking into the model.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> leakage makes a model look excellent in evaluation and then fail in real use. It is one of the most common and expensive mistakes in machine learning.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-preprocessing.html">Preprocessing</a> and standardization.</li>
+          <li><a href="mlf-cross-validation.html">Train / validation / test splits</a>.</li>
+          <li>The idea that a test set simulates the future.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a student who sees the exam answers the night before. Their mark is perfect, but it says nothing about what they actually know.</p>
+          <p>Leakage gives the model a peek at the answers: through preprocessing on all data, features that are only known after the event, or duplicate rows in train and test. The score looks great and means nothing.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Test for leakage:</strong> for every feature and every preprocessing step, ask: <strong>"would I know this, computed this way, at the moment of making a real prediction?"</strong> If not, it leaks.</p>
+        <h3>Start with a leaky scaler by hand</h3>
+        <p>Training ages $[20, 30, 40]$, test age $80$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Correct way: training mean and sd. Predict them and the test z-score.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Mean 30, sd $\sqrt{200/3} \approx 8.16$. Test $z = (80 - 30)/8.16 \approx 6.1$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: leaky way, using all four ages. Mean, sd, and test z?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Mean 42.5, sd $\approx 22.8$. Test $z = (80 - 42.5)/22.8 \approx 1.6$.</p></details>
+          <p><strong>Step 3.</strong> Which result reflects what happens in production, and why?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The first. In production, a new person never influences the scaler, so they would truly look 6 standard deviations away. The leaky version made the test case look more ordinary than it is.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-data-leakage-1.svg" alt="Two pipelines: leaky (scale all data, then split) versus correct (split, fit scaler on train, transform train and test)" width="700" height="330">
+          <figcaption>What you just compared: the top pipeline lets test data shape the scaler; the bottom one keeps the test set truly unseen.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why does scaling before splitting count as leakage?</p>
+          <details><summary>Check your answer</summary>
+            <p>The test values influence the mean and sd used to transform the training data, so the model indirectly sees the test set.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: target leakage</h3>
+        <p>A hospital model predicts pneumonia. One feature is "received antibiotics", recorded during the hospital stay.</p>
+        <ul>
+          <li><strong>Validation accuracy is 98%.</strong> Predict why it is so high.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Patients with pneumonia get antibiotics, so the feature almost reveals the label. The model learned "antibiotics → pneumonia".</p></details></li>
+          <li><strong>Deployed at admission time.</strong> Predict what happens.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>At admission no antibiotics have been given yet, so the feature is always "no" and accuracy collapses. Fix: only use information available at prediction time.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is "account_closed_date" a leaky feature for predicting customer churn?</p>
+          <details><summary>Check your answer</summary>
+            <p>It is only filled in after the customer has left, so it encodes the answer and won't exist when predicting.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's scaler, done both ways in full. Training ages $[20, 30, 40]$, one test person aged 80. A simple anomaly rule then flags anyone with $|z| > 3$: we see which version of the pipeline catches the unusual person.</p>
+        <table>
+          <thead>
+            <tr><th>Age</th><th>Set</th><th>$z$ correct (mean 30, sd 8.165)</th><th>$z$ leaky (mean 42.5, sd 22.776)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>20</td><td>train</td><td>−1.225</td><td>−0.988</td></tr>
+            <tr><td>30</td><td>train</td><td>0</td><td>−0.549</td></tr>
+            <tr><td>40</td><td>train</td><td>1.225</td><td>−0.110</td></tr>
+            <tr><td>80</td><td>test</td><td><strong>6.124</strong></td><td><strong>1.646</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Fit the scaler on training rows only</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mu = \frac{20 + 30 + 40}{3} = 30, \qquad \sigma^2 = \frac{(-10)^2 + 0^2 + 10^2}{3} = 66.67, \qquad \sigma = 8.165$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">These two numbers are learned parameters, just like model weights. They may only come from data the model is allowed to see during training.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Transform the test row</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_{80} = \frac{80 - 30}{8.165} = 6.124$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The test person is measured with the training ruler. 6 standard deviations away: very unusual, which is the truth.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>The leaky fit, using all rows</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mu = \frac{20 + 30 + 40 + 80}{4} = 42.5, \qquad \sigma^2 = \frac{506.25 + 156.25 + 6.25 + 1406.25}{4} = 518.75$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The squared deviations are $(-22.5)^2, (-12.5)^2, (-2.5)^2, 37.5^2$. The test value alone contributes 1406 of the 2075: it dominates the scale.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Transform with leaked statistics</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma = \sqrt{518.75} = 22.776, \qquad z_{80} = \frac{80 - 42.5}{22.776} = 1.646$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The 80-year-old pulled the mean towards themself and stretched the spread, so they now look fairly ordinary.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Apply the rule |z| > 3</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{correct: } 6.124 > 3 \Rightarrow \text{flagged}, \qquad \text{leaky: } 1.646 < 3 \Rightarrow \text{missed}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Same data, same rule, opposite decisions. Even the training rows shifted: 30 became $-0.549$ instead of 0, so the model trains on different numbers.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Why the evaluation lies</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{evaluation used } \mu, \sigma \text{ that already knew the test set}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">In production a new person arrives one at a time and never influences the scaler. Any score measured with the leaky pipeline describes a situation that will never happen.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>The fix inside cross-validation</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{for each fold: } \texttt{fit\_scaler}(\text{train fold}) \;\to\; \texttt{transform}(\text{train fold}),\; \texttt{transform}(\text{test fold})$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Refit the scaler (and any imputer, encoder or feature selector) inside every fold, on that fold's training rows only. Libraries do this automatically when the steps are wrapped in a pipeline.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Fitting on training data gives $z = 6.12$ for the test person; fitting on everything gives $z = 1.65$. The leak changed the decision, not just a decimal.</p>
+          <p>Rule: every statistic (mean, sd, vocabulary, selected features) is computed from training rows only, then applied unchanged to validation and test rows.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Split the data <strong>first</strong>, and fit every learned step (scaling, imputation, feature selection, encoding) on the training part only, ideally inside a pipeline.</p>
+        <p>Drop any feature that would not be known at prediction time, remove duplicates across splits, and split time-ordered data by time.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the correct order of fit and transform, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Split first. Learn the scaler's mean and sd from the training rows only. Then transform the training rows and the test rows with those same numbers.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have compared the two scalers by hand. It will make more sense.</p>
+        <pre><code class="language-c">void fit_scaler(double train[], int n, double stats[]) {   /* learn from training rows only */
+    double mean = 0, variance = 0;
+    for (int i = 0; i &lt; n; i++) mean += train[i] / n;
+    for (int i = 0; i &lt; n; i++) variance += (train[i] - mean) * (train[i] - mean) / n;
+    stats[0] = mean; stats[1] = sqrt(variance);
+}
+
+void transform(double x[], int n, double stats[]) {        /* apply to any rows, incl. test */
+    for (int i = 0; i &lt; n; i++) x[i] = (x[i] - stats[0]) / stats[1];
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>data leakage</strong> is when information that would not be available at prediction time (test data, future data, or the label itself) is used to train or evaluate a model.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["a feature or preprocessing step"] --&gt; B{"computed using test or future rows?"}
+  B --&gt;|yes| L1["leak: fit it on training rows only"]
+  B --&gt;|no| C{"only known after the outcome?"}
+  C --&gt;|yes| L2["target leak: drop the feature"]
+  C --&gt;|no| D{"same rows in train and test?"}
+  D --&gt;|yes| L3["leak: remove duplicates / group the split"]
+  D --&gt;|no| OK["safe"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: "received antibiotics" in the pneumonia model, which box? (Answer: "target leak: drop the feature".)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does leakage usually make the evaluation score higher or lower than the real-world score?</p>
+          <details><summary>Check your answer</summary>
+            <p>Higher. The model has extra information during evaluation that it won't have in real use.</p>
+          </details>
+        </div>
+        <p>The z-score of the test age under the two scalers:</p>
+        $$z_{\text{correct}} = \frac{80 - 30}{8.16} \approx 6.1, \qquad z_{\text{leaky}} = \frac{80 - 42.5}{22.8} \approx 1.6$$
+        <p>The leaky scaler made an extreme case look ordinary. In general, leakage inflates evaluation scores, sometimes from mediocre to near-perfect.</p>
+        <table>
+          <thead>
+            <tr><th>Leak type</th><th>Example</th><th>Fix</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Preprocessing on all data</td><td>Scaling or imputing before the split</td><td>Fit on training rows only (pipelines)</td></tr>
+            <tr><td>Target leakage</td><td>"Received antibiotics" predicting pneumonia</td><td>Use only features known at prediction time</td></tr>
+            <tr><td>Duplicates across splits</td><td>Same patient in train and test</td><td>Group-aware splitting</td></tr>
+            <tr><td>Temporal leakage</td><td>Random split of time-series data</td><td>Train on the past, test on the future</td></tr>
+            <tr><td>Tuning on the test set</td><td>Choosing λ by test score</td><td>Tune with CV, test once at the end</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>If a validation score looks <strong>too good to be true</strong> (for example 99% on a hard problem), suspect leakage first. Check which features are most important; a leaky one usually stands out.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Give one example for each leak type: preprocessing before the split, a future-only feature, duplicates across splits, and random splits of time series. Each comes with its fix.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Imputing missing values or selecting features using the whole dataset.</li>
+          <li>Using features that are recorded after the event being predicted.</li>
+          <li>Splitting rows randomly when the same person, patient or day appears many times.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>You predict next month's sales and include a feature "sales this month + next month". Leakage or not?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Would you know it at prediction time?</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Leakage: it contains next month's sales, which is the target itself.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A dataset has 10 photos per patient, and you split the 1,000 photos randomly into train and test. Why can the test score be inflated, and how do you fix it? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Photos of the same patient end up in both sets, so the model can recognise the patient rather than the disease. Split by patient (group split): all of a patient's photos go to the same side.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>In 2008, a competition model for predicting prostate cancer reached suspicious accuracy partly through patient ID numbers that correlated with the hospital, and so with the diagnosis.</p>
+          <p>Kaggle hosts have repeatedly had to restart competitions after participants found leaks, for example in file names or row order.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Leakage inflates scores <strong>because</strong> the model uses information it won't have in real use.</li>
+          <li>Split before preprocessing <strong>because</strong> fitted parameters must come from training data only.</li>
+          <li>Future-only features leak <strong>because</strong> they partly encode the answer.</li>
+          <li>Duplicates leak <strong>because</strong> the model can memorise them instead of generalising.</li>
+          <li>Time series must be split by time <strong>because</strong> a random split lets the model train on the future.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is data leakage like seeing the exam answers the night before?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The score looks perfect but says nothing about real ability, because the answers were available during preparation.</p></details></li>
+          <li><strong>Scale the test age 80 correctly and leakily, with training ages [20, 30, 40].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Correct: mean 30, sd 8.16, z ≈ 6.1. Leaky: mean 42.5, sd 22.8, z ≈ 1.6.</p></details></li>
+          <li><strong>Why is <code>fit_scaler</code> separate from <code>transform</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says which rows each function sees.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Fitting must only see training rows, while transforming must be applied to training, test and new rows with the same parameters; separating them makes that order explicit.</p></details></li>
+          <li><strong>So what is data leakage, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Using, during training or evaluation, information that would not be available when the model makes real predictions.</p></details></li>
+          <li><strong>Why does the pneumonia model fail after deployment?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions timing.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>"Received antibiotics" is only known after diagnosis. At admission it is always "no", so the shortcut the model learned disappears.</p></details></li>
+          <li><strong>Name four kinds of leakage.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Preprocessing on all data, target leakage from future-only features, duplicates across splits, and random splits of time-ordered data (plus tuning on the test set).</p></details></li>
+          <li><strong>How do pipelines help prevent leakage?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>They bundle preprocessing and model so that, in each CV fold, everything is fitted on that fold's training rows only.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the time-series and duplicate cases. I'd keep the exam-answers analogy, the leaky scaler numbers, the antibiotics example, and "would I know this at prediction time?".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/common_pitfalls.html" target="_blank" rel="noopener">scikit-learn: Common pitfalls</a>: data leakage and how pipelines prevent it.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Leakage_(machine_learning)" target="_blank" rel="noopener">Wikipedia: Leakage (machine learning)</a>: types and examples.</li>
+          <li><a href="https://www.kaggle.com/learn/intermediate-machine-learning" target="_blank" rel="noopener">Kaggle Learn: Intermediate ML</a>: includes a hands-on lesson on leakage.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=data+leakage+machine+learning+explained" target="_blank" rel="noopener">YouTube search: data leakage explained</a>: pick a short explainer.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

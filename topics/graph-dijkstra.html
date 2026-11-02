@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dijkstra's algorithm · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-dijkstra" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Dijkstra's algorithm</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">From A, roads go to B (4 km) and C (1 km). C is closest, so it's settled first: its distance, 1, is final. Through C, B is only 1 + 2 = 3 km, better than 4. Keep settling the closest unsettled place and improving its neighbours, and you get every shortest distance: B 3, C 1, D 4. That's Dijkstra's algorithm.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it finds the shortest distance from one start to every vertex in a weighted graph in $O((V + E) \log V)$ with a heap: the core of route planners and network routing.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="graph-bfs.html">BFS</a>, the unweighted version of the idea.</li>
+          <li><a href="structure-priority-queue.html">Priority queue</a>.</li>
+          <li>Weighted graphs (see <a href="graph-representations.html">representations</a>).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine pouring water at the start of a network of pipes, where each pipe's length is its travel time. The water reaches the nearest junction first, then spreads from there.</p>
+          <p>Dijkstra simulates that wave: it always settles the unsettled vertex the water would reach next, the one with the smallest known distance. Once reached, that time can't get any shorter.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> all edge weights must be <strong>non-negative</strong>. With a negative edge, a settled distance could later improve, and Dijkstra would give wrong answers; use Bellman-Ford instead.</p>
+        <h3>Start with one run by hand</h3>
+        <p>Undirected edges: A–B 4, A–C 1, C–B 2, B–D 1, C–D 5. Start at A: dist A = 0, others ∞. Each round, settle the closest unsettled vertex and relax its edges. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Settle A. Predict the new tentative distances.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>B = 4, C = 1, D = ∞.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: which vertex is settled next, and what does it improve?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>C (distance 1). Through C: B = min(4, 1 + 2) = 3 and D = 1 + 5 = 6.</p></details>
+          <p><strong>Step 3.</strong> Settle the next vertex and finish. Predict the final distances.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>B (3) is settled; through B, D = min(6, 3 + 1) = 4. Then D. Final: A 0, B 3, C 1, D 4.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-dijkstra-1.svg" alt="Weighted graph A, B, C, D with final Dijkstra distances; the shortest-path tree A-C, C-B, B-D is highlighted" width="600" height="290">
+          <figcaption>What you just computed: green edges form the shortest-path tree from A. Small labels are final distances.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why is the closest unsettled vertex's distance final?</p>
+          <details><summary>Check your answer</summary>
+            <p>Any other route to it would pass through some unsettled vertex that is already at least as far, and with non-negative weights the rest of that route can only add more.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why negative weights break it</h3>
+        <p>Directed edges: S → A 2, S → B 3, B → A −2.</p>
+        <ul>
+          <li><strong>Dijkstra's answer.</strong> Predict what it settles first and the distance it reports for A.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It settles A first at distance 2 (2 &lt; 3) and never revisits it, reporting 2.</p></details></li>
+          <li><strong>The truth.</strong> Predict the real shortest distance to A.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>S → B → A costs 3 − 2 = 1. Dijkstra was wrong because the negative edge appeared after A was settled.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what does "relaxing" an edge u → v mean?</p>
+          <details><summary>Check your answer</summary>
+            <p>Checking whether going through u gives v a shorter distance: if dist[u] + w(u, v) &lt; dist[v], update dist[v].</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Set dist[start] = 0, all others ∞. Repeat: pick the unsettled vertex u with the smallest dist, settle it, and relax every edge u → v.</p>
+        <p>A min-priority queue makes "pick the smallest" fast; a plain array scan is simpler and fine for dense graphs.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write one round of Dijkstra in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Pick the unsettled vertex with the smallest distance. 2. Mark it settled. 3. For each neighbour, if going through it is shorter, update the neighbour's distance.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the run by hand. It will make more sense.</p>
+        <pre><code class="language-c">void dijkstra(int w[][4], int n, int s, int dist[]) {   /* w = 0 means no edge */
+    int done[4] = {0};
+    for (int i = 0; i &lt; n; i++) dist[i] = INT_MAX;
+    dist[s] = 0;
+    for (int round = 0; round &lt; n; round++) {
+        int u = -1;
+        for (int i = 0; i &lt; n; i++)                         /* closest unsettled vertex */
+            if (!done[i] &amp;&amp; (u == -1 || dist[i] &lt; dist[u])) u = i;
+        if (dist[u] == INT_MAX) break;                     /* the rest is unreachable */
+        done[u] = 1;
+        for (int v = 0; v &lt; n; v++)                         /* relax u's edges */
+            if (w[u][v] &amp;&amp; dist[u] + w[u][v] &lt; dist[v]) dist[v] = dist[u] + w[u][v];
+    }
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>Dijkstra's algorithm</strong> computes single-source shortest paths in a graph with non-negative weights by repeatedly settling the closest unsettled vertex and relaxing its edges.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph LR
+  A((A)) ---|4| B((B))
+  A ---|1| C((C))
+  C ---|2| B
+  B ---|1| D((D))
+  C ---|5| D
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: if the edge C–B had weight 5 instead of 2, what would dist[B] and dist[D] be? (Answer: B = 4 directly, and D = 5 via B.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what does the array version cost on a graph with $V$ vertices?</p>
+          <details><summary>Check your answer</summary>
+            <p>$O(V^2)$: $V$ rounds, each scanning all $V$ vertices to find the closest.</p>
+          </details>
+        </div>
+        <p>Each vertex is settled once and each edge relaxed once. With a binary heap, every settle and every improvement costs $O(\log V)$:</p>
+        $$O\big((V + E) \log V\big) \text{ with a heap}, \qquad O(V^2) \text{ with an array scan}$$
+        <p>The array version, used in the code above, is better for dense graphs where $E \approx V^2$.</p>
+        <table>
+          <thead>
+            <tr><th>Version</th><th>Time</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Array scan</td><td>$O(V^2)$</td><td>Dense graphs</td></tr>
+            <tr><td>Binary heap</td><td>$O((V + E) \log V)$</td><td>Sparse graphs, e.g. road maps</td></tr>
+            <tr><td>Extra space</td><td>$O(V)$</td><td>Distances and settled flags</td></tr>
+            <tr><td>Negative edges</td><td>Not allowed</td><td>Settled distances must never improve</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Dijkstra silently gives <strong>wrong answers</strong> with negative edge weights; it doesn't crash or warn. Check the precondition before using it.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams love a table of distances after each round. Write one row per settled vertex, and circle the settled value each time.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using it on a graph with a negative edge.</li>
+          <li>Settling a vertex when it is first discovered instead of when it is the smallest remaining.</li>
+          <li>Adding to ∞ in C (<code>INT_MAX + w</code> overflows): skip edges from unreachable vertices.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>In the example graph, run Dijkstra from D instead. Give the distances to A, B and C.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>D's neighbours are B (1) and C (5).</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>B = 1, C = min(5, 1 + 2) = 3, A = min(1 + 4, 3 + 1) = 4.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Add the edge A–D with weight 3 to the example and run from A again. Which distances change, and what is the new shortest-path tree? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Only D changes: min(4, 3) = 3, reached directly. Tree: A–C, C–B (B = 3), A–D (D = 3).</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Edsger Dijkstra designed the algorithm in about twenty minutes in 1956, sitting at a café in Amsterdam, without pencil and paper.</p>
+          <p>Map apps use Dijkstra-based algorithms such as A*, which adds a "straight-line distance to the goal" hint to explore far fewer roads.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The closest unsettled distance is final <strong>because</strong> non-negative edges can only make other routes longer.</li>
+          <li>Negative edges break it <strong>because</strong> a settled distance could still be improved later.</li>
+          <li>The heap version is $O((V + E) \log V)$ <strong>because</strong> each settle and each improvement is a heap operation.</li>
+          <li>The array version is $O(V^2)$ <strong>because</strong> each of $V$ rounds scans all vertices.</li>
+          <li>Relaxation is the core step <strong>because</strong> it's the only place distances get better.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Dijkstra's algorithm like water spreading through pipes?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The water reaches the closest junction first and spreads from there; Dijkstra always settles the vertex the wave would reach next.</p></details></li>
+          <li><strong>Walk through Dijkstra from A on A–B 4, A–C 1, C–B 2, B–D 1, C–D 5.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Settle A (B = 4, C = 1); settle C (B = 3, D = 6); settle B (D = 4); settle D. Final 0, 3, 1, 4.</p></details></li>
+          <li><strong>Why does the code break when the closest distance is <code>INT_MAX</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what those vertices are.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The remaining vertices can't be reached from the start, so there is nothing left to settle, and adding a weight to <code>INT_MAX</code> would overflow.</p></details></li>
+          <li><strong>So what is Dijkstra's algorithm, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A single-source shortest-path algorithm for non-negative weights that repeatedly settles the closest unsettled vertex and relaxes its edges.</p></details></li>
+          <li><strong>Why does Dijkstra require non-negative weights?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the S → A, S → B, B → A example.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It settles A at 2 for good, but the path through B with the −2 edge costs 1. A negative edge can improve a distance after it was declared final.</p></details></li>
+          <li><strong>What are the costs of the array and heap versions?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Array: $O(V^2)$. Binary heap: $O((V + E) \log V)$. Both use $O(V)$ extra space.</p></details></li>
+          <li><strong>When would you choose BFS or Bellman-Ford instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>BFS when all edges have the same weight; Bellman-Ford when some weights are negative.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the heap analysis and the overflow detail. I'd keep the water analogy, the 4-vertex run, and "settle the closest, relax its edges, no negative weights".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/sssp" target="_blank" rel="noopener">VisuAlgo: Single-source shortest paths</a>: run Dijkstra (and Bellman-Ford) on your own graph.</li>
+          <li><a href="https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/" target="_blank" rel="noopener">GeeksforGeeks: Dijkstra's algorithm</a>: array and heap versions with code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm" target="_blank" rel="noopener">Wikipedia: Dijkstra's algorithm</a>: history, proof and variants.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: lecture on Dijkstra.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=dijkstra+algorithm+explained" target="_blank" rel="noopener">YouTube search: Dijkstra explained</a>: pick a walkthrough with a distance table.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

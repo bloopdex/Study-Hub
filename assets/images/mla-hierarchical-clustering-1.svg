@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Dendrogram of four points</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="600" height="340" rx="16" fill="#f8fafc"/>
+  <text x="300" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Dendrogram (single linkage)</text>
+  <polyline points="120,280 120,240 200,240 200,280" fill="none" stroke="#6366f1" stroke-width="3"/>
+  <polyline points="380,280 380,200 460,200 460,280" fill="none" stroke="#6366f1" stroke-width="3"/>
+  <polyline points="160,240 160,120 420,120 420,200" fill="none" stroke="#6366f1" stroke-width="3"/>
+  <polyline points="80,160 520,160" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 4"/>
+  <text x="530" y="165" text-anchor="start" font-size="15" fill="#b91c1c">cut at 3</text>
+  <text x="120" y="302" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">A = 1</text>
+  <text x="200" y="302" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">B = 2</text>
+  <text x="380" y="302" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">C = 6</text>
+  <text x="460" y="302" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">D = 8</text>
+  <text x="60" y="245" text-anchor="end" font-size="15" fill="#64748b">1</text>
+  <text x="60" y="205" text-anchor="end" font-size="15" fill="#64748b">2</text>
+  <text x="60" y="125" text-anchor="end" font-size="15" fill="#64748b">4</text>
+  <text x="40" y="60" text-anchor="start" font-size="15" fill="#64748b">height</text>
+</svg>

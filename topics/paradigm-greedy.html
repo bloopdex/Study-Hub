@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greedy algorithms · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="paradigm-greedy" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="paradigms.html" class="hover:text-indigo-500">Paradigms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Paradigms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Greedy algorithms</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Six talks want one room: A 1–3, B 2–5, C 4–6, D 6–8, E 5–9, F 8–10. Fit in as many as possible by always picking the talk that <em>finishes first</em> among those that still fit: A, then C, then D, then F. Four talks, and no other plan does better. That's a greedy algorithm: make the best-looking choice now and never undo it.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> when a greedy rule is provably safe, it gives an optimal answer very fast, often just a sort plus one pass. When it isn't safe, it can be badly wrong, so knowing which is which matters.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="sorting.html">Sorting</a>.</li>
+          <li>The idea of an optimal solution.</li>
+          <li>Intervals: start and end times.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of packing a bag for a trip by always grabbing the most useful item that still fits. You never unpack to reconsider.</p>
+          <p>That's greedy: each step takes the locally best option. It works brilliantly for some problems (like choosing talks by earliest finish) and fails for others, where an early grab blocks a better combination.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>When greedy works:</strong> the problem must have the <strong>greedy-choice property</strong> (some optimal solution starts with the greedy choice) and <strong>optimal substructure</strong> (the rest is again an optimal solution of a smaller problem).</p>
+        <h3>Start with activity selection by hand</h3>
+        <p>Talks sorted by end time: A 1–3, B 2–5, C 4–6, D 6–8, E 5–9, F 8–10. Keep a talk if it starts no earlier than the last kept talk ends. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Pick the first talk. Predict which, and why it is safe.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>A (ends at 3, the earliest). Finishing first leaves the most room for everything else.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: after A, check B and C.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>B starts at 2, before A ends: skip. C starts at 4 ≥ 3: keep C (ends at 6).</p></details>
+          <p><strong>Step 3.</strong> Continue with D, E, F. Predict the final selection.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>D starts at 6 ≥ 6: keep (ends 8). E starts at 5: skip. F starts at 8 ≥ 8: keep. Selected A, C, D, F: 4 talks.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/paradigm-greedy-1.svg" alt="Timeline of six talks from time 1 to 10; talks A, C, D and F selected by earliest finish time" width="640" height="400">
+          <figcaption>What you just did by hand: green talks were kept, grey ones overlapped with an earlier choice.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why choose the talk that <em>finishes</em> first rather than the one that <em>starts</em> first?</p>
+          <details><summary>Check your answer</summary>
+            <p>An early start can still end late and block many talks; ending first always leaves the most time for the rest.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: when greedy fails</h3>
+        <p>Make change for 6 with coins {1, 3, 4}, greedily taking the biggest coin that fits.</p>
+        <ul>
+          <li><strong>The greedy answer.</strong> Predict the coins.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>4, then 1, then 1: three coins.</p></details></li>
+          <li><strong>The best answer.</strong> Predict it, and say what greedy got wrong.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>3 + 3: two coins. Taking 4 first looked best but left 2, which only 1s can pay. Greedy never reconsiders, so it can't recover.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why does greedy fail for coins {1, 3, 4} and amount 6?</p>
+          <details><summary>Check your answer</summary>
+            <p>It takes the biggest coin, 4, then 1 + 1: three coins. But 3 + 3 uses only two. The first greedy choice blocked the best combination.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Sort or order the candidates by a <strong>greedy rule</strong> (here: earliest finish). Go through them once; take each candidate that keeps the solution valid and never undo a choice.</p>
+        <p>Before trusting it, prove the rule is safe (an exchange argument) or test it against counter-examples.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the activity-selection loop in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Go through the talks in order of end time. If a talk starts at or after the end of the last kept talk, keep it and remember its end time; otherwise skip it.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have selected the talks by hand. It will make more sense.</p>
+        <pre><code class="language-c">int select_activities(int start[], int end[], int n, int chosen[]) {   /* sorted by end */
+    int k = 0, last_end = -1;
+    for (int i = 0; i &lt; n; i++)
+        if (start[i] &gt;= last_end) {        /* fits after the last kept talk */
+            chosen[k++] = i;
+            last_end = end[i];             /* earliest finish so far */
+        }
+    return k;                              /* how many talks were kept */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>greedy algorithm</strong> builds a solution step by step, always taking the choice that looks best right now and never revising it.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["sort talks by end time"] --&gt; B["take the next talk"]
+  B --&gt; C{"starts after the last kept talk ends?"}
+  C --&gt;|yes| D["keep it, update last end"]
+  C --&gt;|no| E["skip it"]
+  D --&gt; F{"more talks?"}
+  E --&gt; F
+  F --&gt;|yes| B
+  F --&gt;|no| G["done: maximum number of talks"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for talk E (5–9), which arrow do you take? (Answer: "no", because the last kept talk, D, ends at 8.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: which step dominates the running time?</p>
+          <details><summary>Check your answer</summary>
+            <p>Sorting by end time: $O(n \log n)$. The selection pass is $O(n)$.</p>
+          </details>
+        </div>
+        <p>Sorting the $n$ talks dominates; the selection itself is one pass:</p>
+        $$O(n \log n)_{\text{sort}} + O(n)_{\text{scan}} \;=\; O(n \log n)$$
+        <table>
+          <thead>
+            <tr><th>Problem</th><th>Greedy rule</th><th>Optimal?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Activity selection</td><td>Earliest finish time</td><td>Yes</td></tr>
+            <tr><td>Fractional knapsack</td><td>Best value per kg first</td><td>Yes</td></tr>
+            <tr><td>Minimum spanning tree</td><td>Cheapest safe edge (Kruskal, Prim)</td><td>Yes</td></tr>
+            <tr><td>Shortest paths, weights ≥ 0</td><td>Closest vertex (Dijkstra)</td><td>Yes</td></tr>
+            <tr><td>Coins {1, 5, 10, 25}</td><td>Biggest coin</td><td>Yes</td></tr>
+            <tr><td>Coins {1, 3, 4}</td><td>Biggest coin</td><td>No</td></tr>
+            <tr><td>0/1 knapsack</td><td>Best value per kg</td><td>No</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A greedy rule that seems obvious can be wrong. "Shortest talk first" fails: talks 1–5, 5–9 and a short talk 4–6 give one talk instead of two. Always check with a proof or a counter-example.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>To prove a greedy choice is safe, use an exchange argument: take any optimal solution, swap its first choice for the greedy choice, and show it's still valid and no worse.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Assuming greedy is optimal without a proof.</li>
+          <li>Sorting by the wrong key (start time or duration instead of end time).</li>
+          <li>Using greedy for 0/1 knapsack or arbitrary coin systems, where dynamic programming is needed.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Talks: 1–4, 3–5, 0–6, 5–7, 3–9, 5–9, 6–10, 8–11. Select the maximum number with the earliest-finish rule.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Sort by end time first.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>1–4, then 5–7, then 8–11: 3 talks.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Fractional knapsack, capacity 50 kg: items (60 € for 10 kg), (100 € for 20 kg), (120 € for 30 kg). What does greedy by value per kg give, and why would the same rule fail if items couldn't be split? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Ratios 6, 5, 4 €/kg. Take all of items 1 and 2 (30 kg, 160 €) and 20 kg of item 3 (80 €): 240 €. If items can't be split, greedy takes items 1 and 2 (160 €) and item 3 doesn't fit, but items 2 and 3 give 220 €, which is better.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Huffman coding, used inside ZIP files, JPEG and MP3, is a greedy algorithm: it repeatedly merges the two least frequent symbols, and that is provably optimal.</p>
+          <p>Cashiers in most countries use greedy change-making, which is optimal for the usual coin systems; designing coin systems where greedy fails is a classic puzzle.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Greedy is fast <strong>because</strong> it makes one pass without ever backtracking.</li>
+          <li>Earliest finish is safe <strong>because</strong> it leaves the most time for the remaining talks.</li>
+          <li>Greedy can fail <strong>because</strong> a choice that looks best now can block a better combination later.</li>
+          <li>A proof is needed <strong>because</strong> correctness depends on the greedy-choice property, which many problems lack.</li>
+          <li>Sorting usually dominates <strong>because</strong> the selection pass itself is linear.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a greedy algorithm like packing a bag by always grabbing the most useful thing that fits?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each step takes the locally best option and never reconsiders, which is fast but can miss a better overall combination.</p></details></li>
+          <li><strong>Walk through activity selection on A 1–3, B 2–5, C 4–6, D 6–8, E 5–9, F 8–10.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Keep A; skip B (starts at 2); keep C; keep D; skip E (starts at 5); keep F. Four talks: A, C, D, F.</p></details></li>
+          <li><strong>Why does the code compare <code>start[i] &gt;= last_end</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what <code>last_end</code> holds.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p><code>last_end</code> is when the last kept talk ends; a talk starting at or after it doesn't overlap, so it can be kept.</p></details></li>
+          <li><strong>So what is a greedy algorithm, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An algorithm that builds a solution step by step by always taking the locally best choice and never revising it.</p></details></li>
+          <li><strong>Why is "earliest finish first" optimal for activity selection?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses an exchange argument.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Take any optimal schedule and replace its first talk with the earliest-finishing one: it ends no later, so it can't clash with the rest. Repeating the argument shows greedy keeps as many talks.</p></details></li>
+          <li><strong>What does activity selection cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n \log n)$ for sorting by end time, plus $O(n)$ for the selection pass.</p></details></li>
+          <li><strong>Give a problem where greedy fails, and what to use instead.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Change for 6 with coins {1, 3, 4}: greedy gives 4 + 1 + 1, the best is 3 + 3. Dynamic programming finds the true optimum.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the formal properties and fractional knapsack. I'd keep the bag analogy, the talk-scheduling example, the coin counter-example, and "fast, but only optimal when you can prove it".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/activity-selection-problem-greedy-algo-1/" target="_blank" rel="noopener">GeeksforGeeks: Activity selection</a>: the problem, proof and code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Greedy_algorithm" target="_blank" rel="noopener">Wikipedia: Greedy algorithm</a>: when greedy works and classic failures.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-046j-design-and-analysis-of-algorithms-spring-2015/" target="_blank" rel="noopener">MIT OCW 6.046J Design and Analysis of Algorithms</a>: lectures on greedy algorithms and their proofs.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=greedy+algorithm+activity+selection" target="_blank" rel="noopener">YouTube search: greedy activity selection</a>: pick a walkthrough with a timeline.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

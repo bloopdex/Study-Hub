@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Queue · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="structure-queue" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="linear-structures.html" class="hover:text-indigo-500">Linear structures</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Linear structures</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Queue</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Enqueue 5, enqueue 3, then dequeue: you get 5, the <em>first</em> thing you put in. Enqueue 8, and the queue is <code>3, 8</code>. You add at the back and remove from the front: first in, first out (FIFO). In an array, the trick is to let the front index move and wrap around.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> enqueue and dequeue are both $O(1)$ in a circular array, and FIFO order is exactly what fair waiting lines need: print jobs, network packets, and breadth-first search.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="structure-array.html">Arrays</a> and indices.</li>
+          <li>The modulo operator <code>%</code>.</li>
+          <li><a href="structure-stack.html">Stack</a>, to contrast LIFO with FIFO.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a line at a bakery. New customers join at the back, and the person at the front is served first. Nobody cuts in.</p>
+          <p>A queue keeps that order. In an array we don't move the customers forward; instead the "front of the line" marker moves, and wraps back to slot 0 when it reaches the end.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>The queue is an array of 4 slots with <code>front = 0</code> and <code>size = 0</code>. A new item goes to slot <code>(front + size) % 4</code>. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> <code>enqueue 5</code>, <code>enqueue 3</code>. Predict which slots they use.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Slot 0 then slot 1. Now <code>front = 0</code>, <code>size = 2</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: what does <code>dequeue</code> return, and does anything shift?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>It returns 5, the oldest item. Nothing shifts; <code>front</code> just moves to 1 and <code>size</code> becomes 1.</p></details>
+          <p><strong>Step 3.</strong> <code>enqueue 8</code>. Predict its slot.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p><code>(1 + 1) % 4 = 2</code>. The queue, front to back, is <code>3, 8</code>.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/structure-queue-1.svg" alt="Circular array queue of capacity 4 after enqueue 5, enqueue 3, dequeue, enqueue 8; the front slot is highlighted" width="640" height="370">
+          <figcaption>What you just did by hand: the yellow box is the front. Dequeue doesn't shift anything; the front marker moves.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why doesn't dequeue shift the remaining items forward?</p>
+          <details><summary>Check your answer</summary>
+            <p>Because the front index moves instead. Shifting would cost $O(n)$; moving one index costs $O(1)$.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: wrapping around</h3>
+        <p>Continue from <code>front = 1</code>, holding <code>3, 8</code> in slots 1 and 2. Enqueue 1, then 2.</p>
+        <ul>
+          <li><strong>Enqueue 1.</strong> Predict its slot.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p><code>(1 + 2) % 4 = 3</code>, the last slot.</p></details></li>
+          <li><strong>Enqueue 2.</strong> Predict its slot: the array looks full at the end.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p><code>(1 + 3) % 4 = 0</code>: it wraps to slot 0, which was freed by the earlier dequeue. The queue is now full: 3, 8, 1, 2.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why did the item 2 go into slot 0?</p>
+          <details><summary>Check your answer</summary>
+            <p>Slot <code>(front + size) % 4</code> was past the end, so it wrapped around to the free slot at the start.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Keep the items in an array with two numbers: <code>front</code> (index of the oldest item) and <code>size</code>.</p>
+        <p><strong>enqueue</strong> writes at <code>(front + size) % capacity</code>. <strong>dequeue</strong> reads at <code>front</code> and moves it forward, wrapping with <code>%</code>.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the steps of enqueue and dequeue in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>enqueue: write at <code>(front + size) % capacity</code>, then add 1 to size. dequeue: read at <code>front</code>, move <code>front</code> one step with wrap-around, subtract 1 from size.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the operations by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct { int data[4]; int front, size; } Queue;   /* capacity 4 */
+
+void enqueue(Queue *q, int v) {            /* caller checks q-&gt;size &lt; 4 */
+    q-&gt;data[(q-&gt;front + q-&gt;size) % 4] = v;
+    q-&gt;size++;
+}
+
+int dequeue(Queue *q) {                    /* caller checks q-&gt;size &gt; 0 */
+    int v = q-&gt;data[q-&gt;front];
+    q-&gt;front = (q-&gt;front + 1) % 4;         /* wrap around */
+    q-&gt;size--;
+    return v;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>queue</strong> is a first-in, first-out (FIFO) collection: you <strong>enqueue</strong> at the back and <strong>dequeue</strong> from the front.</p>
+          <p>A <strong>circular buffer</strong> stores it in an array whose indices wrap around.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  IN["enqueue"] --&gt; R["back: 8"]
+  R --- M["3"]
+  M --&gt; F["front: 3 leaves first"]
+  F --&gt; OUT["dequeue"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after enqueue 1 and one dequeue on the queue 3, 8, which item leaves? (Answer: 3, the oldest.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the table, predict: what would dequeue cost if we always kept the front at slot 0?</p>
+          <details><summary>Check your answer</summary>
+            <p>$O(n)$, because every remaining item would shift one slot left.</p>
+          </details>
+        </div>
+        <p>Both operations do a fixed amount of index arithmetic. The slot for the next item is:</p>
+        $$\text{slot} \;=\; (\text{front} + \text{size}) \bmod \text{capacity}$$
+        <p>No loop runs, so enqueue and dequeue are $O(1)$ however many items are waiting.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>enqueue</td><td>$O(1)$</td><td>One write at the computed slot</td></tr>
+            <tr><td>dequeue</td><td>$O(1)$</td><td>One read, the front index moves</td></tr>
+            <tr><td>front / is_empty</td><td>$O(1)$</td><td>Read <code>front</code> or <code>size</code></td></tr>
+            <tr><td>dequeue in a naive array (shift left)</td><td>$O(n)$</td><td>Every item moves one slot</td></tr>
+            <tr><td>Search for a value</td><td>$O(n)$</td><td>Not a queue operation</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Keep a <code>size</code> (or leave one slot empty). With only <code>front</code> and <code>back</code> indices, a full queue and an empty queue look the same: <code>front == back</code> in both cases.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Trace questions use the formula $(\text{front} + \text{size}) \bmod \text{capacity}$. Write <code>front</code>, <code>size</code> and the array after every operation.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Shifting all items on dequeue, which turns $O(1)$ into $O(n)$.</li>
+          <li>Forgetting the <code>% capacity</code> wrap, which writes past the end of the array.</li>
+          <li>Being unable to tell "full" from "empty" because no size is stored.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Starting empty: enqueue 1, enqueue 2, dequeue, enqueue 3, dequeue. Which values are dequeued?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>The oldest item always leaves first.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>1, then 2. The queue ends holding 3.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>With capacity 4, start empty and do: enqueue A, B, C; dequeue; dequeue; enqueue D, E. Give <code>front</code>, <code>size</code> and the slot of E. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>After A, B, C: front 0, size 3. Two dequeues: front 2, size 1. D goes to (2+1)%4 = 3, E to (2+2)%4 = 0. Final: front 2, size 3, E in slot 0.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Breadth-first search, the graph algorithm that finds shortest paths in unweighted graphs, is a queue loop: dequeue a node, enqueue its unvisited neighbours.</p>
+          <p>Your keyboard, network card and printer all use circular buffers like this one, so data arriving faster than it's processed waits in order instead of getting lost.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The oldest item leaves first <strong>because</strong> items are added at the back and removed from the front.</li>
+          <li>Dequeue is $O(1)$ <strong>because</strong> the front index moves instead of the items.</li>
+          <li>The array is used in a circle <strong>because</strong> <code>% capacity</code> sends indices past the end back to slot 0.</li>
+          <li>A size counter is needed <strong>because</strong> otherwise full and empty look identical.</li>
+          <li>BFS uses a queue <strong>because</strong> nodes must be processed in the order they were discovered.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a queue like a line at a bakery?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>People join at the back and are served from the front, so the first to arrive is the first to leave.</p></details></li>
+          <li><strong>Walk through enqueue 5, enqueue 3, dequeue, enqueue 8 in a 4-slot circular array.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>5 goes to slot 0, 3 to slot 1; dequeue returns 5 and moves front to 1; 8 goes to slot (1+1)%4 = 2. The queue is 3, 8.</p></details></li>
+          <li><strong>Why does the code use <code>% 4</code> when computing slots?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the end of the array.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When an index passes the last slot, <code>% 4</code> wraps it back to slot 0, reusing the space freed by earlier dequeues.</p></details></li>
+          <li><strong>So what is a queue, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A first-in, first-out collection with enqueue at the back and dequeue at the front.</p></details></li>
+          <li><strong>Why is a circular buffer better than shifting items forward?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares the costs.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Shifting moves every remaining item on each dequeue, which is $O(n)$. Moving the front index is $O(1)$.</p></details></li>
+          <li><strong>What do enqueue, dequeue and front cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>All three are $O(1)$ in a circular array.</p></details></li>
+          <li><strong>How do you tell a full queue from an empty one?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Store the size: empty is size 0, full is size equal to the capacity. With only two indices both cases would look like front == back.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the full-versus-empty detail and the exact modulo trace. I'd keep the bakery analogy, the enqueue/dequeue sequence, and "FIFO, $O(1)$ with a circular array, used by BFS".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/list" target="_blank" rel="noopener">VisuAlgo: Queue</a>: choose "Queue" and animate enqueue and dequeue.</li>
+          <li><a href="https://www.geeksforgeeks.org/queue-data-structure/" target="_blank" rel="noopener">GeeksforGeeks: Queue data structure</a>: array, circular and linked-list versions.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Circular_buffer" target="_blank" rel="noopener">Wikipedia: Circular buffer</a>: the wrap-around idea and the full/empty problem.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=circular+queue+explained" target="_blank" rel="noopener">YouTube search: circular queue explained</a>: pick a walkthrough with index traces.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

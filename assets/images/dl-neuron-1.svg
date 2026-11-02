@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="290" viewBox="0 0 640 290" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Neuron diagram</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="640" height="290" rx="16" fill="#f8fafc"/>
+  <text x="320" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">One neuron: weighted sum + bias → activation</text>
+  <line x1="115.3" y1="105.8" x2="265.0" y2="140.1" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="152.6" y="113.0" width="75.2" height="19" rx="4" fill="#f8fafc"/>
+  <text x="190.2" y="128.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">w₁ = 0.5</text>
+  <line x1="115.3" y1="204.2" x2="265.0" y2="169.9" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="148.4" y="177.0" width="83.6" height="19" rx="4" fill="#f8fafc"/>
+  <text x="190.2" y="192.0" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">w₂ = −0.3</text>
+  <line x1="395.0" y1="155.0" x2="465.0" y2="155.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <circle cx="90" cy="100" r="26" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="90" y="106" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">2</text>
+  <text x="90" y="143" text-anchor="middle" font-size="12" fill="#475569">x₁</text>
+  <circle cx="90" cy="210" r="26" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="90" y="216" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">3</text>
+  <text x="90" y="253" text-anchor="middle" font-size="12" fill="#475569">x₂</text>
+  <rect x="265" y="127" width="130" height="56" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="330" y="153" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Σ + b</text>
+  <text x="330" y="170" text-anchor="middle" font-size="12" fill="#475569">z = 0.2</text>
+  <rect x="465" y="127" width="110" height="56" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="520" y="153" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">σ(z)</text>
+  <text x="520" y="170" text-anchor="middle" font-size="12" fill="#475569">a = 0.55</text>
+  <text x="330" y="230" text-anchor="middle" font-size="15" fill="#64748b">bias b = 0.1</text>
+</svg>

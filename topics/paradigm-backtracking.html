@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backtracking · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="paradigm-backtracking" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="paradigms.html" class="hover:text-indigo-500">Paradigms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Paradigms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Backtracking</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Place 4 queens on a 4 × 4 board so no two attack each other. Put a queen in row 1, column 1; in row 2 the first safe column is 3; in row 3 nothing is safe. Dead end, so <em>undo</em> the last choice and try the next column. Keep choosing, checking and undoing, and you find a solution: columns 2, 4, 1, 3. That's backtracking.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it explores all possibilities without listing them one by one, cutting off every branch as soon as it breaks a rule. That makes puzzles, schedules and search problems with huge search spaces solvable in practice.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Recursion.</li>
+          <li><a href="graph-dfs.html">DFS</a>: backtracking is DFS on a tree of choices.</li>
+          <li>Arrays.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of walking through a maze: at each junction you pick a path; when you hit a dead end, you walk back to the last junction and try the next path.</p>
+          <p>Backtracking does that with choices. It builds a solution one decision at a time and, the moment a rule is broken, undoes the last decision and tries another.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>The three moves:</strong> <strong>choose</strong> an option for the next decision, <strong>explore</strong> recursively, and <strong>un-choose</strong> it when you come back, so the next option starts from a clean state.</p>
+        <h3>Start with 4 queens by hand</h3>
+        <p>One queen per row. Try columns 1 to 4 in order; a column is safe if no earlier queen shares its column or a diagonal. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Row 1: column 1. Row 2: predict the first safe column.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Column 3. Column 1 is the same column, and column 2 is on a diagonal of (1, 1).</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: with queens at (1, 1) and (2, 3), is any column safe in row 3?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>No: columns 1 and 3 are taken, 2 and 4 are on diagonals of (2, 3). Dead end, so backtrack: move row 2's queen to column 4.</p></details>
+          <p><strong>Step 3.</strong> Keep going. Predict the first full solution.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Row 1 at column 1 eventually fails everywhere, so row 1 moves to column 2. Then rows 2, 3, 4 take columns 4, 1, 3: solution (2, 4, 1, 3).</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/paradigm-backtracking-1.svg" alt="4 by 4 board with queens in row 1 column 2, row 2 column 4, row 3 column 1, row 4 column 3" width="600" height="370">
+          <figcaption>The first solution you found: no two queens share a row, a column or a diagonal.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: when exactly does backtracking undo a choice?</p>
+          <details><summary>Check your answer</summary>
+            <p>As soon as the current partial solution can't be extended: no option for the next decision is valid.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why pruning matters</h3>
+        <p>Compare blind enumeration with backtracking on 4 queens.</p>
+        <ul>
+          <li><strong>Blind enumeration.</strong> Predict how many complete placements (one queen per row) you'd check.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$4^4 = 256$, testing each full board only at the end.</p></details></li>
+          <li><strong>Backtracking.</strong> Predict why it checks far fewer.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>A clash is detected as soon as it happens, so whole subtrees are cut: after (1, 1), (2, 2) is rejected immediately, along with the 16 boards that start that way.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what is the second 4-queens solution?</p>
+          <details><summary>Check your answer</summary>
+            <p>The mirror image: columns 3, 1, 4, 2.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Build the solution one decision at a time (here: one row at a time). For each option, check the constraints against the decisions so far.</p>
+        <p>If the option is valid, take it and recurse; when the recursion returns, undo it and try the next option. If no option works, return to let the previous decision change.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the backtracking loop in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>If every row has a queen, count a solution. Otherwise, for each column in the current row: if it's safe, place the queen, solve the next row, and then move on to the next column (undoing the placement).</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have placed the queens by hand. It will make more sense.</p>
+        <pre><code class="language-c">int safe(int col[], int row, int c) {           /* can a queen go at (row, c)? */
+    for (int r = 0; r &lt; row; r++)
+        if (col[r] == c || col[r] - c == row - r || c - col[r] == row - r)
+            return 0;                           /* same column or diagonal */
+    return 1;
+}</code></pre>
+        <pre><code class="language-c">int solve(int col[], int row, int n) {          /* returns the number of solutions */
+    if (row == n) return 1;                     /* all queens placed */
+    int count = 0;
+    for (int c = 0; c &lt; n; c++)
+        if (safe(col, row, c)) {
+            col[row] = c;                       /* choose */
+            count += solve(col, row + 1, n);    /* explore */
+        }                                       /* next c overwrites col[row]: un-choose */
+    return count;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>backtracking</strong> builds candidate solutions one choice at a time and abandons a partial solution (backtracks) as soon as it cannot lead to a valid complete solution.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  R["empty board"] --&gt; A["row 1: col 1"]
+  R --&gt; B["row 1: col 2"]
+  A --&gt; A3["row 2: col 3"]
+  A --&gt; A4["row 2: col 4"]
+  A3 --&gt; X1["row 3: no safe column ✗"]
+  B --&gt; B4["row 2: col 4"]
+  B4 --&gt; B41["row 3: col 1"]
+  B41 --&gt; S["row 4: col 3 ✓"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: under "row 2: col 4" on the left branch, does that branch reach a solution? (Answer: no; row 3 can use column 2, but row 4 then has no safe column.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many ways are there to put one queen in each row and column of an $n \times n$ board?</p>
+          <details><summary>Check your answer</summary>
+            <p>$n!$, since each row picks a different column. Pruning by diagonals cuts this down a lot.</p>
+          </details>
+        </div>
+        <p>With one queen per row and per column, the full search space is $n!$ placements, and pruning explores only a fraction of it:</p>
+        $$n^n \;\gg\; n! \;\gg\; \text{nodes actually explored}$$
+        <p>For $n = 8$: $8^8 \approx 16.8$ million boards, $8! = 40{,}320$ permutations, and backtracking visits about 2,000 partial boards to find all 92 solutions. The worst case is still exponential.</p>
+        <table>
+          <thead>
+            <tr><th>Problem</th><th>Search space</th><th>Pruning rule</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$n$-queens</td><td>$n!$ permutations</td><td>Column or diagonal clash</td></tr>
+            <tr><td>Sudoku</td><td>$9^{81}$ fillings</td><td>Row, column or box clash</td></tr>
+            <tr><td>Subset sum</td><td>$2^n$ subsets</td><td>Running sum exceeds the target</td></tr>
+            <tr><td>Graph colouring</td><td>$k^V$ colourings</td><td>Neighbour has the same colour</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Backtracking is still <strong>exponential in the worst case</strong>. Pruning only helps if it cuts early; checking constraints only on complete solutions is plain brute force.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Draw the decision tree, mark pruned branches with ✗, and name the three moves (choose, explore, un-choose). That is usually what the question wants.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to undo a choice (when state is shared), so later branches see stale decisions.</li>
+          <li>Checking constraints only at the end instead of at each step, losing all the pruning.</li>
+          <li>Missing the diagonal test: two queens attack diagonally when |row difference| = |column difference|.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Using backtracking, find a subset of {3, 5, 6, 7} that sums to 15. Prune any branch whose sum exceeds 15.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Decide for each number in order: take it or leave it.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Take 3, 5 and 6 (sum 14); taking 7 too gives 21 &gt; 15, pruned, and skipping 7 ends at 14, a dead end. Backtrack: skip 6, take 7: 3 + 5 + 7 = 15.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>How many solutions does the 4-queens problem have, and how does the code above count them without printing? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>2 solutions: (2, 4, 1, 3) and (3, 1, 4, 2). <code>solve</code> returns 1 whenever all rows are filled and adds up the counts from every safe choice, so the top call returns 2.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The 8-queens puzzle was posed by a chess composer in 1848; Gauss worked on it. It has 92 solutions, 12 of them truly different once rotations and reflections are removed.</p>
+          <p>Sudoku solvers, crossword fillers and constraint solvers used in timetabling and chip design are all built on backtracking with clever pruning.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Backtracking is DFS over choices <strong>because</strong> it extends one partial solution as deep as possible before trying alternatives.</li>
+          <li>Pruning saves time <strong>because</strong> one early clash removes every solution that would extend it.</li>
+          <li>Choices must be undone <strong>because</strong> the next option must start from the same state as the first.</li>
+          <li>The worst case is exponential <strong>because</strong> pruning can't always cut enough of the search space.</li>
+          <li>The diagonal test uses |Δrow| = |Δcolumn| <strong>because</strong> that's exactly when two squares share a diagonal.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is backtracking like walking through a maze?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>At each junction you choose a path; at a dead end you walk back to the last junction and try the next path.</p></details></li>
+          <li><strong>Walk through the start of 4-queens: rows 1 and 2, and the first dead end.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Row 1 takes column 1, row 2 takes column 3 (the first safe one); row 3 then has no safe column, so we backtrack and move row 2 to column 4.</p></details></li>
+          <li><strong>Why does <code>safe</code> compare <code>col[r] - c</code> and <code>c - col[r]</code> with <code>row - r</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer describes a diagonal.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Two squares are on the same diagonal when the column difference equals the row difference in either direction; the two comparisons cover both diagonals.</p></details></li>
+          <li><strong>So what is backtracking, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Building a solution choice by choice and abandoning (undoing) a partial solution as soon as it breaks a constraint.</p></details></li>
+          <li><strong>Why is backtracking much faster than trying every full board?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions whole subtrees.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A clash found after two queens rules out every board that starts with those two queens, so huge parts of the search space are never visited.</p></details></li>
+          <li><strong>What is the worst-case cost of backtracking?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Still exponential, bounded by the size of the search space (such as $n!$ for $n$-queens); pruning usually makes it far smaller in practice.</p></details></li>
+          <li><strong>How does the code "un-choose" a queen?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It overwrites <code>col[row]</code> with the next column in the loop, and later rows only read entries for rows above them, so the old value never interferes.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the search-space numbers and subset sum. I'd keep the maze analogy, the 4-queens trace with one dead end, and "choose, explore, un-choose; prune early".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/backtracking-algorithms/" target="_blank" rel="noopener">GeeksforGeeks: Backtracking</a>: n-queens, sudoku, subset sum and more.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Backtracking" target="_blank" rel="noopener">Wikipedia: Backtracking</a>: the general method and examples.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle" target="_blank" rel="noopener">Wikipedia: Eight queens puzzle</a>: history and solution counts.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=n+queens+backtracking+explained" target="_blank" rel="noopener">YouTube search: n-queens backtracking</a>: pick a walkthrough with the board.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

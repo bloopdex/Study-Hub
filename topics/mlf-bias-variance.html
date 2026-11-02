@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bias–variance trade-off · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mlf-bias-variance" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Bias–variance trade-off</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Fit three models to the same 7 points that follow a U shape. A straight flat line misses the shape everywhere (<strong>underfit</strong>, high bias). A smooth U curve follows the trend (<strong>good fit</strong>). A wiggly curve passes through every point exactly, including the noise (<strong>overfit</strong>, high variance). The wiggly one has zero training error and the worst predictions on new data.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> every model's error on new data splits into bias (too simple), variance (too sensitive to the training sample) and noise. Tuning a model means finding the complexity that minimises their sum.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-regression-metrics.html">MSE</a>.</li>
+          <li>Mean and variance.</li>
+          <li>The idea of training data versus new (test) data.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of archers. One archer always hits the same spot, but it's left of the bullseye: consistent but wrong (high bias). Another hits all around the bullseye, scattered everywhere: right on average but unreliable (high variance).</p>
+          <p>A good model is the archer with a tight group around the centre. Making a model more flexible moves it from the first archer towards the second.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Notation:</strong> the true relationship is $f(x)$; the data is $y = f(x) + \varepsilon$ with noise $\varepsilon$ of variance $\sigma^2$; $\hat f$ is the model learned from one training sample.</p>
+        <h3>Start with three fits on the same data</h3>
+        <p>Seven points roughly on a U shape (lowest near $x = 3$). Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> A horizontal line at the mean. Predict its training error and its error on new points.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Both are high, and similar: it can't bend, so it misses the U everywhere. That's high bias, underfitting.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: a polynomial wiggly enough to pass through all 7 points. Training error? Error on a new point at $x = 3.5$?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Training error 0. But between the points it swings wildly (down to 0.3 at $x = 3.5$, while the true value is about 1.1). High variance, overfitting.</p></details>
+          <p><strong>Step 3.</strong> A smooth U-shaped curve. Predict its errors.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Small training error (not zero, since it ignores the noise) and the smallest error on new points: the best trade-off.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mlf-bias-variance-1.svg" alt="Three panels with the same seven U-shaped points: flat line underfitting, smooth U curve fitting well, and a wiggly curve overfitting" width="680" height="280">
+          <figcaption>What you just compared: same data, three model complexities. Only the middle one would predict new points well.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which model has high bias and which has high variance?</p>
+          <details><summary>Check your answer</summary>
+            <p>The flat line has high bias (too simple); the wiggly curve has high variance (it follows the noise of this particular sample).</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: bias and variance in numbers</h3>
+        <p>At $x = 2$ the true value is 4. Train five models on five different samples and look at their predictions there.</p>
+        <ul>
+          <li><strong>Simple models predict 3.0, 3.2, 2.8, 3.1, 2.9.</strong> Predict their average, bias² and variance.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Average 3.0, so bias² = (3 − 4)² = 1; variance = 0.02. Consistent but wrong.</p></details></li>
+          <li><strong>Complex models predict 4.8, 3.1, 5.2, 2.9, 4.0.</strong> Predict the same three numbers.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Average 4.0, so bias² = 0; variance = 0.82. Right on average, but any single model can be far off.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: in the archer numbers, which group of models has the smaller bias, and which the smaller variance?</p>
+          <details><summary>Check your answer</summary>
+            <p>The complex models have almost no bias (average 4.0, the truth) but variance 0.82; the simple models have bias² 1 but variance only 0.02.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's experiment at $x = 2$, where the true value is $f(2) = 4$. Five simple models and five complex models were each trained on a different sample. We compute bias² and variance for both, check that they add up to the real error, add noise, and see what averaging the complex models does.</p>
+        <table>
+          <thead>
+            <tr><th>Sample</th><th>Simple $\hat f$</th><th>Simple error²</th><th>Complex $\hat f$</th><th>Complex error²</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>3.0</td><td>1.00</td><td>4.8</td><td>0.64</td></tr>
+            <tr><td>2</td><td>3.2</td><td>0.64</td><td>3.1</td><td>0.81</td></tr>
+            <tr><td>3</td><td>2.8</td><td>1.44</td><td>5.2</td><td>1.44</td></tr>
+            <tr><td>4</td><td>3.1</td><td>0.81</td><td>2.9</td><td>1.21</td></tr>
+            <tr><td>5</td><td>2.9</td><td>1.21</td><td>4.0</td><td>0.00</td></tr>
+            <tr><td>Mean</td><td>3.0</td><td><strong>1.02</strong></td><td>4.0</td><td><strong>0.82</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>The average simple model</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mathbb E[\hat f(2)] = \frac{3.0 + 3.2 + 2.8 + 3.1 + 2.9}{5} = 3.0$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Averaging over training samples removes the luck of any single dataset. What is left is what the model family systematically predicts.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Bias² of the simple model</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\big(\mathbb E[\hat f(2)] - f(2)\big)^2 = (3.0 - 4)^2 = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Even on average it is 1 below the truth. A straight line cannot bend to reach the U shape, and more data would not fix that: this is bias.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Variance of the simple model</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{0^2 + 0.2^2 + (-0.2)^2 + 0.1^2 + (-0.1)^2}{5} = \frac{0.10}{5} = 0.02$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Deviations from its own average (3.0), not from the truth. The five predictions are almost identical: the model barely reacts to which sample it saw.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>The complex model: bias²</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mathbb E[\hat f(2)] = \frac{4.8 + 3.1 + 5.2 + 2.9 + 4.0}{5} = 4.0 \;\Rightarrow\; \text{bias}^2 = (4.0 - 4)^2 = 0$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">On average the flexible model is exactly right. Its shape can follow the true curve.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>The complex model: variance</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{0.8^2 + (-0.9)^2 + 1.2^2 + (-1.1)^2 + 0^2}{5} = \frac{4.10}{5} = 0.82$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">But each single model is far off, in a different direction each time, because it also fits the noise of its own sample.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Check: bias² + variance = mean squared error</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{simple: } 1 + 0.02 = 1.02 = \tfrac{1 + 0.64 + 1.44 + 0.81 + 1.21}{5}, \qquad \text{complex: } 0 + 0.82 = 0.82$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Computing the error of each model against the truth directly (the table) gives the same numbers. The decomposition is not an approximation: it is exact.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Add the noise term</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma^2 = 0.25 \;\Rightarrow\; \text{expected error on new } y: \quad 1.02 + 0.25 = 1.27, \qquad 0.82 + 0.25 = 1.07$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">New observations scatter around $f(2)$ with variance $\sigma^2$. No model can predict that part, so 0.25 is a floor under both errors.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">8</span>Averaging cuts variance</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\bar f = \tfrac15 \textstyle\sum \hat f_i = 4.0, \qquad \text{Var} \approx \frac{0.82}{5} = 0.164$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">If the five complex models' errors are independent, averaging them keeps bias at 0 and divides variance by 5. That is the idea behind bagging and random forests.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Simple models: bias² 1, variance 0.02, total 1.02 (underfit). Complex models: bias² 0, variance 0.82, total 0.82. Here the complex model wins, but only slightly, and each one alone is unreliable.</p>
+          <p>Total error = bias² + variance + noise. You can trade one for the other by changing model complexity, or reduce variance by averaging; the noise (0.25) never goes away.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>As model complexity grows, <strong>bias falls</strong> (it can fit more shapes) and <strong>variance rises</strong> (it fits the noise of each sample).</p>
+        <p>Pick the complexity where the error on held-out data is lowest. Regularization and more training data reduce variance without making the model simpler.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to estimate bias and variance at one point from several trained models, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Average the models' predictions. Bias is that average minus the true value (squared for bias²). Variance is the average squared distance of each prediction from their average.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the five-model example by hand. It will make more sense.</p>
+        <pre><code class="language-c">void bias_variance(double preds[], int k, double truth, double out[]) {
+    double mean = 0, variance = 0;
+    for (int i = 0; i &lt; k; i++) mean += preds[i] / k;      /* the "average model" */
+    for (int i = 0; i &lt; k; i++) variance += (preds[i] - mean) * (preds[i] - mean) / k;
+    out[0] = (mean - truth) * (mean - truth);              /* bias squared */
+    out[1] = variance;                                     /* spread around the average */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>bias</strong> is the error of the average model (too simple to capture the truth), <strong>variance</strong> is how much the model changes between training samples (too sensitive), and the trade-off is that reducing one tends to increase the other.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  A["simple model"] --&gt;|"more flexibility"| B["balanced model"]
+  B --&gt;|"more flexibility"| C["complex model"]
+  A -.- A1["high bias, low variance: underfit"]
+  B -.- B1["lowest test error"]
+  C -.- C1["low bias, high variance: overfit"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: a 1-nearest-neighbour classifier, which memorises every training point, sits at which end? (Answer: the complex end: low bias, high variance.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: can a model have zero expected error if the data is noisy?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. The noise variance $\sigma^2$ is a floor that no model can go below.</p>
+          </details>
+        </div>
+        <p>For squared error, the expected error of the learned model at a point splits exactly into three parts:</p>
+        $$\mathbb{E}\big[(y - \hat f(x))^2\big] \;=\; \underbrace{\big(\mathbb{E}[\hat f(x)] - f(x)\big)^2}_{\text{bias}^2} \;+\; \underbrace{\mathbb{E}\big[(\hat f(x) - \mathbb{E}[\hat f(x)])^2\big]}_{\text{variance}} \;+\; \underbrace{\sigma^2}_{\text{noise}}$$
+        <p>Simple models above: $1 + 0.02 = 1.02$ plus noise. Complex models: $0 + 0.82 = 0.82$ plus noise. Here the complex model wins slightly; with less data its variance would grow.</p>
+        <table>
+          <thead>
+            <tr><th>Symptom</th><th>Training error</th><th>Test error</th><th>Remedy</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Underfitting (high bias)</td><td>High</td><td>High, close to training</td><td>More features, more flexible model, less regularization</td></tr>
+            <tr><td>Overfitting (high variance)</td><td>Very low</td><td>Much higher than training</td><td>More data, regularization, simpler model, early stopping</td></tr>
+            <tr><td>Good fit</td><td>Low</td><td>Low, close to training</td><td>Keep it</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Never judge complexity by training error alone. It always goes down as the model gets more flexible, right up to zero for a model that memorises the data.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Learn the diagnosis table: big gap between training and test error → variance; both errors high → bias. And name the remedies for each.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Fixing overfitting by adding more model capacity.</li>
+          <li>Thinking more data reduces bias; it mainly reduces variance.</li>
+          <li>Forgetting the irreducible noise term: even the perfect model has error $\sigma^2$.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>A model has training error 2% and test error 25%. Bias or variance problem? Name two remedies.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Look at the gap.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Variance (overfitting): the gap is huge. Remedies: more training data, regularization, a simpler model, early stopping.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Five models predict 2, 6, 3, 7, 2 at a point whose true value is 4. Compute bias² and variance, and say which dominates. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Mean = 4, so bias² = 0. Variance = (4 + 4 + 1 + 9 + 4)/5 = 4.4. Variance dominates: the model family is unbiased here but very unstable.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Very large neural networks sometimes show "double descent": test error falls, rises near the point where the model can just memorise the data, then falls again as it grows even larger.</p>
+          <p>Random forests attack variance directly: averaging many high-variance trees keeps their low bias while cancelling much of their variance.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Simple models underfit <strong>because</strong> they cannot represent the true shape, which is bias.</li>
+          <li>Complex models overfit <strong>because</strong> they also fit the noise of their particular training sample, which is variance.</li>
+          <li>There is an optimal complexity <strong>because</strong> bias falls and variance rises as flexibility grows.</li>
+          <li>More data mainly helps variance <strong>because</strong> noise averages out over more examples.</li>
+          <li>Some error is unavoidable <strong>because</strong> the noise $\sigma^2$ is in the data itself.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How are bias and variance like two archers?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>High bias is an archer who always hits the same wrong spot; high variance is one whose arrows are centred but scattered everywhere.</p></details></li>
+          <li><strong>Compare the flat line, the smooth U and the wiggly curve on the 7 points.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The line underfits (high training and test error), the wiggly curve overfits (zero training error, large test error), the U curve has low error on both.</p></details></li>
+          <li><strong>Why does the code average the predictions before computing the variance?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what variance is measured around.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Variance is the spread of the predictions around their own average, so the average has to be known first; the same average gives the bias.</p></details></li>
+          <li><strong>So what are bias and variance, in one sentence each?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Bias is how far the average model is from the truth; variance is how much the model changes from one training sample to another.</p></details></li>
+          <li><strong>Why does making a model more flexible lower bias but raise variance?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions noise.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>More flexibility lets it follow the true shape (less bias), but also the random noise of each sample, so different samples give very different models (more variance).</p></details></li>
+          <li><strong>What three terms make up the expected squared error?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Bias², variance, and the irreducible noise $\sigma^2$.</p></details></li>
+          <li><strong>Training error 2%, test error 25%: what is wrong and what do you do?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Overfitting (high variance). Add data, regularize, simplify the model or stop training earlier.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the decomposition formula and double descent. I'd keep the archer analogy, the three fits on the U data, and "too simple = bias, too flexible = variance, pick the middle with test data".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/auto_examples/model_selection/plot_underfitting_overfitting.html" target="_blank" rel="noopener">scikit-learn: Underfitting vs overfitting</a>: polynomial fits of degree 1, 4 and 15 with code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff" target="_blank" rel="noopener">Wikipedia: Bias–variance trade-off</a>: the decomposition and its derivation.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/overfitting" target="_blank" rel="noopener">Google ML Crash Course: Overfitting</a>: generalisation with examples.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+bias+and+variance" target="_blank" rel="noopener">YouTube search: StatQuest bias and variance</a>: StatQuest's short, clear explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

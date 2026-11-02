@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Priority queue · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="structure-priority-queue" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="linear-structures.html" class="hover:text-indigo-500">Linear structures</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Linear structures</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Priority queue</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Insert 5, 3, 8, 1 in that order, then ask for the next item: you get 1, the <em>smallest</em>, not the oldest. A priority queue always serves the most urgent item first. Stored as a min-heap, both insert and extract take $O(\log n)$.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it hands out items in priority order while accepting new items at any time, with $O(\log n)$ per operation. That is what schedulers, Dijkstra's algorithm and event simulations need.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="structure-queue.html">Queue</a>.</li>
+          <li>Binary trees stored in arrays: children of $i$ at $2i+1$, $2i+2$ (see <a href="trees.html">Trees</a>).</li>
+          <li>Logarithms.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a hospital emergency room. Patients don't get seen in arrival order: the most urgent case goes first, whenever they arrived.</p>
+          <p>A priority queue is that triage desk. Each item has a priority, and "next, please" always returns the most urgent (here, the smallest number).</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>The queue is a min-heap in an array: every parent is ≤ its children, and the parent of index $i$ is $\lfloor (i-1)/2 \rfloor$. Insert 5, 3, 8, 1. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Insert 5, then 3. 3 lands at index 1, under parent 5. Predict: does it move?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Yes. 3 &lt; 5, so it swaps up: <code>[3, 5]</code>.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: insert 8 at index 2. Does it move?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>No. Its parent 3 is smaller: <code>[3, 5, 8]</code>.</p></details>
+          <p><strong>Step 3.</strong> Insert 1 at index 3. Predict how far it rises.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Its parent (index 1) is 5, so swap: <code>[3, 1, 8, 5]</code>. The new parent is 3, swap again: <code>[1, 3, 8, 5]</code>. 1 is the root.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/structure-priority-queue-1.svg" alt="Min-heap after inserting 5, 3, 8, 1: root 1, children 3 and 8, and 5 under 3" width="560" height="330">
+          <figcaption>What you just built by hand: the smallest value sits at the root, ready to be served.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: in a min-heap, where is the smallest item, and why?</p>
+          <details><summary>Check your answer</summary>
+            <p>At the root, index 0, because every parent is ≤ its children, so nothing can be smaller than the top.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: serving the next item</h3>
+        <p>Now call extract-min on <code>[1, 3, 8, 5]</code>.</p>
+        <ul>
+          <li><strong>Remove the root.</strong> Predict what goes to the root first.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>The last leaf, 5: the array becomes <code>[5, 3, 8]</code> and 1 is returned.</p></details></li>
+          <li><strong>Sift down.</strong> Predict the final heap.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>5's children are 3 and 8; 3 is smaller and less than 5, so swap: <code>[3, 5, 8]</code>. 5 has no children now: done.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: after extract-min, why does the last leaf go to the root?</p>
+          <details><summary>Check your answer</summary>
+            <p>It keeps the tree complete (no gaps in the array). Then sifting it down restores the heap order.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>Insert</strong>: append at the end, then swap upwards while smaller than the parent.</p>
+        <p><strong>Extract-min</strong>: take the root, move the last leaf to the root, then swap it downwards with its smaller child while it is bigger than that child.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the steps of insert in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Put the new item at the end of the array. 2. While it is smaller than its parent, swap them. 3. Stop at the root or when the parent is smaller.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the inserts by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct { int a[100]; int n; } PQ;          /* min-heap in an array */
+
+void pq_insert(PQ *q, int v) {                     /* caller checks n &lt; 100 */
+    int i = q-&gt;n++;
+    q-&gt;a[i] = v;
+    while (i &gt; 0 &amp;&amp; q-&gt;a[(i - 1) / 2] &gt; q-&gt;a[i]) {  /* sift up */
+        int p = (i - 1) / 2, t = q-&gt;a[p];
+        q-&gt;a[p] = q-&gt;a[i]; q-&gt;a[i] = t;
+        i = p;
+    }
+}</code></pre>
+        <pre><code class="language-c">int pq_extract_min(PQ *q) {                        /* caller checks n &gt; 0 */
+    int top = q-&gt;a[0];
+    q-&gt;a[0] = q-&gt;a[--q-&gt;n];                        /* last leaf to the root */
+    for (int i = 0;;) {                            /* sift down */
+        int s = i, l = 2 * i + 1, r = 2 * i + 2;
+        if (l &lt; q-&gt;n &amp;&amp; q-&gt;a[l] &lt; q-&gt;a[s]) s = l;
+        if (r &lt; q-&gt;n &amp;&amp; q-&gt;a[r] &lt; q-&gt;a[s]) s = r;
+        if (s == i) break;
+        int t = q-&gt;a[i]; q-&gt;a[i] = q-&gt;a[s]; q-&gt;a[s] = t;
+        i = s;
+    }
+    return top;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>priority queue</strong> returns the item with the highest priority (here the smallest key) first; a <strong>binary min-heap</strong> implements it with $O(\log n)$ insert and extract-min.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["insert v: put it at index n"] --&gt; B{"v smaller than its parent?"}
+  B --&gt;|yes| C["swap with parent, move up"]
+  C --&gt; B
+  B --&gt;|"no, or at root"| D["done: heap order holds"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: inserting 1 into <code>[3, 5, 8]</code>, how many times do you take the "swap" arrow? (Answer: twice, first with 5, then with 3.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: in a heap of 1,000 items, how many swaps can one insert need at most?</p>
+          <details><summary>Check your answer</summary>
+            <p>About 10, the height of the tree, since $2^{10} \approx 1000$.</p>
+          </details>
+        </div>
+        <p>The heap is a complete binary tree, so its height, and the most swaps one sift can do, is:</p>
+        $$h \;=\; \lfloor \log_2 n \rfloor \quad\Longrightarrow\quad \text{insert, extract-min} = O(\log n)$$
+        <p>The index rules need no pointers: parent of $i$ is $\lfloor (i-1)/2 \rfloor$, children are $2i+1$ and $2i+2$.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>insert</td><td>$O(\log n)$</td><td>Sift up at most the height</td></tr>
+            <tr><td>extract-min</td><td>$O(\log n)$</td><td>Sift down at most the height</td></tr>
+            <tr><td>peek-min</td><td>$O(1)$</td><td>The minimum is at index 0</td></tr>
+            <tr><td>Build from $n$ items</td><td>$O(n)$</td><td>Bottom-up heapify</td></tr>
+            <tr><td>Search for any value</td><td>$O(n)$</td><td>Heap order says little about non-root items</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A heap is <strong>not sorted</strong>. <code>[1, 3, 8, 5]</code> is a valid min-heap even though 8 comes before 5. Only the root is guaranteed to be the minimum.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Compare implementations: unsorted array (insert $O(1)$, extract $O(n)$), sorted array (insert $O(n)$, extract $O(1)$), binary heap (both $O(\log n)$). The heap wins when you do many of both.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Thinking the heap array is sorted and reading the "second smallest" from index 1 (it could be at index 2).</li>
+          <li>In sift-down, swapping with the <em>first</em> smaller child instead of the <em>smallest</em> child.</li>
+          <li>Forgetting to decrease <code>n</code> before moving the last leaf to the root.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Is <code>[2, 4, 3, 9, 5]</code> a valid min-heap?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Check each parent against its children: index 0 → 1, 2; index 1 → 3, 4.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Yes: 2 ≤ 4 and 3; 4 ≤ 9 and 5.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Insert 7, 2, 6, 1, 9 into an empty min-heap, then extract-min once. Give the array after each step. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>[7] → [2, 7] → [2, 7, 6] → [1, 2, 6, 7] (1 rises past 7 then 2) → [1, 2, 6, 7, 9]. Extract-min returns 1: 9 moves to the root and sinks past 2 then 7, giving [2, 7, 6, 9].</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Dijkstra's shortest-path algorithm and Prim's spanning-tree algorithm both run on a priority queue; with a binary heap they take $O((V + E) \log V)$.</p>
+          <p>Operating systems schedule processes by priority, and event-driven simulations always process the earliest event next: both are priority queues.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The minimum is at the root <strong>because</strong> every parent is ≤ its children.</li>
+          <li>Insert and extract-min are $O(\log n)$ <strong>because</strong> a sift moves along one path of a tree of height $\log_2 n$.</li>
+          <li>The heap fits in an array <strong>because</strong> a complete tree has no gaps, so index arithmetic replaces pointers.</li>
+          <li>The last leaf moves to the root on extract <strong>because</strong> that keeps the tree complete.</li>
+          <li>Searching is $O(n)$ <strong>because</strong> heap order only relates parents to children, not siblings.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a priority queue like an emergency room?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Patients are seen by urgency, not arrival time. A priority queue always returns the most urgent item, here the smallest key.</p></details></li>
+          <li><strong>Walk through inserting 5, 3, 8, 1 into a min-heap.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>[5]; 3 swaps up → [3, 5]; 8 stays → [3, 5, 8]; 1 swaps with 5 then with 3 → [1, 3, 8, 5].</p></details></li>
+          <li><strong>Why does the sift-up loop compare with <code>a[(i - 1) / 2]</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer names that index.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>That is the parent of index <code>i</code> in an array-stored complete binary tree, and the heap rule compares each node with its parent.</p></details></li>
+          <li><strong>So what is a priority queue, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A collection where you can insert items at any time and always remove the one with the highest priority, typically implemented as a binary heap.</p></details></li>
+          <li><strong>Why are insert and extract-min $O(\log n)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the height of the tree.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each sift moves one item along a single root-to-leaf path, and a complete binary tree with $n$ nodes has height about $\log_2 n$.</p></details></li>
+          <li><strong>What do insert, extract-min, peek and search cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>insert and extract-min $O(\log n)$, peek $O(1)$, search for an arbitrary value $O(n)$.</p></details></li>
+          <li><strong>Why not just keep a sorted array?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Extracting the minimum would be cheap, but every insert would shift elements, costing $O(n)$. A heap keeps both operations at $O(\log n)$.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the index formulas and the $O(n)$ build. I'd keep the emergency-room analogy, the four inserts with 1 rising to the top, and "smallest first, $O(\log n)$ per operation".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/heap" target="_blank" rel="noopener">VisuAlgo: Binary heap</a>: animate insert and extract on a priority queue.</li>
+          <li><a href="https://www.geeksforgeeks.org/priority-queue-set-1-introduction/" target="_blank" rel="noopener">GeeksforGeeks: Priority queue</a>: implementations compared.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Priority_queue" target="_blank" rel="noopener">Wikipedia: Priority queue</a>: operations, implementations and applications.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: lecture on binary heaps and priority queues.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=binary+heap+priority+queue+explained" target="_blank" rel="noopener">YouTube search: binary heap priority queue</a>: pick a walkthrough of sift up and sift down.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

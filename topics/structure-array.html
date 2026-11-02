@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arrays · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="structure-array" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="linear-structures.html" class="hover:text-indigo-500">Linear structures</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Linear structures</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Arrays</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Take <code>[3, 8, 5]</code> stored in slots 0, 1, 2. Reading <code>a[1]</code> jumps straight to 8. Inserting 7 at index 1 is different: 8 and 5 must each shift one slot right first, giving <code>[3, 7, 8, 5]</code>. That's an array: instant access by index, costly moves in the middle.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> elements sit side by side in memory, so the address of <code>a[i]</code> is one multiplication away. Reading or writing any index is $O(1)$, but inserting or deleting in the middle shifts up to $n$ elements.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Variables and memory addresses: every byte has a number.</li>
+          <li>A <code>for</code> loop that counts down as well as up.</li>
+          <li>Big-O notation.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a row of numbered lockers. To open locker 57 you walk straight to it; you never check lockers 1 to 56 first.</p>
+          <p>But to put a new item in locker 3 while keeping everything in order, every item from locker 3 onwards must move one locker to the right. Arrays work exactly like this row of lockers.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a sequence of operations by hand</h3>
+        <p>The array has capacity 5 and holds <code>[3, 8, 5]</code>. Do each operation and guess its cost before opening "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Read <code>a[1]</code>. Predict: how many elements do you look at?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Just one. The address is computed directly, so you get 8 in one step.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: to insert 7 at index 1, which elements move, and in which order?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>First 5 moves from slot 2 to 3, then 8 from slot 1 to 2. Moving from the end avoids overwriting. Then 7 goes into slot 1: <code>[3, 7, 8, 5]</code>.</p></details>
+          <p><strong>Step 3.</strong> Delete <code>a[0]</code>, then append 9. Predict the array and which step was cheaper.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Deleting shifts 7, 8, 5 one slot left: <code>[7, 8, 5]</code>. Appending 9 just writes slot 3: <code>[7, 8, 5, 9]</code>. Appending was cheaper.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/structure-array-1.svg" alt="Array operations on 3 8 5: read a[1], insert 7 at index 1 by shifting right, delete a[0] by shifting left, then append 9" width="760" height="370">
+          <figcaption>What you just did by hand: blue boxes are elements that had to shift. Grey slots are free capacity.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why does inserting at index 1 shift elements starting from the <em>end</em>?</p>
+          <details><summary>Check your answer</summary>
+            <p>Shifting from the end moves each element into a free slot. Starting from the front would overwrite the next element before it moved.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a growing array</h3>
+        <p>A <em>dynamic</em> array (like C++ <code>vector</code> or Python <code>list</code>) starts with capacity 2 and doubles when full. Append 1, 2, 3.</p>
+        <ul>
+          <li><strong>Appends 1 and 2.</strong> Predict: does anything get copied?
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>No. Both fit in the 2 free slots: one write each.</p></details></li>
+          <li><strong>Append 3.</strong> Predict what happens, since the array is full.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>A new block of capacity 4 is allocated, 1 and 2 are copied over, then 3 is written. That one append cost 3 writes.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why did the third append cost more than the first two?</p>
+          <details><summary>Check your answer</summary>
+            <p>The array was full, so a bigger block had to be allocated and both old elements copied into it before writing the new one.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>To <strong>read or write</strong> index <code>i</code>, compute its address and go there directly.</p>
+        <p>To <strong>insert</strong> at <code>i</code>, shift everything from <code>i</code> onwards one slot right, then write. To <strong>delete</strong> at <code>i</code>, shift everything after it one slot left.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the three steps of "insert at index i" in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Starting from the last element, move each element one slot right until you reach index i. 2. Write the new value at index i. 3. Increase the size by one.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the operations by hand. It will make more sense.</p>
+        <pre><code class="language-c">int insert_at(int a[], int n, int idx, int v) {   /* returns the new size */
+    for (int i = n; i &gt; idx; i--)
+        a[i] = a[i - 1];                           /* shift right, from the end */
+    a[idx] = v;
+    return n + 1;
+}
+
+int delete_at(int a[], int n, int idx) {          /* returns the new size */
+    for (int i = idx; i &lt; n - 1; i++)
+        a[i] = a[i + 1];                           /* shift left */
+    return n - 1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: an <strong>array</strong> stores $n$ elements of the same size in one contiguous block, so element $i$ is found by address arithmetic.</p>
+          <p>A <strong>dynamic array</strong> also keeps spare capacity and doubles it when full.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["insert v at index i"] --&gt; B{"Is the array full?"}
+  B --&gt;|yes| C["Allocate double capacity, copy all elements"]
+  B --&gt;|no| D["Shift a[i..n-1] one slot right"]
+  C --&gt; D
+  D --&gt; E["a[i] = v, n = n + 1"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: inserting 7 at index 1 into <code>[3, 8, 5]</code> with capacity 5, which path do you take? (Answer: "no", straight to the shift box.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: on an array of 1,000 elements, how many shifts does inserting at index 0 need?</p>
+          <details><summary>Check your answer</summary>
+            <p>1,000: every element moves one slot right.</p>
+          </details>
+        </div>
+        <p>Reading is fast because the address is one formula. With base address $b$ and element size $s$ bytes:</p>
+        $$\text{address}(a[i]) \;=\; b + i \cdot s$$
+        <p>For 4-byte <code>int</code>s starting at address 1000, <code>a[3]</code> lives at $1000 + 3 \cdot 4 = 1012$. No loop is needed, whatever $i$ is.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Read / write <code>a[i]</code></td><td>$O(1)$</td><td>One address computation</td></tr>
+            <tr><td>Search (unsorted)</td><td>$O(n)$</td><td>May have to check every element</td></tr>
+            <tr><td>Append at the end</td><td>$O(1)$ amortized</td><td>Occasional doubling copies are spread over many appends</td></tr>
+            <tr><td>Insert at index $i$</td><td>$O(n)$</td><td>Shifts $n - i$ elements right</td></tr>
+            <tr><td>Delete at index $i$</td><td>$O(n)$</td><td>Shifts $n - i - 1$ elements left</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>C arrays do not check bounds. Writing <code>a[5]</code> in an array of 5 elements silently overwrites other memory. Always keep the size and capacity next to the array.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Learn the address formula $b + i \cdot s$ and the phrase "amortized $O(1)$ append": doubling copies $1 + 2 + 4 + \dots &lt; 2n$ elements over $n$ appends.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Shifting right starting from index <code>i</code> instead of from the end, which copies the same value over everything.</li>
+          <li>Forgetting to update the size after inserting or deleting.</li>
+          <li>Growing a dynamic array by +1 each time instead of doubling, which makes $n$ appends cost $O(n^2)$.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>An <code>int</code> array (4 bytes per element) starts at address 2000. What is the address of <code>a[10]</code>?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Use base + index × size.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$2000 + 10 \cdot 4 = 2040$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A dynamic array starts with capacity 1 and doubles when full. How many element copies happen in total during 8 appends? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Copies happen when growing from 1→2, 2→4 and 4→8: $1 + 2 + 4 = 7$ copies. That's fewer than 8 appends, which is why append is amortized $O(1)$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Arrays are fast in practice for a second reason: CPU caches load memory in chunks of 64 bytes, so reading <code>a[0]</code> also brings <code>a[1]</code> to <code>a[15]</code> into cache for free.</p>
+          <p>That's why it's worth understanding: an $O(n)$ scan of an array often beats an "equal" $O(n)$ walk through a linked list by a factor of 10 or more.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Access is $O(1)$ <strong>because</strong> the address of <code>a[i]</code> is computed as $b + i \cdot s$.</li>
+          <li>Insert and delete in the middle are $O(n)$ <strong>because</strong> every later element has to shift by one slot.</li>
+          <li>Appending is amortized $O(1)$ <strong>because</strong> doubling makes the rare big copies add up to less than $2n$.</li>
+          <li>Shifting right must start from the end <strong>because</strong> otherwise you overwrite elements before moving them.</li>
+          <li>Arrays are cache-friendly <strong>because</strong> their elements sit next to each other in memory.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is an array like a row of numbered lockers?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You can walk straight to any locker number, but putting something new in the middle means moving everything after it one locker along.</p></details></li>
+          <li><strong>Walk through inserting 7 at index 1 in [3, 8, 5].</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Move 5 from slot 2 to 3, then 8 from slot 1 to 2, then write 7 into slot 1: [3, 7, 8, 5].</p></details></li>
+          <li><strong>Why does the insert loop run from <code>n</code> down to <code>idx + 1</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what would be overwritten otherwise.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Moving from the end puts each element into a slot that is already free. Going upwards would overwrite <code>a[idx+1]</code> with <code>a[idx]</code> before <code>a[idx+1]</code> had moved.</p></details></li>
+          <li><strong>So what is an array, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A contiguous block of same-sized elements where element $i$ is found directly by computing its address.</p></details></li>
+          <li><strong>Why is reading <code>a[i]</code> $O(1)$ whatever $i$ is?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer gives the address formula.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The address is base + i × element size, a single calculation, so no other element has to be visited.</p></details></li>
+          <li><strong>What do read, search, append, insert and delete cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Read/write $O(1)$, search $O(n)$, append amortized $O(1)$, insert and delete in the middle $O(n)$ because of shifting.</p></details></li>
+          <li><strong>Why is appending to a dynamic array still $O(1)$ on average when resizing copies everything?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Because capacity doubles, copies happen rarely and add up to less than $2n$ over $n$ appends, so each append costs a constant on average.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the cache details and the amortized proof. I'd keep the locker analogy, the insert-with-shifting example, and "$O(1)$ access, $O(n)$ insert in the middle".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.geeksforgeeks.org/introduction-to-arrays-data-structure-and-algorithm-tutorials/" target="_blank" rel="noopener">GeeksforGeeks: Introduction to arrays</a>: basics, memory layout and operations.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Array_(data_structure)" target="_blank" rel="noopener">Wikipedia: Array (data structure)</a>: addressing formulas and multidimensional arrays.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Dynamic_array" target="_blank" rel="noopener">Wikipedia: Dynamic array</a>: growth factors and amortized analysis.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=dynamic+array+amortized+analysis" target="_blank" rel="noopener">YouTube search: dynamic array amortized analysis</a>: why append is $O(1)$ on average.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

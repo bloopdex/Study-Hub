@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="270" viewBox="0 0 620 270" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">DAG of four courses</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="620" height="270" rx="16" fill="#f8fafc"/>
+  <text x="310" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Course plan as a DAG</text>
+  <line x1="150.0" y1="115.9" x2="250.0" y2="84.1" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="150.0" y1="154.1" x2="250.0" y2="185.9" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="370.0" y1="84.1" x2="470.0" y2="115.9" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="370.0" y1="185.9" x2="470.0" y2="154.1" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="30" y="113" width="120" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/>
+  <text x="90" y="133" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Intro (0)</text>
+  <text x="90" y="150" text-anchor="middle" font-size="12" fill="#475569">in-degree 0</text>
+  <rect x="250" y="43" width="120" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="310" y="63" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Data str. (1)</text>
+  <text x="310" y="80" text-anchor="middle" font-size="12" fill="#475569">in-degree 1</text>
+  <rect x="250" y="183" width="120" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="310" y="203" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Maths (2)</text>
+  <text x="310" y="220" text-anchor="middle" font-size="12" fill="#475569">in-degree 1</text>
+  <rect x="470" y="113" width="120" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="530" y="133" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Algorithms (3)</text>
+  <text x="530" y="150" text-anchor="middle" font-size="12" fill="#475569">in-degree 2</text>
+</svg>

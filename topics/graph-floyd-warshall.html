@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Floyd-Warshall algorithm · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-floyd-warshall" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Floyd-Warshall algorithm</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Write every direct distance between 3 cities in a table: 0 → 1 costs 4, 1 → 2 costs 1, 0 → 2 costs 7, 2 → 0 costs 2. Now ask: is anything cheaper if you're allowed to stop over in city 0? Then in city 1? Then in city 2? Stopping over in 1 makes 0 → 2 cost 4 + 1 = 5 instead of 7. After trying every stop-over, the table holds every shortest distance. That's Floyd-Warshall.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> three nested loops give the shortest path between <em>every pair</em> of vertices in $O(V^3)$, with negative edges allowed, and the code fits in five lines.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="graph-representations.html">Adjacency matrix</a>.</li>
+          <li><a href="graph-dijkstra.html">Dijkstra</a> and edge relaxation.</li>
+          <li>The idea of <a href="paradigm-dynamic-programming.html">dynamic programming</a>: build answers from smaller answers.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a travel agent filling in a table of the cheapest fares between all cities. First they allow only direct flights; then they allow connections through Paris; then through Paris or London; and so on.</p>
+          <p>Each new hub city can only make fares cheaper, never more expensive. After allowing every city as a connection, the table is complete. Floyd-Warshall does exactly this, one hub at a time.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> negative edges are allowed, but <strong>no negative cycle</strong>. A negative value on the diagonal at the end means there is one.</p>
+        <h3>Start with the table by hand</h3>
+        <p>Directed edges: 0→1 (4), 1→2 (1), 0→2 (7), 2→0 (2). Missing edges are ∞; the diagonal is 0. For each hub $k$, update $d[i][j] = \min(d[i][j], d[i][k] + d[k][j])$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Hub $k = 0$. Predict which entry improves.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$d[2][1]$: 2 → 0 → 1 costs 2 + 4 = 6, better than ∞.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: hub $k = 1$. Which entry improves?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$d[0][2]$: 0 → 1 → 2 costs 4 + 1 = 5, better than 7.</p></details>
+          <p><strong>Step 3.</strong> Hub $k = 2$. Predict the change and the final table.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$d[1][0]$: 1 → 2 → 0 costs 1 + 2 = 3. Final rows: [0, 4, 5], [3, 0, 1], [2, 6, 0].</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-floyd-warshall-1.svg" alt="Distance matrix before and after Floyd-Warshall on 3 vertices; the three improved entries are highlighted" width="700" height="310">
+          <figcaption>What you just computed: the three green cells improved, one per hub.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the outer loop variable $k$ mean?</p>
+          <details><summary>Check your answer</summary>
+            <p>The newest vertex allowed as a stop-over. After step $k$, the table holds shortest paths using only stop-overs from 0 to $k$.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: why the loop order matters</h3>
+        <p>The loop over hubs $k$ must be the <em>outermost</em> loop.</p>
+        <ul>
+          <li><strong>With $k$ outermost.</strong> Predict what's true after finishing hub $k$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Every entry is the shortest path that only stops over at vertices 0..k. Adding hub $k + 1$ builds on those finished answers.</p></details></li>
+          <li><strong>With $k$ innermost.</strong> Predict what goes wrong.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>d[i][j] is final after its inner loop, before d[i][k] and d[k][j] have been improved by other hubs, so some shortest paths are missed.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why did 2 → 1 improve at hub 0 and not later?</p>
+          <details><summary>Check your answer</summary>
+            <p>The best route 2 → 0 → 1 stops over in 0, so it becomes available as soon as vertex 0 is allowed.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Start with the edge-weight matrix (0 on the diagonal, ∞ for no edge).</p>
+        <p>For each hub $k$, for each pair $(i, j)$: if $d[i][k] + d[k][j] &lt; d[i][j]$, replace $d[i][j]$. Keep the hub loop outermost.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write the update rule in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>For every pair (i, j): if going from i to k and then from k to j is cheaper than the current i-to-j value, replace it with that sum.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have filled the table by hand. It will make more sense.</p>
+        <pre><code class="language-c">const int INF = INT_MAX / 2;                 /* "no path"; halved so INF + INF can't overflow */
+
+void floyd_warshall(int d[][3], int n) {     /* d starts as the edge-weight matrix */
+    for (int k = 0; k &lt; n; k++)              /* allow k as a stop-over */
+        for (int i = 0; i &lt; n; i++)
+            for (int j = 0; j &lt; n; j++)
+                if (d[i][k] + d[k][j] &lt; d[i][j])
+                    d[i][j] = d[i][k] + d[k][j];
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: the <strong>Floyd-Warshall algorithm</strong> computes shortest paths between all pairs of vertices by allowing each vertex in turn as an intermediate stop.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph LR
+  0((0)) --&gt;|4| 1((1))
+  1 --&gt;|1| 2((2))
+  0 --&gt;|7| 2
+  2 --&gt;|2| 0
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: what is the shortest distance from 1 to 1 going round a cycle, and why does the table keep 0? (Answer: 1 → 2 → 0 → 1 costs 7, more than staying put, 0.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many updates does the algorithm check for $V = 100$?</p>
+          <details><summary>Check your answer</summary>
+            <p>$100^3 = 1{,}000{,}000$: one for each choice of $k$, $i$ and $j$.</p>
+          </details>
+        </div>
+        <p>Three nested loops over $V$ vertices, with constant work inside:</p>
+        $$V \cdot V \cdot V \;=\; O(V^3) \text{ time}, \qquad O(V^2) \text{ space}$$
+        <p>For all pairs, the alternative is to run Dijkstra from every vertex: $O(V (V + E) \log V)$, better on sparse graphs, but Dijkstra can't handle negative edges.</p>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Time</td><td>$O(V^3)$</td><td>Three nested loops</td></tr>
+            <tr><td>Space</td><td>$O(V^2)$</td><td>The distance matrix, updated in place</td></tr>
+            <tr><td>Negative edges</td><td>Allowed</td><td>No early "final" decisions</td></tr>
+            <tr><td>Negative cycle</td><td>Detected</td><td>Some $d[i][i] &lt; 0$ at the end</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Using <code>INT_MAX</code> for "no path" overflows when two of them are added. Use a large value such as <code>INT_MAX / 2</code>, or skip the update when either part is infinite.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Be ready to fill in the matrix after each value of $k$, and to explain why $k$ must be the outermost loop: it is the dynamic-programming stage.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Putting the $k$ loop inside the $i$ and $j$ loops.</li>
+          <li>Using <code>INT_MAX</code> as infinity and overflowing on <code>INF + INF</code>.</li>
+          <li>Forgetting to set the diagonal to 0 before starting.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>In the final table, what is the shortest distance from 2 to 1, and which route gives it?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>It improved at hub 0.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>6, via 2 → 0 → 1 (2 + 4).</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Change the edge 2 → 0 to weight −6. Run the algorithm and look at the diagonal. What do you find? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>The cycle 0 → 1 → 2 → 0 costs 4 + 1 − 6 = −1, a negative cycle. After the algorithm, $d[0][0]$ (and the other diagonal entries) are negative, which is how a negative cycle is detected.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Robert Floyd and Stephen Warshall published the algorithm in 1962; Bernard Roy had found it in 1959, so it is sometimes called Roy-Floyd-Warshall.</p>
+          <p>Change $\min$ and $+$ to "or" and "and" and the same three loops compute which vertices can reach which: the transitive closure of a relation.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>It finds all pairs at once <strong>because</strong> it updates the whole matrix for each new stop-over.</li>
+          <li>It costs $O(V^3)$ <strong>because</strong> it checks every hub for every pair.</li>
+          <li>The hub loop is outermost <strong>because</strong> each stage builds on answers that used only earlier hubs.</li>
+          <li>Negative edges are fine <strong>because</strong> no entry is declared final early.</li>
+          <li>A negative diagonal means a negative cycle <strong>because</strong> a vertex can then reach itself for less than 0.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is Floyd-Warshall like a travel agent adding connection cities one at a time?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>First only direct flights count, then connections through one hub, then through two, and so on. Each new hub can only make fares cheaper.</p></details></li>
+          <li><strong>Walk through the three hubs on the 3-city example.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Hub 0: 2→1 becomes 6. Hub 1: 0→2 becomes 5. Hub 2: 1→0 becomes 3. Final rows [0, 4, 5], [3, 0, 1], [2, 6, 0].</p></details></li>
+          <li><strong>Why does the code define <code>INF</code> as <code>INT_MAX / 2</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions adding two infinities.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The update adds <code>d[i][k] + d[k][j]</code>. If both are <code>INT_MAX</code> the sum overflows to a negative number; halving keeps the sum in range.</p></details></li>
+          <li><strong>So what is Floyd-Warshall, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An all-pairs shortest-path algorithm that lets each vertex in turn act as a stop-over and keeps the cheaper of "direct" and "through the stop-over".</p></details></li>
+          <li><strong>Why must the hub loop be the outermost loop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer explains what is true after each stage.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>After stage $k$, every entry is the best path using hubs 0..k only. Stage $k + 1$ relies on those finished values; with $k$ inside, entries would be finalised too early.</p></details></li>
+          <li><strong>What do time, space and negative edges look like for this algorithm?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(V^3)$ time, $O(V^2)$ space; negative edges are allowed, and a negative diagonal reveals a negative cycle.</p></details></li>
+          <li><strong>When would you run Dijkstra from every vertex instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>On large sparse graphs with non-negative weights, where $V$ runs of $O((V + E) \log V)$ beat $O(V^3)$.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the overflow detail and transitive closure. I'd keep the travel-agent analogy, the 3-city table with one improvement per hub, and "all pairs, three loops, $O(V^3)$".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://www.cs.usfca.edu/~galles/visualization/Floyd.html" target="_blank" rel="noopener">USFCA: Floyd-Warshall visualization</a>: watch the matrix update hub by hub.</li>
+          <li><a href="https://www.geeksforgeeks.org/floyd-warshall-algorithm-dp-16/" target="_blank" rel="noopener">GeeksforGeeks: Floyd-Warshall</a>: code and a worked example.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm" target="_blank" rel="noopener">Wikipedia: Floyd-Warshall algorithm</a>: history, path reconstruction and transitive closure.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=floyd+warshall+algorithm+explained" target="_blank" rel="noopener">YouTube search: Floyd-Warshall explained</a>: pick a walkthrough with the matrix.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

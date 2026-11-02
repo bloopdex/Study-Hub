@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>k-nearest neighbours (KNN) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-knn" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">k-nearest neighbours (KNN)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four labelled points: A(1, 1) red, B(2, 2) red, C(3, 3) blue, D(4, 2) blue. A new point P(2.5, 2) arrives. Measure its distance to each: B 0.5, C 1.12, D 1.5, A 1.80. With $k = 3$, its three nearest neighbours are B, C, D: one red, two blue, so P is blue. With $k = 1$ it would be red. That's KNN: let the closest examples vote.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> there is no training at all: the data <em>is</em> the model. It handles any boundary shape and is a strong, simple baseline, but every prediction must scan the training set.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Euclidean distance: $\sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}$.</li>
+          <li><a href="mlf-preprocessing.html">Feature scaling</a>.</li>
+          <li><a href="mlf-bias-variance.html">Bias–variance</a>, to understand the role of $k$.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Moving to a new town, you guess what a neighbourhood is like by asking the few people who live closest to you.</p>
+          <p>KNN does that for a new data point: find the $k$ closest known points and take a majority vote (or an average, for regression).</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Requirement:</strong> features must be on <strong>comparable scales</strong>, because KNN compares raw distances. Standardize first.</p>
+        <h3>Start with one classification by hand</h3>
+        <p>Training: A(1, 1) red, B(2, 2) red, C(3, 3) blue, D(4, 2) blue. New point P(2.5, 2), $k = 3$, Euclidean distance. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute P's distance to B and to C.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>To B: $\sqrt{0.5^2 + 0^2} = 0.5$. To C: $\sqrt{0.5^2 + 1^2} \approx 1.12$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: distances to D and to A, and the three nearest points.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>D: $\sqrt{1.5^2 + 0} = 1.5$. A: $\sqrt{1.5^2 + 1^2} \approx 1.80$. Nearest three: B, C, D.</p></details>
+          <p><strong>Step 3.</strong> Vote with $k = 3$, then with $k = 1$. Predict both labels.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$k = 3$: red 1, blue 2, so blue. $k = 1$: only B, so red. The choice of $k$ changes the answer.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-knn-1.svg" alt="Points A and B red, C and D blue, new point P at (2.5, 2) with circles to its three nearest neighbours B, C and D" width="560" height="340">
+          <figcaption>What you just did: the three nearest neighbours of P (dashed lines) vote two to one for blue.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does KNN do during training?</p>
+          <details><summary>Check your answer</summary>
+            <p>Nothing except store the data. All the work happens at prediction time.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the effect of k</h3>
+        <p>Same data, other values of $k$.</p>
+        <ul>
+          <li><strong>$k = 1$.</strong> Predict the behaviour on noisy data.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Very flexible: each prediction copies the single nearest point, noise included. Low bias, high variance.</p></details></li>
+          <li><strong>$k = 4$ (all points).</strong> Predict P's label and the general behaviour.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>A 2–2 tie here; in general, $k = n$ always predicts the majority class. Very smooth: high bias, low variance. Odd $k$ avoids ties with two classes.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why can an unscaled feature like income ruin KNN?</p>
+          <details><summary>Check your answer</summary>
+            <p>Its large numbers dominate the distance, so the other features are effectively ignored.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Every distance for the new point $P = (2.5, 2)$, the ranking, two different votes, and why they disagree. Training points: A(1, 1) red, B(2, 2) red, C(3, 3) blue, D(4, 2) blue.</p>
+        <table>
+          <thead>
+            <tr><th>Point</th><th>Label</th><th>$\Delta x$</th><th>$\Delta y$</th><th>$\Delta x^2 + \Delta y^2$</th><th>distance $d$</th><th>rank</th><th>weight $1/d$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>red</td><td>−1.5</td><td>−1</td><td>3.25</td><td>1.803</td><td>4</td><td>0.555</td></tr>
+            <tr><td>B</td><td>red</td><td>−0.5</td><td>0</td><td>0.25</td><td>0.500</td><td>1</td><td>2.000</td></tr>
+            <tr><td>C</td><td>blue</td><td>0.5</td><td>1</td><td>1.25</td><td>1.118</td><td>2</td><td>0.894</td></tr>
+            <tr><td>D</td><td>blue</td><td>1.5</td><td>0</td><td>2.25</td><td>1.500</td><td>3</td><td>0.667</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Differences per coordinate</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\Delta x = x_i - 2.5, \qquad \Delta y = y_i - 2$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For each training point we measure how far it is from $P$ along each axis. Signs don't matter yet, because the next step squares them.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Squared Euclidean distance</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d_B^2 = (-0.5)^2 + 0^2 = 0.25, \qquad d_C^2 = 0.5^2 + 1^2 = 1.25$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Squaring removes the signs and makes larger gaps count more. To <em>rank</em> neighbours you can stop here: the square root never changes the order.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Actual distances</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d_A = \sqrt{3.25} \approx 1.803,\; d_B = 0.5,\; d_C = \sqrt{1.25} \approx 1.118,\; d_D = 1.5$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Taking square roots gives distances in the original units. They are needed for distance-weighted voting (step 6).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Rank and keep the k nearest</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$B\,(0.5) < C\,(1.118) < D\,(1.5) < A\,(1.803) \quad\Rightarrow\quad k = 3: \{B, C, D\}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Sorting by distance and keeping the first $k$ gives the neighbourhood that will vote. A, the farthest, is ignored with $k = 3$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Majority vote</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{red}: 1 \;(B), \qquad \text{blue}: 2 \;(C, D) \quad\Rightarrow\quad \hat y = \text{blue}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each neighbour has one vote. Two of the three are blue, so P is classified blue, with an estimated probability of 2/3.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Distance-weighted vote</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{red}: \tfrac{1}{0.5} = 2.0, \qquad \text{blue}: \tfrac{1}{1.118} + \tfrac{1}{1.5} = 0.894 + 0.667 = 1.561 \quad\Rightarrow\quad \hat y = \text{red}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A common variant gives closer neighbours bigger votes, weight $1/d$. B is so close (0.5) that its vote outweighs C and D together, and the answer flips to red.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>The prediction depends on three choices: the distance, the value of $k$, and plain versus weighted voting. Here $k = 1$ says red, $k = 3$ says blue, and weighted $k = 3$ says red again.</p>
+          <p>That sensitivity is why $k$ (and the voting rule) are chosen with cross-validation, and why features must be scaled before any distance is computed.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>To classify a point, compute its distance to every training point, take the $k$ nearest, and return their majority label (or mean value, for regression).</p>
+        <p>Choose $k$ by cross-validation: small $k$ overfits, large $k$ underfits. Always scale the features first.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the KNN prediction steps, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Compute the distance from the new point to every training point, find the $k$ smallest, and return the majority label among them.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have classified P by hand. It will make more sense.</p>
+        <pre><code class="language-c">int knn_predict(double px[], double py[], int label[], int n, double qx, double qy, int k) {
+    double d[100]; int idx[100];                   /* labels are 0 (red) or 1 (blue) */
+    for (int i = 0; i &lt; n; i++) { d[i] = (px[i]-qx)*(px[i]-qx) + (py[i]-qy)*(py[i]-qy); idx[i] = i; }
+    int votes = 0;
+    for (int j = 0; j &lt; k; j++) {                  /* select the j-th nearest */
+        int best = j;
+        for (int i = j + 1; i &lt; n; i++) if (d[idx[i]] &lt; d[idx[best]]) best = i;
+        int t = idx[j]; idx[j] = idx[best]; idx[best] = t;
+        votes += label[idx[j]];
+    }
+    return 2 * votes &gt; k ? 1 : 0;                  /* majority vote */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>k-nearest neighbours</strong> predicts the label of a point from the majority label (or average value) of its $k$ closest training points.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["new point P"] --&gt; B["distance from P to every training point"]
+  B --&gt; C["keep the k smallest distances"]
+  C --&gt; D{"classification or regression?"}
+  D --&gt;|classification| E["majority vote of their labels"]
+  D --&gt;|regression| F["average of their values"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: with $k = 1$, how many labels take part in the vote? (Answer: one, so the prediction copies the nearest point.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how does the cost of one prediction grow with the training set size $n$?</p>
+          <details><summary>Check your answer</summary>
+            <p>Linearly, $O(nd)$: every training point's distance must be computed.</p>
+          </details>
+        </div>
+        <p>Distances are Euclidean; one prediction compares the query with all $n$ training points in $d$ dimensions:</p>
+        $$d(p, q) = \sqrt{\sum_{j=1}^{d} (p_j - q_j)^2}, \qquad \text{one prediction: } O(nd)$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training</td><td>$O(1)$ (store the data)</td><td>Lazy learner: no model to fit</td></tr>
+            <tr><td>Prediction (brute force)</td><td>$O(nd)$</td><td>Distance to every training point</td></tr>
+            <tr><td>Prediction (KD-tree, low $d$)</td><td>about $O(\log n)$</td><td>Space partitioning prunes far points</td></tr>
+            <tr><td>Memory</td><td>$O(nd)$</td><td>The whole training set</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> small to medium datasets with few, well-scaled features and irregular class boundaries.</p>
+        <ul>
+          <li><strong>Pro:</strong> No training; adapts to any boundary shape.</li>
+          <li><strong>Pro:</strong> Simple to understand and easy to update with new data.</li>
+          <li><strong>Con:</strong> Slow predictions and high memory on large datasets.</li>
+          <li><strong>Con:</strong> Suffers in high dimensions (distances become similar) and needs scaling.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>In high dimensions, all points tend to be at similar distances from each other (the "curse of dimensionality"), so "nearest" stops meaning "similar". Reduce dimensions (e.g. PCA) or pick features first.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Write a distance table: one row per training point, its distance and label, then circle the $k$ smallest. That is exactly what exams expect.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to scale features before computing distances.</li>
+          <li>Using an even $k$ with two classes, which allows ties.</li>
+          <li>Evaluating with the training points themselves, where $k = 1$ is always 100% correct.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Same four points; classify Q(3.5, 2.5) with $k = 3$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Compute the distances to C and D first.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>C: $\sqrt{0.25 + 0.25} \approx 0.71$; D: $\approx 0.71$; B: $\sqrt{2.25 + 0.25} \approx 1.58$; A: $\approx 2.92$. Nearest three: C, D, B, so blue 2, red 1: blue.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>KNN regression with $k = 2$: training points at $x$ = 1, 2, 4, 7 with values 10, 12, 20, 30. Predict the value at $x = 3$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Distances: 2, 1, 1, 4. The two nearest are $x = 2$ (12) and $x = 4$ (20). Prediction $= (12 + 20)/2 = 16$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>KNN was described by Fix and Hodges in 1951 and analysed by Cover and Hart in 1967, who showed that, with enough data, 1-NN's error is at most twice the best possible error.</p>
+          <p>Modern recommendation and search systems use approximate nearest-neighbour search over learned embeddings, finding similar items among billions in milliseconds.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>KNN needs no training <strong>because</strong> it stores the data and decides at prediction time.</li>
+          <li>Predictions are slow <strong>because</strong> each one computes distances to all $n$ training points.</li>
+          <li>Scaling is essential <strong>because</strong> distances are dominated by the largest-valued feature.</li>
+          <li>Small $k$ overfits <strong>because</strong> a single noisy neighbour decides the label.</li>
+          <li>Large $k$ underfits <strong>because</strong> far-away points dilute the local pattern.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is KNN like asking your nearest neighbours about a new town?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You guess what a place is like from the few people closest to you; KNN labels a point from its $k$ closest training points.</p></details></li>
+          <li><strong>Classify P(2.5, 2) with $k = 3$ given A, B red and C, D blue.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Distances: B 0.5, C 1.12, D 1.5, A 1.80. Nearest three B, C, D vote blue two to one.</p></details></li>
+          <li><strong>Why does the code compare squared distances instead of taking the square root?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions order.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The square root doesn't change which distances are smallest, so skipping it gives the same neighbours with less work.</p></details></li>
+          <li><strong>So what is KNN, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A method that predicts from the majority label, or average value, of the $k$ nearest training points.</p></details></li>
+          <li><strong>Why does the choice of $k$ change P's label?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer relates $k$ to bias and variance.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>With $k = 1$, only B (red) votes; with $k = 3$, C and D join and outvote it. Small $k$ follows local details (high variance); larger $k$ smooths them out (higher bias).</p></details></li>
+          <li><strong>What do training and one prediction cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Training is just storing the data; a brute-force prediction is $O(nd)$.</p></details></li>
+          <li><strong>Give two pros and two cons of KNN.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: no training, any boundary shape. Cons: slow, memory-hungry predictions, and poor in high dimensions or without scaling.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out KD-trees and the curse of dimensionality. I'd keep the neighbour analogy, the P example with $k = 3$ versus $k = 1$, and "scale features, choose $k$ by CV".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/neighbors.html" target="_blank" rel="noopener">scikit-learn: Nearest neighbors</a>: classification, regression and fast search structures.</li>
+          <li><a href="https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm" target="_blank" rel="noopener">Wikipedia: k-nearest neighbors algorithm</a>: theory and variants.</li>
+          <li><a href="https://www.geeksforgeeks.org/k-nearest-neighbours/" target="_blank" rel="noopener">GeeksforGeeks: KNN</a>: worked examples with code.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+k+nearest+neighbors" target="_blank" rel="noopener">YouTube search: StatQuest KNN</a>: StatQuest's short video on KNN.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

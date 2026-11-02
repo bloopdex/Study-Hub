@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Topological sort · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="graph-topological-sort" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="graphs.html" class="hover:text-indigo-500">Graphs</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Graphs</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Topological sort</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four courses: Intro (0) must come before Data structures (1) and Maths (2), and both must come before Algorithms (3). Start with the course that has no prerequisites, Intro; once it's done, 1 and 2 are free; after both, 3 is free. Order: 0, 1, 2, 3. That's a topological sort: an order of tasks where every arrow points forward.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it orders tasks with dependencies in $O(V + E)$ and detects impossible (circular) dependencies. Build systems, course planners, spreadsheet recalculation and package managers all rely on it.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Directed graphs (see <a href="graph-representations.html">representations</a>).</li>
+          <li><a href="structure-queue.html">Queue</a>.</li>
+          <li><a href="graph-dfs.html">DFS</a>, for the alternative method.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of getting dressed: socks before shoes, trousers before shoes, shirt before tie. Any order works as long as each item comes after the things it depends on.</p>
+          <p>Topological sort finds such an order. It starts with things that depend on nothing (socks, shirt, trousers) and unlocks each item once everything before it is done.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Precondition:</strong> a <strong>directed acyclic graph</strong> (DAG). If there is a cycle, no valid order exists, and the algorithm reports it.</p>
+        <h3>Start with the course plan by hand</h3>
+        <p>Edges (prerequisite → course): 0 → 1, 0 → 2, 1 → 3, 2 → 3. <strong>In-degree</strong> = number of unfinished prerequisites. Kahn's method: queue every vertex with in-degree 0, then repeatedly take one, output it, and lower its successors' in-degrees. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the in-degrees and the starting queue.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>In-degrees 0, 1, 1, 2. Only vertex 0 has in-degree 0: queue [0].</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: output 0. Which vertices enter the queue?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>1 and 2: their in-degrees drop from 1 to 0. Queue [1, 2].</p></details>
+          <p><strong>Step 3.</strong> Output 1, then 2. Predict when 3 enters the queue and the final order.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>After 1, in-degree of 3 is 1; after 2, it is 0, so 3 enters. Order: 0, 1, 2, 3.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/graph-topological-sort-1.svg" alt="Course DAG: Intro before Data structures and Maths, both before Algorithms, with in-degrees" width="620" height="270">
+          <figcaption>What you just sorted: every arrow points from an earlier course to a later one. Small labels are starting in-degrees.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which vertices can go first in a topological order?</p>
+          <details><summary>Check your answer</summary>
+            <p>Those with in-degree 0: nothing has to come before them.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: more orders, and a cycle</h3>
+        <p>Topological orders are not always unique, and sometimes none exists.</p>
+        <ul>
+          <li><strong>Another order.</strong> Predict a second valid order for the course plan.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0, 2, 1, 3: Maths before Data structures works too, since neither depends on the other.</p></details></li>
+          <li><strong>Add the edge 3 → 0.</strong> Predict what Kahn's method does.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Every vertex now has in-degree ≥ 1, so the queue starts empty and nothing is output: 0 &lt; 4 vertices, so there is a cycle.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how does Kahn's method notice a cycle?</p>
+          <details><summary>Check your answer</summary>
+            <p>It outputs fewer than $V$ vertices: the vertices on the cycle never reach in-degree 0.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Compute every vertex's in-degree. Put all in-degree-0 vertices in a queue.</p>
+        <p>Repeat: dequeue a vertex, append it to the order, and decrement its successors' in-degrees, enqueueing any that reach 0. If the order has fewer than $V$ vertices, the graph has a cycle.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write Kahn's method in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>1. Count incoming edges for every vertex. 2. Queue all vertices with none. 3. Repeatedly take one, output it, and decrease the count of each vertex it points to, queueing any that reach zero.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have sorted the course plan by hand. It will make more sense.</p>
+        <pre><code class="language-c">int topo_sort(int adj[][4], int n, int order[]) {   /* returns how many were ordered */
+    int indeg[100];
+    int queue[100];
+    int head = 0, tail = 0;
+    for (int v = 0; v &lt; n; v++) { indeg[v] = 0; for (int u = 0; u &lt; n; u++) indeg[v] += adj[u][v]; }
+    for (int v = 0; v &lt; n; v++) if (indeg[v] == 0) queue[tail++] = v;   /* no prerequisites */
+    while (head &lt; tail) {
+        int u = queue[head++];
+        order[head - 1] = u;
+        for (int v = 0; v &lt; n; v++)
+            if (adj[u][v] &amp;&amp; --indeg[v] == 0) queue[tail++] = v;     /* last prerequisite done */
+    }
+    return head;                                    /* &lt; n means there is a cycle */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>topological sort</strong> of a directed acyclic graph is an ordering of its vertices such that every edge $u \to v$ has $u$ before $v$. <strong>Kahn's algorithm</strong> builds one by repeatedly removing vertices with no incoming edges.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph LR
+  I["Intro (0)"] --&gt; D["Data structures (1)"]
+  I --&gt; M["Maths (2)"]
+  D --&gt; A["Algorithms (3)"]
+  M --&gt; A
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: can "Algorithms" ever come before "Maths" in a valid order? (Answer: no, there is an arrow Maths → Algorithms.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many times is each edge looked at?</p>
+          <details><summary>Check your answer</summary>
+            <p>Once when computing in-degrees and once when its source is output: $O(V + E)$ in total with lists.</p>
+          </details>
+        </div>
+        <p>Each vertex enters and leaves the queue once, and each edge decrements one in-degree once:</p>
+        $$O(V + E) \text{ with adjacency lists}, \qquad O(V^2) \text{ with a matrix}$$
+        <p>The DFS method has the same cost: run DFS and output vertices in <em>reverse finish order</em>.</p>
+        <table>
+          <thead>
+            <tr><th>Measure</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Time (lists)</td><td>$O(V + E)$</td><td>Each vertex and edge handled once</td></tr>
+            <tr><td>Time (matrix, code above)</td><td>$O(V^2)$</td><td>Row and column scans</td></tr>
+            <tr><td>Cycle detection</td><td>Free</td><td>Fewer than $V$ vertices output</td></tr>
+            <tr><td>Extra space</td><td>$O(V)$</td><td>In-degrees and the queue</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A topological order exists <strong>only</strong> for directed acyclic graphs. Always check the output length; printing a partial order without saying there is a cycle hides a real error, like a circular dependency in a build.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Be able to do it both ways: Kahn (in-degrees and a queue) and DFS (reverse post-order). And remember: many valid orders can exist.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting to check for cycles, so a partial order is returned silently.</li>
+          <li>Using DFS visit (pre-order) order instead of reverse finish order.</li>
+          <li>Claiming the topological order is unique.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Getting dressed: socks → shoes, trousers → shoes, trousers → belt, shirt → belt. Give one valid order.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Start with items that depend on nothing.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>For example: socks, trousers, shirt, shoes, belt. (Several others are valid.)</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>With edges 0 → 1, 0 → 2, 1 → 3, 2 → 3, how many different topological orders exist? List them. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Two: 0, 1, 2, 3 and 0, 2, 1, 3. 0 must be first and 3 last, while 1 and 2 can swap.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Arthur Kahn published the in-degree method in 1962 for scheduling large projects, the same problem as planning a construction schedule.</p>
+          <p>When <code>make</code>, npm or a spreadsheet works out what to rebuild or recalculate first, it is running a topological sort of the dependency graph.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>In-degree-0 vertices go first <strong>because</strong> nothing has to come before them.</li>
+          <li>Outputting a vertex can unlock others <strong>because</strong> it removes one prerequisite from each successor.</li>
+          <li>It costs $O(V + E)$ <strong>because</strong> each vertex and edge is handled once.</li>
+          <li>Fewer than $V$ outputs means a cycle <strong>because</strong> vertices on a cycle always keep an unfinished prerequisite.</li>
+          <li>Several orders can be valid <strong>because</strong> independent tasks can go in any relative order.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is topological sort like getting dressed?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Some items must come before others (socks before shoes), but independent items can go in any order; you find an order that respects every "before".</p></details></li>
+          <li><strong>Walk through Kahn's method on 0 → 1, 0 → 2, 1 → 3, 2 → 3.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>In-degrees 0, 1, 1, 2; queue [0]. Output 0, queue 1 and 2; output 1 (3 drops to 1); output 2 (3 drops to 0, enqueue); output 3. Order 0, 1, 2, 3.</p></details></li>
+          <li><strong>Why does the code use <code>--indeg[v] == 0</code> inside the loop?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says when a vertex becomes free.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Outputting u removes one prerequisite of v. When the count reaches exactly 0, v's last prerequisite is done, so it is enqueued then, and only once.</p></details></li>
+          <li><strong>So what is a topological sort, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An ordering of the vertices of a DAG such that every edge points from an earlier vertex to a later one.</p></details></li>
+          <li><strong>Why does a cycle make topological sorting impossible?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer looks at the first vertex of the cycle in any order.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>In any order, some vertex of the cycle comes first, but the cycle has an edge into it from a later vertex, breaking the rule. Kahn's method shows this as vertices that never reach in-degree 0.</p></details></li>
+          <li><strong>What does topological sort cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(V + E)$ with adjacency lists, $O(V)$ extra space.</p></details></li>
+          <li><strong>How would you do it with DFS instead?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Run DFS from every unvisited vertex and record vertices when they finish; the reverse of that finish order is a topological order.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the DFS method and the matrix code. I'd keep the getting-dressed analogy, the course plan with in-degrees, and "start with no prerequisites, unlock as you go, no cycles allowed".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/dfsbfs" target="_blank" rel="noopener">VisuAlgo: Graph traversal</a>: includes topological sort with both methods.</li>
+          <li><a href="https://www.geeksforgeeks.org/topological-sorting-indegree-based-solution/" target="_blank" rel="noopener">GeeksforGeeks: Kahn's algorithm</a>: code and cycle detection.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Topological_sorting" target="_blank" rel="noopener">Wikipedia: Topological sorting</a>: both algorithms and applications.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=topological+sort+kahn+algorithm" target="_blank" rel="noopener">YouTube search: Kahn's topological sort</a>: pick a walkthrough with in-degrees.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

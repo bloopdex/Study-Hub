@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DBSCAN · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-dbscan" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">DBSCAN</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Five points: A(1, 1), B(1.5, 1.2), C(2, 1), D(3.4, 1.5), E(6, 1). Draw a circle of radius ε = 0.6 around each. B's circle holds 3 points (A, B, C), enough to be a <strong>core</strong> point (minPts = 3). A and C have fewer neighbours but touch B: they are <strong>border</strong> points. D and E are alone: <strong>noise</strong>. One cluster {A, B, C}, two outliers. That's DBSCAN: clusters are dense regions.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it finds clusters of any shape, works out how many there are by itself, and labels outliers as noise instead of forcing them into a cluster. That makes it great for spatial data and anomaly detection.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-k-means.html">k-means</a>, for comparison.</li>
+          <li>Euclidean distance.</li>
+          <li>The idea of density: many points in a small area.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a crowd photographed from above. A crowd is wherever people stand shoulder to shoulder; the people at its edge belong to it too; someone standing alone in an empty square belongs to no crowd.</p>
+          <p>DBSCAN finds crowds the same way: dense cores, their edges (borders), and the loners (noise).</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Parameters:</strong> <strong>ε</strong>: the neighbourhood radius. <strong>minPts</strong>: how many points (including itself) a point needs within ε to be a core point. Here ε = 0.6, minPts = 3.</p>
+        <h3>Start with classifying five points</h3>
+        <p>Points A(1, 1), B(1.5, 1.2), C(2, 1), D(3.4, 1.5), E(6, 1); ε = 0.6, minPts = 3. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Which points are within 0.6 of B?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>A (distance ≈ 0.54), C (≈ 0.54) and B itself: 3 points. So B is a <strong>core</strong> point.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: how many neighbours do A and C have, and what type are they?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>A: {A, B}; C: {B, C}. Only 2 each, so not core. But each is within ε of the core point B, so both are <strong>border</strong> points.</p></details>
+          <p><strong>Step 3.</strong> D and E. Predict their type and the final clustering.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>D's nearest point is C at about 1.49; E is 2.6 from D. Neither is near a core point: both are <strong>noise</strong>. One cluster {A, B, C}.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-dbscan-1.svg" alt="Five points with epsilon circles; B is core, A and C are border points, D and E are noise" width="600" height="300">
+          <figcaption>What you just did: the dashed circle is B's ε-neighbourhood. Indigo = core, green = border, grey = noise.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what are the three kinds of points in DBSCAN?</p>
+          <details><summary>Check your answer</summary>
+            <p>Core points (at least minPts within ε), border points (not core but within ε of a core point), and noise (neither).</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: changing ε</h3>
+        <p>Same points, minPts = 3.</p>
+        <ul>
+          <li><strong>ε = 1.5.</strong> Predict the types of C and D.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>C now has B, C and D within 1.5 (D is 1.49 away): core. D has C and D only: border of C. The cluster is {A, B, C, D}; E is still noise.</p></details></li>
+          <li><strong>ε = 0.4.</strong> Predict the result.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Nobody has 3 points within 0.4: everything is noise. Choosing ε well matters; a k-distance plot helps.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what happened when ε grew to 1.5?</p>
+          <details><summary>Check your answer</summary>
+            <p>D became reachable from C, so the cluster grew; only E stayed noise. ε sets how close points must be to count as dense.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The five points of the page, A(1, 1), B(1.5, 1.2), C(2, 1), D(3.4, 1.5), E(6, 1), labelled by hand twice: with $\varepsilon = 0.6$ and with $\varepsilon = 1.5$, both with minPts = 3 (the point itself counts).</p>
+        <table>
+          <thead>
+            <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>0</td><td>0.54</td><td>1.00</td><td>2.45</td><td>5.00</td></tr>
+            <tr><td>B</td><td>0.54</td><td>0</td><td>0.54</td><td>1.92</td><td>4.50</td></tr>
+            <tr><td>C</td><td>1.00</td><td>0.54</td><td>0</td><td>1.49</td><td>4.00</td></tr>
+            <tr><td>D</td><td>2.45</td><td>1.92</td><td>1.49</td><td>0</td><td>2.65</td></tr>
+            <tr><td>E</td><td>5.00</td><td>4.50</td><td>4.00</td><td>2.65</td><td>0</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Distance matrix</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d(A, B) = \sqrt{0.5^2 + 0.2^2} = \sqrt{0.29} \approx 0.54, \qquad d(C, D) = \sqrt{1.4^2 + 0.5^2} = \sqrt{2.21} \approx 1.49$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">DBSCAN only ever asks "is this pair within $\varepsilon$?", so computing all pairwise distances once is enough to answer every question below.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>ε = 0.6: count neighbours</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$|N(A)| = |\{A, B\}| = 2, \quad |N(B)| = |\{A, B, C\}| = 3, \quad |N(C)| = 2, \quad |N(D)| = |N(E)| = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Read each row of the matrix and count the entries $\le 0.6$, including the 0 on the diagonal. Only B reaches minPts = 3.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>ε = 0.6: label the points</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{core} = \{B\}, \qquad \text{border} = \{A, C\}, \qquad \text{noise} = \{D, E\}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A and C are not core themselves, but each lies within 0.6 of the core point B, so they join its cluster as border points. D and E are near no core point: noise.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>ε = 1.5: count neighbours again</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$|N(A)| = |\{A, B, C\}| = 3, \quad |N(B)| = 3, \quad |N(C)| = |\{A, B, C, D\}| = 4, \quad |N(D)| = |\{C, D\}| = 2, \quad |N(E)| = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A larger radius catches more neighbours. $d(A, C) = 1.0$ and $d(C, D) = 1.49$ are now inside the radius.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>ε = 1.5: label and expand the cluster</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{core} = \{A, B, C\}, \qquad \text{border} = \{D\}, \qquad \text{noise} = \{E\}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Starting from core point A, DBSCAN adds its neighbours B and C, and since both are core, their neighbours too, which brings in D. D is only a border point: it can join, but cannot extend the cluster further.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Why E stays noise</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\min_j d(E, j) = d(E, D) = 2.65 > 1.5$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">E has no neighbour within $\varepsilon$ at all, so no core point can reach it. DBSCAN reports it as an outlier instead of forcing it into a cluster, which k-means could not do.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>With $\varepsilon = 0.6$: one small cluster {A, B, C} and two noise points. With $\varepsilon = 1.5$: one cluster {A, B, C, D}, and only E is noise.</p>
+          <p>The result depends strongly on $\varepsilon$. A common way to choose it is to sort every point's distance to its $k$-th nearest neighbour and pick the "elbow" of that curve.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Find every core point (≥ minPts neighbours within ε). Connect core points that are within ε of each other: each connected group is a cluster.</p>
+        <p>Attach non-core points within ε of a core point as border points of that cluster; everything else is noise.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how to decide whether a point is core, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Count the points (including itself) within distance ε of it; it is core if that count is at least minPts.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have labelled the five points by hand. It will make more sense.</p>
+        <pre><code class="language-c">int region_count(double x[], double y[], int n, int p, double eps) {   /* includes p itself */
+    int c = 0;
+    for (int i = 0; i &lt; n; i++)
+        if ((x[i]-x[p])*(x[i]-x[p]) + (y[i]-y[p])*(y[i]-y[p]) &lt;= eps * eps) c++;
+    return c;
+}</code></pre>
+        <pre><code class="language-c">void point_types(double x[], double y[], int n, double eps, int min_pts, int type[]) {
+    for (int p = 0; p &lt; n; p++)                        /* 2 = core, 0 = not (yet) */
+        type[p] = region_count(x, y, n, p, eps) &gt;= min_pts ? 2 : 0;
+    for (int p = 0; p &lt; n; p++)                        /* 1 = border: near some core point */
+        for (int q = 0; q &lt; n; q++)
+            if (type[p] == 0 &amp;&amp; type[q] == 2 &amp;&amp;
+                (x[p]-x[q])*(x[p]-x[q]) + (y[p]-y[q])*(y[p]-y[q]) &lt;= eps * eps) type[p] = 1;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>DBSCAN</strong> (density-based spatial clustering of applications with noise) forms clusters from dense regions: <strong>core</strong> points with at least minPts neighbours within ε, the <strong>border</strong> points around them, and labels the rest as <strong>noise</strong>.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["point p"] --&gt; B{"at least minPts points within ε?"}
+  B --&gt;|yes| C["core point: starts or extends a cluster"]
+  B --&gt;|no| D{"within ε of some core point?"}
+  D --&gt;|yes| E["border point: joins that cluster"]
+  D --&gt;|no| F["noise"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: point A, with only B within ε, ends in which box? (Answer: "border point".)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: does DBSCAN need the number of clusters in advance?</p>
+          <details><summary>Check your answer</summary>
+            <p>No. The clusters emerge from connected dense regions.</p>
+          </details>
+        </div>
+        <p>The ε-neighbourhood of a point and the core condition:</p>
+        $$N_\varepsilon(p) = \{\, q : \lVert p - q \rVert \le \varepsilon \,\}, \qquad p \text{ is core} \iff |N_\varepsilon(p)| \ge \text{minPts}$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Neighbourhood queries, brute force</td><td>$O(n^2)$</td><td>Every point against every point</td></tr>
+            <tr><td>With a spatial index (low dimensions)</td><td>about $O(n \log n)$</td><td>Fast range queries</td></tr>
+            <tr><td>Memory</td><td>$O(n)$</td><td>Labels and the queue of points to expand</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> spatial or low-dimensional data with irregularly shaped clusters and outliers, such as GPS points or anomaly detection.</p>
+        <ul>
+          <li><strong>Pro:</strong> Finds clusters of any shape and the number of clusters automatically.</li>
+          <li><strong>Pro:</strong> Explicitly labels outliers as noise.</li>
+          <li><strong>Con:</strong> Sensitive to ε and minPts, and struggles when clusters have very different densities.</li>
+          <li><strong>Con:</strong> Distances lose meaning in high dimensions, like other distance-based methods.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>A single ε can't fit clusters of very different densities: an ε small enough to separate the dense clusters will label the sparse cluster as noise. HDBSCAN handles varying densities better.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Make a table: point, number of neighbours within ε, core?, near a core?, final type. Remember that minPts usually counts the point itself; state the convention you use.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting that a point counts as its own neighbour (or double-counting it), which changes core decisions.</li>
+          <li>Calling every non-core point noise; border points belong to clusters.</li>
+          <li>Not scaling features, so ε means different things in different directions.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>With ε = 0.6 and minPts = 2, classify the five points.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Now two points in a neighbourhood are enough.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>A, B, C are all core (each has at least one neighbour besides itself), forming one cluster. D and E are still noise.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Two rings of points, one inside the other. Which separates them correctly, k-means with $k = 2$ or DBSCAN, and why? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>DBSCAN: points along each ring are densely connected, so each ring becomes one cluster. k-means cuts the rings with a straight boundary, because it assumes round clusters around centroids.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>DBSCAN was published by Ester, Kriegel, Sander and Xu in 1996 and won the test-of-time award at the KDD conference in 2014.</p>
+          <p>It is popular in geographic analysis: grouping GPS pings into "places" (home, work, a café) with noise for travel in between.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Clusters are dense regions <strong>because</strong> points join clusters through chains of core points.</li>
+          <li>The number of clusters is automatic <strong>because</strong> it is the number of connected dense regions.</li>
+          <li>Outliers are labelled noise <strong>because</strong> they are neither dense nor near a dense point.</li>
+          <li>Any shape is possible <strong>because</strong> clusters grow along density, not around a centre.</li>
+          <li>ε and minPts matter a lot <strong>because</strong> together they define what "dense" means.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is DBSCAN like spotting crowds from above?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Crowds are where people stand close together; people at the edges belong to them, and someone alone is not in any crowd.</p></details></li>
+          <li><strong>Classify A, B, C, D, E with ε = 0.6 and minPts = 3.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>B is core; A and C are border points of B's cluster; D and E are noise. One cluster {A, B, C}.</p></details></li>
+          <li><strong>Why does <code>point_types</code> find core points in a first loop before labelling borders?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions what "border" depends on.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A border point is defined by being near a <em>core</em> point, so all core points must be known first.</p></details></li>
+          <li><strong>So what is DBSCAN, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A density-based clustering method that grows clusters from core points with enough neighbours within ε and labels sparse points as noise.</p></details></li>
+          <li><strong>Why can DBSCAN find ring-shaped clusters while k-means can't?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares "around a centre" with "connected by density".</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>k-means assigns each point to its nearest centre, so clusters are round blobs. DBSCAN links neighbouring dense points, so a cluster can follow any shape.</p></details></li>
+          <li><strong>What does DBSCAN cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n^2)$ with brute-force neighbourhood search, about $O(n \log n)$ with a spatial index in low dimensions.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: any shape, automatic number of clusters, explicit noise. Cons: sensitive to ε and minPts, and weak with varying densities or high dimensions.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the complexity and HDBSCAN. I'd keep the crowd analogy, the five-point classification, and "core, border, noise; clusters are dense regions".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/clustering.html#dbscan" target="_blank" rel="noopener">scikit-learn: DBSCAN</a>: parameters and examples.</li>
+          <li><a href="https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/" target="_blank" rel="noopener">Naftali Harris: Visualizing DBSCAN</a>: an interactive demo on tricky shapes.</li>
+          <li><a href="https://en.wikipedia.org/wiki/DBSCAN" target="_blank" rel="noopener">Wikipedia: DBSCAN</a>: definitions and algorithm.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+DBSCAN" target="_blank" rel="noopener">YouTube search: StatQuest DBSCAN</a>: StatQuest's visual explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

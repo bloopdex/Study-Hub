@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generative adversarial networks (GAN) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-gan" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Generative adversarial networks (GAN)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Two networks play a game. The <strong>generator</strong> turns random noise into fake images; the <strong>discriminator</strong> outputs the probability that an image is real. Right now it says 0.9 for a real photo and 0.2 for a fake: its loss is $-\ln 0.9 - \ln 0.8 \approx 0.33$, low. The generator's loss is $-\ln 0.2 \approx 1.61$, high: it is losing. Each trains against the other until the fakes fool the discriminator. That's a GAN.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> GANs learn to generate realistic new data, such as faces, art or super-resolved photos, without anyone defining what "realistic" means: the discriminator learns that judgement.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-loss-functions.html">Binary cross-entropy</a>.</li>
+          <li><a href="dl-mlp.html">Neural networks</a> as functions.</li>
+          <li><a href="dl-backpropagation.html">Backpropagation</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a forger and an art detective. The forger paints fakes; the detective learns to spot them; the forger studies what gave the fakes away and improves. As both get better, the forgeries become hard to tell from the real thing.</p>
+          <p>In a GAN, the generator is the forger and the discriminator the detective, and they train in alternation.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Losses:</strong> discriminator: $L_D = -[\ln D(x) + \ln(1 - D(G(z)))]$. Generator (non-saturating form): $L_G = -\ln D(G(z))$. $x$ is a real sample, $z$ random noise.</p>
+        <h3>Start with the two losses by hand</h3>
+        <p>The discriminator outputs $D(x_{\text{real}}) = 0.9$ and $D(G(z)) = 0.2$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Discriminator loss $-\ln 0.9 - \ln(1 - 0.2)$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$0.105 + 0.223 \approx 0.33$: the detective is doing well.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the generator loss $-\ln D(G(z))$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$-\ln 0.2 \approx 1.61$: the forger is losing.</p></details>
+          <p><strong>Step 3.</strong> Which direction does each network's training push $D(G(z))$?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The discriminator pushes it down towards 0 (spot fakes); the generator pushes it up towards 1 (fool the detective).</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-gan-1.svg" alt="GAN diagram: noise into generator producing a fake, real data and fake both into the discriminator, which outputs real or fake probabilities 0.9 and 0.2" width="680" height="300">
+          <figcaption>What you just computed: the discriminator scores real (0.9) and fake (0.2) samples. Both losses come from those two numbers.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does each network want?</p>
+          <details><summary>Check your answer</summary>
+            <p>The discriminator wants to output 1 for real and 0 for fake; the generator wants its fakes to get outputs near 1.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: equilibrium</h3>
+        <p>Suppose training succeeds and the fakes become indistinguishable from real data.</p>
+        <ul>
+          <li><strong>The discriminator's best output.</strong> Predict it for any input.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0.5: it can only guess.</p></details></li>
+          <li><strong>Both losses there.</strong> Predict them.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$L_D = -\ln 0.5 - \ln 0.5 = 2\ln 2 \approx 1.39$; $L_G = -\ln 0.5 \approx 0.69$. Losses near these values don't mean failure: in a GAN, they mean balance.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what are both losses at the ideal equilibrium?</p>
+          <details><summary>Check your answer</summary>
+            <p>With $D = 0.5$ everywhere: $L_D = 2\ln 2 \approx 1.39$ and $L_G = \ln 2 \approx 0.69$.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The two losses of a GAN computed on a mini-batch of 2 real and 2 fake images. The discriminator outputs $D = [0.9, 0.8]$ on the real ones and $D = [0.2, 0.3]$ on the fakes. Then: why the generator uses $-\ln D$, and what the losses look like at equilibrium.</p>
+        <table>
+          <thead>
+            <tr><th>Image</th><th>Real or fake</th><th>$D(x)$</th><th>D wants</th><th>D loss term</th><th>G loss term $-\ln D$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>real</td><td>0.9</td><td>1</td><td>$-\ln 0.9 = 0.105$</td><td></td></tr>
+            <tr><td>2</td><td>real</td><td>0.8</td><td>1</td><td>$-\ln 0.8 = 0.223$</td><td></td></tr>
+            <tr><td>3</td><td>fake</td><td>0.2</td><td>0</td><td>$-\ln 0.8 = 0.223$</td><td>$-\ln 0.2 = 1.609$</td></tr>
+            <tr><td>4</td><td>fake</td><td>0.3</td><td>0</td><td>$-\ln 0.7 = 0.357$</td><td>$-\ln 0.3 = 1.204$</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Discriminator loss on real images</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$-\ln D(x_{\text{real}}): \quad -\ln 0.9 = 0.105, \quad -\ln 0.8 = 0.223$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The discriminator is a binary classifier with "real" = 1. It is punished for giving real images a low probability.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Discriminator loss on fakes</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$-\ln(1 - D(G(z))): \quad -\ln 0.8 = 0.223, \quad -\ln 0.7 = 0.357$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For fakes the target is 0, so the relevant probability is $1 - D$. Fake 2 fooled the discriminator a bit more (0.3), so it costs more.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Total discriminator loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L_D = \frac{(0.105 + 0.223) + (0.223 + 0.357)}{2} = \frac{0.908}{2} = 0.454$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Sum over each real/fake pair, averaged over the batch. A low value means the discriminator is currently winning.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Generator loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L_G = \frac{-\ln 0.2 - \ln 0.3}{2} = \frac{1.609 + 1.204}{2} = 1.407$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The generator only cares about the fakes: it wants $D(G(z))$ close to 1. It is clearly losing right now.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Why −ln D and not ln(1 − D)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{d}{dD}\big(-\ln D\big) = -\frac{1}{D} = -5 \;\; \text{at } D = 0.2, \qquad \frac{d}{dD}\ln(1 - D) = -\frac{1}{1 - D} = -1.25$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Minimising $\ln(1 - D)$ is the original minimax game, but when the generator is bad ($D$ small) its gradient is weak. $-\ln D$ gives a 4 times stronger signal exactly when the generator needs it most.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>At equilibrium</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$D = 0.5 \text{ everywhere}: \quad L_D = -\ln 0.5 - \ln 0.5 = 1.386, \qquad L_G = -\ln 0.5 = 0.693$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">If the fakes are perfect, the best the discriminator can do is guess 0.5. These two numbers are useful landmarks when reading GAN training curves: losses do not go to 0, they hover around these values.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>On this batch $L_D = 0.454$ (discriminator winning) and $L_G = 1.407$. Training alternates: one step lowering $L_D$, one step lowering $L_G$.</p>
+          <p>Unlike other networks, falling losses do not mean progress: a GAN is healthy when both losses stay near the equilibrium values 1.39 and 0.69.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Alternate: (1) train $D$ on a batch of real samples (label 1) and generated samples (label 0); (2) train $G$ to make $D$ label its samples 1, with $D$ held fixed.</p>
+        <p>Keep the two in balance: if $D$ wins completely, $G$ gets no useful gradient; if $G$ wins too easily, $D$ stops being a useful critic.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one GAN training step in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Update the discriminator to score real samples high and generated ones low; then update the generator so the discriminator scores its samples higher.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the two losses by hand. It will make more sense.</p>
+        <pre><code class="language-c">double d_loss(double d_real, double d_fake) {        /* discriminator: real → 1, fake → 0 */
+    return -log(d_real) - log(1 - d_fake);
+}
+
+double g_loss(double d_fake) {                       /* generator: wants D(G(z)) → 1 */
+    return -log(d_fake);                             /* non-saturating form */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>generative adversarial network</strong> trains a generator to produce samples that a discriminator, trained at the same time, cannot distinguish from real data.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["sample real data and noise z"] --&gt; B["train D: real → 1, G(z) → 0"]
+  B --&gt; C["train G: make D(G(z)) → 1, D fixed"]
+  C --&gt; D{"samples good enough?"}
+  D --&gt;|no| A
+  D --&gt;|yes| E["use G alone to generate new samples"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after training, which network do you keep for generating images? (Answer: only the generator.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why train the generator with $-\ln D(G(z))$ instead of $\ln(1 - D(G(z)))$?</p>
+          <details><summary>Check your answer</summary>
+            <p>Early on $D(G(z))$ is near 0, where $\ln(1 - D)$ is flat and gives tiny gradients; $-\ln D$ gives strong gradients exactly then.</p>
+          </details>
+        </div>
+        <p>The original minimax objective and our numbers:</p>
+        $$\min_G \max_D \; \mathbb{E}[\ln D(x)] + \mathbb{E}[\ln(1 - D(G(z)))], \qquad L_D = 0.33,\; L_G = 1.61$$
+        <table>
+          <thead>
+            <tr><th>State</th><th>$D(\text{real})$</th><th>$D(\text{fake})$</th><th>$L_D$</th><th>$L_G$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Our example</td><td>0.9</td><td>0.2</td><td>0.33</td><td>1.61</td></tr>
+            <tr><td>Discriminator dominates</td><td>0.99</td><td>0.01</td><td>0.02</td><td>4.61</td></tr>
+            <tr><td>Equilibrium</td><td>0.5</td><td>0.5</td><td>1.39</td><td>0.69</td></tr>
+            <tr><td>Generator fools D</td><td>0.6</td><td>0.9</td><td>2.81</td><td>0.11</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>GANs are notoriously unstable. A common failure is <strong>mode collapse</strong>: the generator finds a few outputs that fool the discriminator and produces only those, so all its samples look alike.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Write both losses, say which network minimises which, and explain the non-saturating generator loss. Mention mode collapse as the classic failure.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Updating the discriminator while training the generator (it must be held fixed in that step).</li>
+          <li>Reading a low generator loss as "good images"; GAN losses don't measure sample quality directly.</li>
+          <li>Letting the discriminator become so strong that the generator's gradients vanish.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>If $D(\text{real}) = 0.8$ and $D(\text{fake}) = 0.4$, compute both losses.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Use $-\ln$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$L_D = 0.223 + 0.511 \approx 0.73$; $L_G = -\ln 0.4 \approx 0.92$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Early in training $D(G(z)) = 0.01$. Compare the gradient sizes of $\ln(1 - D)$ and $-\ln D$ with respect to $D$ at this point. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\frac{d}{dD}\ln(1 - D) = -1/(1 - D) \approx -1.01$; $\frac{d}{dD}(-\ln D) = -1/D = -100$. The non-saturating loss gives about 100 times stronger gradients when the generator is still bad.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Ian Goodfellow came up with GANs in 2014, reportedly after a discussion in a Montreal bar, and wrote the first working version that same night.</p>
+          <p>StyleGAN (2019) produced the photorealistic faces of "this person does not exist"; diffusion models have since taken over much image generation.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>GANs need no explicit quality measure <strong>because</strong> the discriminator learns to judge realism.</li>
+          <li>The two networks are adversaries <strong>because</strong> one's loss goes down when the other's goes up.</li>
+          <li>At equilibrium $D = 0.5$ <strong>because</strong> perfect fakes can't be told apart from real data.</li>
+          <li>The non-saturating loss helps early training <strong>because</strong> it gives strong gradients when fakes are easy to spot.</li>
+          <li>Mode collapse happens <strong>because</strong> the generator can fool the discriminator with a few repeated outputs.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a GAN like a forger and an art detective?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The forger (generator) makes fakes, the detective (discriminator) learns to spot them, and both improve against each other.</p></details></li>
+          <li><strong>Compute the GAN losses when $D(\text{real}) = 0.9$ and $D(\text{fake}) = 0.2$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$L_D \approx 0.33$, $L_G \approx 1.61$.</p></details></li>
+          <li><strong>Why does <code>g_loss</code> use <code>-log(d_fake)</code> rather than <code>log(1 - d_fake)</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions early training.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When fakes are poor, $D(G(z))$ is near 0, where $\ln(1 - D)$ is nearly flat; $-\ln D$ has a large gradient there, so the generator learns faster.</p></details></li>
+          <li><strong>So what is a GAN, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A generator and a discriminator trained against each other until the generator's samples are indistinguishable from real data.</p></details></li>
+          <li><strong>Why is $D = 0.5$ the sign of success, not failure?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer imagines perfect fakes.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If the fakes are perfect, the best the discriminator can do is guess, so it outputs 0.5 for everything.</p></details></li>
+          <li><strong>What are the two losses?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$L_D = -[\ln D(x) + \ln(1 - D(G(z)))]$ and $L_G = -\ln D(G(z))$.</p></details></li>
+          <li><strong>What is mode collapse?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The generator produces only a few kinds of samples that fool the discriminator, losing the variety of the real data.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the minimax formula and the non-saturating trick. I'd keep the forger-detective analogy, the 0.9/0.2 loss example, and "two networks compete; at the end D can only guess".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://developers.google.com/machine-learning/gan" target="_blank" rel="noopener">Google: Generative Adversarial Networks course</a>: structure, losses and common problems.</li>
+          <li><a href="https://arxiv.org/abs/1406.2661" target="_blank" rel="noopener">Goodfellow et al.: Generative Adversarial Nets (arXiv)</a>: the original paper.</li>
+          <li><a href="https://poloclub.github.io/ganlab/" target="_blank" rel="noopener">GAN Lab</a>: train a small GAN interactively in the browser.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=generative+adversarial+networks+explained" target="_blank" rel="noopener">YouTube search: GANs explained</a>: pick a short visual introduction.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

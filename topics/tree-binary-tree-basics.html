@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Binary tree basics · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="tree-binary-tree-basics" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="trees.html" class="hover:text-indigo-500">Trees</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Trees</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Binary tree basics</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Draw node 1 at the top, give it two children 2 and 3, and give 2 two children 4 and 5. That's a binary tree: every node has at most two children. Now visit it "left subtree, node, right subtree": you read 4, 2, 5, 1, 3. The order you visit nodes in is called a traversal.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> a tree with $n$ nodes can be as short as about $\log_2 n$ levels, and every search tree, heap and parse tree is built on these words: root, child, leaf, height, traversal.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Recursion: a function that calls itself on a smaller input.</li>
+          <li>Structs and pointers in C.</li>
+          <li><a href="structure-singly-linked-list.html">Linked lists</a>: a tree node is a list node with two "next" pointers.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a family tree drawn upside down: one ancestor at the top, each person with up to two children below them.</p>
+          <p>A binary tree has the same shape. The top node is the <strong>root</strong>, nodes without children are <strong>leaves</strong>, and the number of generations below the root is the tree's <strong>height</strong>.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <h3>Start with a small tree on paper</h3>
+        <p>The tree is: root 1; children of 1 are 2 (left) and 3 (right); children of 2 are 4 and 5. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Name the leaves and give the height (counting edges on the longest root-to-leaf path).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Leaves: 4, 5 and 3. The longest path is 1 → 2 → 4, which has 2 edges, so the height is 2.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the in-order traversal (left, node, right) visits which order?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>4, 2, 5, 1, 3. Finish the whole left subtree of 1 before visiting 1, then do the right subtree.</p></details>
+          <p><strong>Step 3.</strong> Insert 6 as the left child of 3. Predict the new height and the new in-order sequence.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The height stays 2, since 6 is at depth 2. In-order becomes 4, 2, 5, 1, 6, 3.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/tree-binary-tree-basics-1.svg" alt="Binary tree with root 1, children 2 and 3, and 4 and 5 under 2, with in-order visit numbers" width="560" height="320">
+          <figcaption>What you just drew: the small numbers under each node are its position in the in-order traversal.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what is the difference between depth and height?</p>
+          <details><summary>Check your answer</summary>
+            <p>Depth is how far a node is from the root; height is the longest distance from a node down to a leaf. The tree's height is the root's height.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the other traversals</h3>
+        <p>Use the original tree (1; 2, 3; 4, 5 under 2).</p>
+        <ul>
+          <li><strong>Pre-order (node, left, right).</strong> Predict the sequence.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>1, 2, 4, 5, 3.</p></details></li>
+          <li><strong>Post-order (left, right, node) and level order (row by row).</strong> Predict both.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Post-order: 4, 5, 2, 3, 1. Level order: 1, 2, 3, 4, 5.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: in pre-order, when is a node visited compared with its children?</p>
+          <details><summary>Check your answer</summary>
+            <p>Before both of them: node, then left subtree, then right subtree.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>A binary tree is either empty, or a node with a value, a left subtree and a right subtree, each of which is a binary tree.</p>
+        <p>Almost every tree algorithm follows that definition: handle the empty tree, recurse on the two subtrees, and combine the results at the node.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write how you would compute the height of a tree recursively, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>An empty tree has height −1. Otherwise compute the heights of the left and right subtrees, take the bigger one, and add 1 for the edge to them.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the traversal by hand. It will make more sense.</p>
+        <pre><code class="language-c">typedef struct Node { int val; struct Node *left, *right; } Node;
+
+int height(Node *t) {                  /* edges on the longest root-to-leaf path */
+    if (t == NULL) return -1;          /* empty tree */
+    int l = height(t-&gt;left), r = height(t-&gt;right);
+    return 1 + (l &gt; r ? l : r);
+}
+
+int inorder(Node *t, int out[], int k) {   /* writes values into out, returns new k */
+    if (t == NULL) return k;
+    k = inorder(t-&gt;left, out, k);          /* left subtree first */
+    out[k++] = t-&gt;val;                     /* then the node */
+    return inorder(t-&gt;right, out, k);      /* then the right subtree */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>binary tree</strong> is a set of nodes where each node has at most two children (left and right), with one <strong>root</strong> at the top.</p>
+          <p>A <strong>traversal</strong> visits every node once: pre-order (node first), in-order (node in the middle), post-order (node last) or level order (row by row).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+graph TD
+  A((1)) --&gt; B((2))
+  A --&gt; C((3))
+  B --&gt; D((4))
+  B --&gt; E((5))
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: in post-order, which node is visited last? (Answer: the root, 1; post-order always ends at the root.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many nodes can a binary tree of height 2 hold at most?</p>
+          <details><summary>Check your answer</summary>
+            <p>7: 1 + 2 + 4, one full level each.</p>
+          </details>
+        </div>
+        <p>Level $d$ holds at most $2^d$ nodes, so a tree of height $h$ holds at most:</p>
+        $$n \;\le\; 1 + 2 + 4 + \dots + 2^h \;=\; 2^{h+1} - 1 \quad\Longrightarrow\quad h \;\ge\; \lfloor \log_2 n \rfloor$$
+        <p>So the best possible height is about $\log_2 n$, and the worst (every node with one child) is $n - 1$. Every traversal visits each node once: $O(n)$.</p>
+        <table>
+          <thead>
+            <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Any traversal</td><td>$O(n)$</td><td>Each node is visited once</td></tr>
+            <tr><td>Height, size, count leaves</td><td>$O(n)$</td><td>One traversal</td></tr>
+            <tr><td>Find a value (no ordering)</td><td>$O(n)$</td><td>It could be in either subtree</td></tr>
+            <tr><td>Insert at a known free spot</td><td>$O(1)$</td><td>Set one child pointer</td></tr>
+            <tr><td>Recursion stack</td><td>$O(h)$</td><td>One frame per level, from $O(\log n)$ to $O(n)$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Height conventions differ: some books count <em>nodes</em> on the longest path (so a single node has height 1), others count <em>edges</em> (height 0). Always say which one you use.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>The classic exam question gives a tree and asks for pre-, in- and post-order. Trace with a finger: pre-order writes a node when you first pass it on the left, in-order when you pass underneath, post-order when you pass on the right.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Mixing up in-order and pre-order: in-order visits the node <em>between</em> its subtrees.</li>
+          <li>Returning 0 instead of −1 for an empty tree, which makes every height one too big under the edge convention.</li>
+          <li>Forgetting the empty-tree base case, which dereferences <code>NULL</code>.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>A tree has root A, children B (left) and C (right), and D as the right child of B. Give the pre-order traversal.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Node, then left subtree, then right subtree.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>A, B, D, C.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A tree's pre-order is 1, 2, 4, 3 and its in-order is 4, 2, 1, 3. Draw it. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Pre-order starts with the root, 1. In in-order, 4, 2 are left of 1 and 3 is right of it. Within {4, 2}, pre-order shows 2 first, so 2 is the left child of 1 and 4 is the left child of 2. 3 is the right child of 1.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The tree is rebuilt in exercise 2 from two traversals: pre-order plus in-order always pins down a binary tree with distinct values, but pre-order plus post-order does not.</p>
+          <p>Compilers turn your code into a tree (the syntax tree), and evaluating <code>(2 + 3) * 4</code> is a post-order traversal: compute the children, then apply the operator.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Tree algorithms are recursive <strong>because</strong> a tree is a node plus two smaller trees.</li>
+          <li>Traversals are $O(n)$ <strong>because</strong> each node is visited exactly once.</li>
+          <li>A tree of $n$ nodes has height at least $\lfloor \log_2 n \rfloor$ <strong>because</strong> level $d$ can hold at most $2^d$ nodes.</li>
+          <li>In-order puts the node in the middle <strong>because</strong> it finishes the left subtree before the node and the right subtree after.</li>
+          <li>Recursion depth equals the height <strong>because</strong> each call goes one level down.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a binary tree like an upside-down family tree?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>One ancestor at the top (the root), each person with up to two children below, and people without children are the leaves.</p></details></li>
+          <li><strong>Give the leaves, the height and the in-order traversal of the tree 1; 2, 3; 4, 5 under 2.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Leaves 4, 5, 3; height 2; in-order 4, 2, 5, 1, 3.</p></details></li>
+          <li><strong>Why does <code>height</code> return −1 for an empty tree?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer checks a single node.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A single node should have height 0 edges. With −1 for empty children, it gets 1 + max(−1, −1) = 0, which is right.</p></details></li>
+          <li><strong>So what is a binary tree, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A collection of nodes where each node has at most a left and a right child, starting from one root.</p></details></li>
+          <li><strong>What are the four standard traversals, and how do they differ?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pre-order visits the node before its subtrees, in-order between them, post-order after them, and level order goes row by row from the root.</p></details></li>
+          <li><strong>Why is the best possible height about $\log_2 n$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer counts nodes per level.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each level can at most double the number of nodes, so $n$ nodes need at least about $\log_2 n$ levels.</p></details></li>
+          <li><strong>What do traversals, height and search cost on a general binary tree?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>All $O(n)$: each needs to look at every node in the worst case.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the height conventions and rebuilding from two traversals. I'd keep the family-tree analogy, the 5-node example with its traversals, and "recursion: node plus two subtrees".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/bst" target="_blank" rel="noopener">VisuAlgo: Binary trees</a>: animate pre-, in- and post-order traversals.</li>
+          <li><a href="https://www.geeksforgeeks.org/binary-tree-data-structure/" target="_blank" rel="noopener">GeeksforGeeks: Binary tree</a>: terminology, types and traversal code.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Binary_tree" target="_blank" rel="noopener">Wikipedia: Binary tree</a>: definitions, properties and counting formulas.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=binary+tree+traversal+preorder+inorder+postorder" target="_blank" rel="noopener">YouTube search: tree traversals</a>: pick a walkthrough of all three depth-first orders.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

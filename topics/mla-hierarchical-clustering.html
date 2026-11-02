@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hierarchical clustering · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-hierarchical-clustering" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Hierarchical clustering</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four points on a line: A = 1, B = 2, C = 6, D = 8. Start with each point as its own cluster. Merge the closest pair, A and B (distance 1). Then C and D (distance 2). Then the two groups (closest members B and C, distance 4). Drawing those merges as a tree gives a <strong>dendrogram</strong>; cut it at any height to get any number of clusters. That's agglomerative hierarchical clustering.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> you don't need to choose $k$ in advance: one run gives every level of grouping at once, and the dendrogram shows how strongly the groups belong together.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-k-means.html">k-means</a>, for comparison.</li>
+          <li>Distances between points.</li>
+          <li><a href="tree-binary-tree-basics.html">Binary trees</a>: a dendrogram is one.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of building a family tree from the bottom up: siblings are joined first, then cousins, then whole branches, until everyone is in one family.</p>
+          <p>Agglomerative clustering joins the two closest groups at every step, and the height of each join records how far apart they were.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Linkage:</strong> the distance between two <em>clusters</em> must be defined: <strong>single</strong> linkage uses the closest pair of members, <strong>complete</strong> the farthest pair, <strong>average</strong> the mean of all pairs.</p>
+        <h3>Start with the merges by hand</h3>
+        <p>Points A = 1, B = 2, C = 6, D = 8, single linkage. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Which pair merges first, and at what height?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>A and B, at distance 1 (the smallest of all pairwise distances).</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the next merge.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>C and D at distance 2. ({A, B} to C is 4, so it waits.)</p></details>
+          <p><strong>Step 3.</strong> Final merge: predict the single-linkage distance between {A, B} and {C, D}.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The closest members are B = 2 and C = 6: distance 4. Everything is now one cluster.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-hierarchical-clustering-1.svg" alt="Dendrogram of A, B, C, D: A and B join at height 1, C and D at height 2, and both groups at height 4; a dashed cut at height 3 gives two clusters" width="600" height="340">
+          <figcaption>What you just built: the height of each join is its merge distance. The dashed line cuts the tree into two clusters.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does the height of a join in a dendrogram mean?</p>
+          <details><summary>Check your answer</summary>
+            <p>The distance between the two clusters when they were merged.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: a different linkage</h3>
+        <p>Same points, <strong>complete</strong> linkage (farthest pair).</p>
+        <ul>
+          <li><strong>The first two merges.</strong> Predict them.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Still A–B at 1 and C–D at 2: for single points, all linkages agree.</p></details></li>
+          <li><strong>The final merge height.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>The farthest members are A = 1 and D = 8: height 7 instead of 4. Complete linkage gives tighter, rounder clusters; single linkage can chain long thin groups.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how many clusters do you get by cutting at height 3, and at height 1.5?</p>
+          <details><summary>Check your answer</summary>
+            <p>At 3: two clusters, {A, B} and {C, D}. At 1.5: three clusters, {A, B}, {C}, {D}.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Four points on a line, A = 0, B = 1, C = 5, D = 7, clustered bottom-up twice: once with single linkage (closest pair) and once with complete linkage (farthest pair). Every distance-matrix update is shown.</p>
+        <table>
+          <thead>
+            <tr><th></th><th>A (0)</th><th>B (1)</th><th>C (5)</th><th>D (7)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>0</td><td><strong>1</strong></td><td>5</td><td>7</td></tr>
+            <tr><td>B</td><td>1</td><td>0</td><td>4</td><td>6</td></tr>
+            <tr><td>C</td><td>5</td><td>4</td><td>0</td><td>2</td></tr>
+            <tr><td>D</td><td>7</td><td>6</td><td>2</td><td>0</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Start: every point is its own cluster</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\{A\}, \{B\}, \{C\}, \{D\} \qquad \text{smallest distance: } d(A, B) = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The distance matrix above holds all $\binom{4}{2} = 6$ pairwise distances. Agglomerative clustering always merges the two closest clusters first, here A and B.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Single linkage: update the matrix</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d(\{AB\}, C) = \min(5, 4) = 4, \qquad d(\{AB\}, D) = \min(7, 6) = 6, \qquad d(C, D) = 2$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">With single linkage, the distance between two clusters is the distance between their <em>closest</em> members. The row for A and the row for B collapse into one row by taking the minimum.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Single linkage: second merge</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\min(4, 6, 2) = 2 \;\Rightarrow\; \text{merge } C \text{ and } D \text{ at height } 2$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The smallest entry is now C–D. We record the height (2) at which they join: it becomes the height of that branch in the dendrogram.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Single linkage: last merge</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d(\{AB\}, \{CD\}) = \min(4, 6, 5, 7) = 4 \;\Rightarrow\; \text{merge at height } 4$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Only two clusters remain, so they merge. The dendrogram heights are 1, 2, 4.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Complete linkage: same start, different update</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d(\{AB\}, C) = \max(5, 4) = 5, \qquad d(\{AB\}, D) = \max(7, 6) = 7$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Complete linkage uses the <em>farthest</em> members, so the merged row takes the maximum. The first two merges (AB at 1, CD at 2) are the same as before.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Complete linkage: last merge</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$d(\{AB\}, \{CD\}) = \max(4, 6, 5, 7) = 7 \;\Rightarrow\; \text{merge at height } 7$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The final merge happens much higher (7 instead of 4) because complete linkage measures the full width of the combined cluster: from A at 0 to D at 7.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Cut the dendrogram</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{cut at height } 3: \; \{A, B\}, \{C, D\} \qquad \text{cut at height } 1.5: \; \{A, B\}, \{C\}, \{D\}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">You choose the number of clusters after the fact by drawing a horizontal line through the tree. A big gap between merge heights (2 to 7 here) signals a natural number of clusters, 2.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Both linkages find the same two groups, {A, B} and {C, D}, but disagree on how far apart they are: 4 (single) vs 7 (complete).</p>
+          <p>Single linkage can chain far-apart points together through intermediates; complete linkage prefers compact, round clusters. The dendrogram lets you pick the number of clusters by eye.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Start with every point as its own cluster. Repeatedly merge the two clusters with the smallest linkage distance, recording the merge height, until one cluster is left.</p>
+        <p>Cut the dendrogram at a chosen height (or where the gap between merges is largest) to get the clusters.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe single-linkage distance between two clusters, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Look at every pair with one member in each cluster and take the smallest distance among them.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the merges by hand. It will make more sense.</p>
+        <pre><code class="language-c">double single_link(double a[], int na, double b[], int nb) {     /* closest pair */
+    double best = INFINITY;
+    for (int i = 0; i &lt; na; i++)
+        for (int j = 0; j &lt; nb; j++)
+            if (fabs(a[i] - b[j]) &lt; best) best = fabs(a[i] - b[j]);
+    return best;
+}
+
+double complete_link(double a[], int na, double b[], int nb) {   /* farthest pair */
+    double worst = 0;
+    for (int i = 0; i &lt; na; i++)
+        for (int j = 0; j &lt; nb; j++)
+            if (fabs(a[i] - b[j]) &gt; worst) worst = fabs(a[i] - b[j]);
+    return worst;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>agglomerative hierarchical clustering</strong> starts with every point alone and repeatedly merges the two closest clusters, producing a <strong>dendrogram</strong> that can be cut at any height.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["each point is its own cluster"] --&gt; B["compute linkage distances between clusters"]
+  B --&gt; C["merge the closest two, record the height"]
+  C --&gt; D{"only one cluster left?"}
+  D --&gt;|no| B
+  D --&gt;|yes| E["cut the dendrogram to get k clusters"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: how many times do you pass through "merge" for A, B, C, D? (Answer: 3.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many merges does agglomerative clustering perform on $n$ points?</p>
+          <details><summary>Check your answer</summary>
+            <p>$n - 1$: each merge reduces the number of clusters by one, from $n$ to 1.</p>
+          </details>
+        </div>
+        <p>The two most common linkages between clusters $P$ and $Q$:</p>
+        $$d_{\text{single}}(P, Q) = \min_{p \in P,\, q \in Q} d(p, q), \qquad d_{\text{complete}}(P, Q) = \max_{p \in P,\, q \in Q} d(p, q)$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Distance matrix</td><td>$O(n^2)$ memory</td><td>All pairs of points</td></tr>
+            <tr><td>Naive algorithm</td><td>$O(n^3)$ time</td><td>$n - 1$ merges, each scanning all pairs</td></tr>
+            <tr><td>Optimised (e.g. single linkage)</td><td>$O(n^2)$ time</td><td>Special algorithms such as SLINK</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> small to medium datasets where you want to see the structure at every scale, such as gene expression or taxonomies.</p>
+        <ul>
+          <li><strong>Pro:</strong> No need to choose $k$ in advance; the dendrogram shows all levels.</li>
+          <li><strong>Pro:</strong> Works with any distance measure and gives an interpretable tree.</li>
+          <li><strong>Con:</strong> $O(n^2)$ memory and $O(n^2)$–$O(n^3)$ time: too slow for very large datasets.</li>
+          <li><strong>Con:</strong> Merges are never undone, so an early bad merge stays; results depend on the linkage.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Single linkage can "chain": two clearly separate groups connected by a thin trail of points get merged early. Complete or Ward linkage avoids this, at the cost of preferring round clusters.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Exams give a distance matrix and ask for the dendrogram. After each merge, update the matrix: for single linkage, the new cluster's distance to $X$ is the minimum of the two old distances.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Mixing up single (minimum) and complete (maximum) linkage.</li>
+          <li>Forgetting to update the distance matrix after each merge.</li>
+          <li>Reading the horizontal order of leaves as meaningful; only the heights matter.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Points 0, 3, 4, 10, single linkage. List the merges and their heights.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Find the smallest gap first.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>3–4 at 1; then 0 with {3, 4} at 3; then 10 with {0, 3, 4} at 6.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Same points 0, 3, 4, 10, complete linkage. List the merges and heights, and compare. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>3–4 at 1; then 0 with {3, 4} at max(3, 4) = 4; then 10 with {0, 3, 4} at 10. Same order here, but complete linkage gives larger heights.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Biologists have drawn trees of species by hierarchical clustering of similarities since the 1950s; phylogenetic methods like UPGMA are average-linkage clustering.</p>
+          <p>Ward's method, the default in many tools, merges the pair that increases the within-cluster sum of squares the least, the same quantity k-means minimises.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>No $k$ is needed upfront <strong>because</strong> the dendrogram contains every number of clusters at once.</li>
+          <li>Merge heights show strength of grouping <strong>because</strong> they record the distance at which clusters joined.</li>
+          <li>It needs $n - 1$ merges <strong>because</strong> each merge reduces the number of clusters by one.</li>
+          <li>Linkage changes the result <strong>because</strong> it defines what "closest clusters" means.</li>
+          <li>It scales poorly <strong>because</strong> it needs distances between all pairs of points.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is hierarchical clustering like building a family tree from the bottom up?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The closest relatives are joined first, then larger branches, until everyone is in one family, and the tree records the order.</p></details></li>
+          <li><strong>Do single-linkage clustering on A = 1, B = 2, C = 6, D = 8.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Merge A–B at 1, C–D at 2, then the two groups at 4 (closest members B and C).</p></details></li>
+          <li><strong>Why does <code>single_link</code> start <code>best</code> at <code>INFINITY</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what the first comparison does.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>So the first pair's distance is always smaller and becomes the starting minimum; any finite start could be smaller than every real distance.</p></details></li>
+          <li><strong>So what is agglomerative hierarchical clustering, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A method that repeatedly merges the two closest clusters, starting from single points, and records the merges as a dendrogram.</p></details></li>
+          <li><strong>Why does the final merge height differ between single and complete linkage?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the A, B, C, D numbers.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Single linkage uses the closest members, B and C, distance 4; complete linkage uses the farthest, A and D, distance 7.</p></details></li>
+          <li><strong>What does hierarchical clustering cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n^2)$ memory for distances and $O(n^2)$ to $O(n^3)$ time depending on the algorithm.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: no need to pick $k$, and an interpretable dendrogram with any distance. Cons: slow and memory-hungry on large data, and merges can't be undone.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the complexity and Ward's method. I'd keep the family-tree analogy, the four-point merges, the dendrogram cut, and "merge the closest, cut where you like".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/clustering.html#hierarchical-clustering" target="_blank" rel="noopener">scikit-learn: Hierarchical clustering</a>: linkages and dendrogram examples.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Hierarchical_clustering" target="_blank" rel="noopener">Wikipedia: Hierarchical clustering</a>: linkage criteria and complexity.</li>
+          <li><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html" target="_blank" rel="noopener">SciPy: dendrogram</a>: drawing dendrograms in Python.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+hierarchical+clustering" target="_blank" rel="noopener">YouTube search: StatQuest hierarchical clustering</a>: StatQuest with a heatmap example.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

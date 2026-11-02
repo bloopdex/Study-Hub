@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Divide and conquer · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="paradigm-divide-and-conquer" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="paradigms.html" class="hover:text-indigo-500">Paradigms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">Algorithms · Paradigms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Divide and conquer</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Sort <code>[4, 1, 3, 2]</code> by refusing to sort it directly: cut it into <code>[4, 1]</code> and <code>[3, 2]</code>, cut again into single numbers (already sorted), then glue pairs back in order: <code>[1, 4]</code>, <code>[2, 3]</code>, and finally <code>[1, 2, 3, 4]</code>. Divide, conquer the small pieces, combine. That's divide and conquer.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> splitting a problem into smaller copies of itself turns many $O(n^2)$ problems into $O(n \log n)$ ones, and the pieces are independent, so they can even run in parallel.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li>Recursion and base cases.</li>
+          <li><a href="sorting-merge-sort.html">Merge sort</a>, the textbook example.</li>
+          <li>Logarithms: halving $n$ takes $\log_2 n$ steps.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine counting the votes of a whole country. Nobody counts them all alone: each town counts its own, regions add up their towns, and the capital adds up the regions.</p>
+          <p>Divide and conquer works the same way. Split the job into smaller jobs of the same kind, solve those (often by splitting again), then combine the answers.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>The three steps:</strong> <strong>Divide</strong> the problem into smaller subproblems of the same type; <strong>conquer</strong> each one recursively (tiny ones directly); <strong>combine</strong> their answers.</p>
+        <h3>Start with the split tree by hand</h3>
+        <p>Sort <code>[4, 1, 3, 2]</code> with the three steps. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Divide twice. Predict the pieces at the bottom of the tree.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p><code>[4, 1, 3, 2]</code> → <code>[4, 1]</code> and <code>[3, 2]</code> → <code>[4]</code>, <code>[1]</code>, <code>[3]</code>, <code>[2]</code>. Single numbers are the base case: already sorted.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: combine the pairs. Predict the two results.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p><code>[1, 4]</code> and <code>[2, 3]</code>: each merge compares the two fronts once.</p></details>
+          <p><strong>Step 3.</strong> Combine the last two pieces. Predict the result and the number of tree levels.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p><code>[1, 2, 3, 4]</code>. The tree has 2 levels of splitting, $\log_2 4 = 2$.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/paradigm-divide-and-conquer-1.svg" alt="Recursion tree for merge sort on 4 1 3 2: divide down to single elements, then combine back up to 1 2 3 4" width="640" height="400">
+          <figcaption>What you just did by hand: arrows down are "divide", arrows up are "combine". The bottom row is the base case.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what are the three steps of divide and conquer?</p>
+          <details><summary>Check your answer</summary>
+            <p>Divide into smaller subproblems of the same type, conquer them recursively, combine their answers.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the same idea elsewhere</h3>
+        <p>Try the three steps on two other problems.</p>
+        <ul>
+          <li><strong>Maximum of <code>[4, 1, 3, 2]</code>.</strong> Predict the answers of the halves and the combine.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>max([4, 1]) = 4, max([3, 2]) = 3, combine: max(4, 3) = 4. Combining is one comparison.</p></details></li>
+          <li><strong>Binary search for 3 in <code>[1, 2, 3, 4]</code>.</strong> Predict how many subproblems are solved at each level.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Only one: the half that can contain 3. That's why binary search is $O(\log n)$ instead of $O(n)$.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is binary search also divide and conquer?</p>
+          <details><summary>Check your answer</summary>
+            <p>It divides the range in two, conquers just one half (the other is thrown away), and needs no combine step.</p>
+          </details>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Write a <strong>base case</strong> small enough to solve directly. Otherwise <strong>divide</strong> the input, <strong>recurse</strong> on the parts, and <strong>combine</strong> the results.</p>
+        <p>The cost is set by three things: how many subproblems, how big each is, and how expensive the divide and combine steps are.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, write a divide-and-conquer way to find the maximum of an array, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>If there is one element, it is the maximum. Otherwise split in half, find the maximum of each half, and return the bigger of the two.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the split tree by hand. It will make more sense.</p>
+        <pre><code class="language-c">int max_dc(int a[], int lo, int hi) {           /* maximum of a[lo..hi] */
+    if (lo == hi) return a[lo];                 /* base case: one element */
+    int mid = lo + (hi - lo) / 2;               /* divide */
+    int l = max_dc(a, lo, mid);                 /* conquer the left half */
+    int r = max_dc(a, mid + 1, hi);             /* conquer the right half */
+    return l &gt; r ? l : r;                       /* combine */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>divide and conquer</strong> solves a problem by splitting it into smaller independent subproblems of the same type, solving them recursively, and combining their solutions.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A{"is the problem small?"} --&gt;|yes| B["solve it directly (base case)"]
+  A --&gt;|no| C["divide into subproblems"]
+  C --&gt; D["solve each subproblem recursively"]
+  D --&gt; E["combine the answers"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: for merge sort, which box does the real work? (Answer: "combine", the merge; dividing is just computing the middle.)</figcaption>
+        </figure>
+
+        <h3>How fast is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: how many levels does the merge sort tree have for $n = 1024$?</p>
+          <details><summary>Check your answer</summary>
+            <p>10, because $2^{10} = 1024$.</p>
+          </details>
+        </div>
+        <p>Draw the recursion tree. For merge sort there are $\log_2 n$ levels, and the combine steps on each level touch all $n$ elements once:</p>
+        $$\underbrace{n}_{\text{work per level}} \times \underbrace{\log_2 n}_{\text{levels}} \;=\; O(n \log n)$$
+        <p>For <code>max_dc</code>, each combine is one comparison and there are $n - 1$ of them in total, so it is $O(n)$, no better than a simple loop.</p>
+        <table>
+          <thead>
+            <tr><th>Algorithm</th><th>Subproblems</th><th>Combine cost</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Binary search</td><td>1 of size $n/2$</td><td>$O(1)$</td><td>$O(\log n)$</td></tr>
+            <tr><td>Maximum (max_dc)</td><td>2 of size $n/2$</td><td>$O(1)$</td><td>$O(n)$</td></tr>
+            <tr><td>Merge sort</td><td>2 of size $n/2$</td><td>$O(n)$</td><td>$O(n \log n)$</td></tr>
+            <tr><td>Quick sort (average)</td><td>2 of size about $n/2$</td><td>$O(n)$ to divide</td><td>$O(n \log n)$</td></tr>
+            <tr><td>Karatsuba multiplication</td><td>3 of size $n/2$</td><td>$O(n)$</td><td>$O(n^{1.585})$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>If the subproblems <strong>overlap</strong> (the same subproblem appears many times, as in naive Fibonacci), plain divide and conquer recomputes them again and again and can become exponential. That's when you need dynamic programming.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>For any divide-and-conquer algorithm, be ready to say what the divide, conquer and combine steps are, and to read the cost off the recursion tree: levels × work per level.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Forgetting the base case, which recurses forever.</li>
+          <li>Splitting into subproblems that are not smaller, e.g. <code>mid = hi</code>, which also never ends.</li>
+          <li>Using divide and conquer when subproblems overlap; memoise them instead.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Name the divide, conquer and combine steps of quick sort.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Where does the real work happen?</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Divide: partition around a pivot (the real work). Conquer: sort both sides recursively. Combine: nothing, since the array is already in place.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Count the inversions (pairs out of order) in <code>[4, 1, 3, 2]</code> with divide and conquer: count inside each half, then the pairs that cross the halves while merging. What do you get? Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Left half [4, 1]: 1 inversion. Right half [3, 2]: 1. Crossing pairs between [1, 4] and [2, 3]: 4 &gt; 2 and 4 &gt; 3, so 2. Total 4. Done during merge sort, this takes $O(n \log n)$ instead of checking all $O(n^2)$ pairs.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>In 1960, Kolmogorov conjectured that multiplying two $n$-digit numbers needs about $n^2$ steps. A 23-year-old student, Anatoly Karatsuba, broke it within a week using divide and conquer with 3 half-size products instead of 4.</p>
+          <p>The fast Fourier transform, which powers audio compression and signal processing, is another divide-and-conquer algorithm: $O(n \log n)$ instead of $O(n^2)$.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Divide and conquer is recursive <strong>because</strong> each subproblem is a smaller copy of the original.</li>
+          <li>Merge sort is $O(n \log n)$ <strong>because</strong> it has $\log_2 n$ levels and $O(n)$ combine work per level.</li>
+          <li>Binary search is $O(\log n)$ <strong>because</strong> it solves only one subproblem per level.</li>
+          <li>A base case is essential <strong>because</strong> without it the splitting never stops.</li>
+          <li>Overlapping subproblems call for dynamic programming <strong>because</strong> divide and conquer would recompute them.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is divide and conquer like counting a country's votes?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each town counts its own votes, regions add up their towns, and the capital adds up the regions: split, solve the small parts, combine.</p></details></li>
+          <li><strong>Walk through divide and conquer on [4, 1, 3, 2] with merge sort.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Split into [4, 1] and [3, 2], then into single numbers; merge into [1, 4] and [2, 3]; merge into [1, 2, 3, 4].</p></details></li>
+          <li><strong>Why does <code>max_dc</code> stop when <code>lo == hi</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer names the base case.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A one-element range is the base case: its maximum is that element, so there is nothing left to split.</p></details></li>
+          <li><strong>So what is divide and conquer, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Solving a problem by splitting it into smaller independent subproblems of the same type, solving them recursively and combining the results.</p></details></li>
+          <li><strong>Why is merge sort $O(n \log n)$ while <code>max_dc</code> is only $O(n)$?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares the combine steps.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Both have $\log_2 n$ levels, but merge sort's combine touches all $n$ elements per level, while max_dc's combine is a single comparison, $n - 1$ comparisons in total.</p></details></li>
+          <li><strong>What do binary search, merge sort and Karatsuba cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(\log n)$, $O(n \log n)$ and $O(n^{1.585})$.</p></details></li>
+          <li><strong>When is divide and conquer the wrong tool?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When subproblems overlap, as in naive Fibonacci; then memoising or dynamic programming avoids recomputation.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out Karatsuba and the inversion count. I'd keep the vote-counting analogy, the [4, 1, 3, 2] split tree, and "divide, conquer, combine; cost = levels × work per level".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://visualgo.net/en/sorting" target="_blank" rel="noopener">VisuAlgo: Sorting</a>: watch merge sort and quick sort divide and combine.</li>
+          <li><a href="https://www.geeksforgeeks.org/introduction-to-divide-and-conquer-algorithm/" target="_blank" rel="noopener">GeeksforGeeks: Divide and conquer</a>: the paradigm with classic examples.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Divide-and-conquer_algorithm" target="_blank" rel="noopener">Wikipedia: Divide-and-conquer algorithm</a>: history and examples.</li>
+          <li><a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" target="_blank" rel="noopener">MIT OCW 6.006</a>: lectures on recursive algorithms.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=divide+and+conquer+algorithm+explained" target="_blank" rel="noopener">YouTube search: divide and conquer explained</a>: pick an overview with examples.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

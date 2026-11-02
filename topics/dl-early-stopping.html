@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Early stopping · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-early-stopping" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Early stopping</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Train for 10 epochs and track two losses. The training loss keeps falling: 1.0, 0.7, … 0.17. The validation loss falls until epoch 5 (0.50), then rises: 0.51, 0.54, 0.58… From epoch 5 on, the network is memorising the training data instead of learning. With a "patience" of 3 epochs, training stops at epoch 8 and keeps the weights from epoch 5. That's early stopping.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it is the simplest regularizer: no change to the model or loss, just stop when held-out performance stops improving. It also saves compute, because you don't keep training a model that is getting worse.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mlf-bias-variance.html">Overfitting</a>.</li>
+          <li><a href="mlf-cross-validation.html">Validation data</a>.</li>
+          <li><a href="dl-sgd.html">Epochs</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of revising for an exam with practice papers you haven't seen. At first your practice scores rise; after a while you only get better at the questions you have memorised, and your scores on new papers start dropping.</p>
+          <p>The sensible thing is to stop revising at your best practice score. Early stopping does that with the validation loss.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Setup:</strong> a validation set that is <strong>not</strong> used for training; a <strong>patience</strong> (how many epochs without improvement to tolerate); and a saved copy of the best weights.</p>
+        <h3>Start with the loss curves by hand</h3>
+        <p>Validation losses for epochs 1–10: 1.05, 0.78, 0.60, 0.52, 0.50, 0.51, 0.54, 0.58, 0.63, 0.69. Patience 3. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> At which epoch is the validation loss lowest?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Epoch 5, with 0.50.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: after epoch 5, how many epochs without improvement until patience runs out?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Epochs 6, 7 and 8 are all worse than 0.50, so patience (3) runs out at epoch 8: training stops there.</p></details>
+          <p><strong>Step 3.</strong> Which weights do you keep, and what happened to the training loss meanwhile?</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>The weights saved at epoch 5. The training loss kept falling (0.33 → 0.21), the classic sign of overfitting.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-early-stopping-1.svg" alt="Training loss falling steadily and validation loss falling until epoch 5 then rising; the best epoch 5 and the stop at epoch 8 are marked" width="600" height="350">
+          <figcaption>What you just found: the gap between the curves opens after epoch 5. Early stopping keeps epoch 5.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: which curve tells you when to stop, and why?</p>
+          <details><summary>Check your answer</summary>
+            <p>The validation loss, because it measures performance on data the model is not trained on.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: choosing the patience</h3>
+        <p>Validation losses can be noisy. Suppose they were 0.50 at epoch 5, 0.51 at 6, 0.49 at 7.</p>
+        <ul>
+          <li><strong>Patience 1.</strong> Predict when training stops and which epoch is kept.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>It stops at epoch 6 and keeps epoch 5, missing the better epoch 7.</p></details></li>
+          <li><strong>Patience 3.</strong> Predict the outcome.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Epoch 7 improves (0.49), so the counter resets; training continues and keeps epoch 7 or later. More patience tolerates noise but costs more epochs.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: why is the test set not used for early stopping?</p>
+          <details><summary>Check your answer</summary>
+            <p>Choosing the stopping epoch is a decision based on the data; using the test set for it would make the final test score optimistic.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>The page's 10 epochs, followed with the exact bookkeeping an early-stopping callback does: best loss so far, the patience counter, and the gap between training and validation loss.</p>
+        <table>
+          <thead>
+            <tr><th>Epoch</th><th>Train loss</th><th>Val loss</th><th>Best so far</th><th>Counter (patience 3)</th><th>Gap val − train</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>1.00</td><td>1.05</td><td>1.05 (save)</td><td>0</td><td>0.05</td></tr>
+            <tr><td>2</td><td>0.70</td><td>0.78</td><td>0.78 (save)</td><td>0</td><td>0.08</td></tr>
+            <tr><td>3</td><td>0.50</td><td>0.60</td><td>0.60 (save)</td><td>0</td><td>0.10</td></tr>
+            <tr><td>4</td><td>0.40</td><td>0.52</td><td>0.52 (save)</td><td>0</td><td>0.12</td></tr>
+            <tr><td>5</td><td>0.33</td><td>0.50</td><td><strong>0.50 (save)</strong></td><td>0</td><td>0.17</td></tr>
+            <tr><td>6</td><td>0.28</td><td>0.51</td><td>0.50</td><td>1</td><td>0.23</td></tr>
+            <tr><td>7</td><td>0.24</td><td>0.54</td><td>0.50</td><td>2</td><td>0.30</td></tr>
+            <tr><td>8</td><td>0.21</td><td>0.58</td><td>0.50</td><td><strong>3 → stop</strong></td><td>0.37</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Epochs 1–5: improvement, save each time</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$0.50 < 0.52 \;\Rightarrow\; \text{best} = 0.50, \; \text{save weights}, \; \text{counter} = 0$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Every time the validation loss beats the best value so far, we store a copy of the weights and reset the counter.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Epoch 6: first epoch without improvement</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$0.51 \ge 0.50 \;\Rightarrow\; \text{counter} = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One bad epoch is not proof of overfitting; validation loss is noisy. The counter just starts.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Epochs 7–8: the counter reaches the patience</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$0.54 \ge 0.50 \Rightarrow 2, \qquad 0.58 \ge 0.50 \Rightarrow 3 = \text{patience} \;\Rightarrow\; \text{stop}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Three epochs in a row without beating 0.50: training stops at epoch 8. Epochs 9 and 10 are never run, which saves 20% of the compute here.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Restore the best weights</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{final model} = \text{weights saved at epoch } 5 \quad (\text{val loss } 0.50)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The weights at epoch 8 are already worse (0.58). Early stopping always returns the saved checkpoint, not the last one.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Read the gap</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{gap} = 0.05 \to 0.17 \to 0.37 \qquad (\text{epochs } 1, 5, 8)$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Training loss keeps falling while validation rises: the growing gap is the signature of overfitting. The network is learning details of the training set that do not carry over.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Effect of the patience</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{patience } 1: \text{stop at epoch } 6, \qquad \text{patience } 3: \text{stop at epoch } 8$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Both return epoch 5's weights here. A small patience stops sooner but may quit during a temporary bump; a larger patience costs more epochs but survives noisy curves.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Early stopping tracks the best validation loss, counts epochs without improvement, stops when the counter reaches the patience, and restores the best weights: here epoch 5.</p>
+          <p>It needs a validation set that is never trained on; otherwise the "best epoch" is chosen on data the model has memorised.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>After every epoch, compute the validation loss. If it is the best so far, save the weights and reset the counter; otherwise increase the counter.</p>
+        <p>When the counter reaches the patience, stop and restore the saved best weights.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe early stopping with patience, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>After each epoch, if the validation loss beats the best so far, remember the epoch and reset a counter; otherwise add one to the counter, and stop when it reaches the patience.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have found the stopping epoch by hand. It will make more sense.</p>
+        <pre><code class="language-c">int early_stop(double val[], int n_epochs, int patience, int out[]) {   /* out = {best, stop} */
+    int best = 0, wait = 0;
+    for (int e = 0; e &lt; n_epochs; e++) {
+        if (val[e] &lt; val[best]) { best = e; wait = 0; }    /* new best: save weights here */
+        else if (e &gt; 0 &amp;&amp; ++wait &gt;= patience) { out[0] = best + 1; out[1] = e + 1; return 1; }
+    }
+    out[0] = best + 1; out[1] = n_epochs;                  /* ran out of epochs */
+    return 0;
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>early stopping</strong> ends training when the validation loss has not improved for a set number of epochs (the patience) and keeps the weights from the best validation epoch.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["train one epoch"] --&gt; B["compute validation loss"]
+  B --&gt; C{"best so far?"}
+  C --&gt;|yes| D["save weights, reset counter"]
+  C --&gt;|no| E["counter + 1"]
+  D --&gt; A
+  E --&gt; F{"counter = patience?"}
+  F --&gt;|no| A
+  F --&gt;|yes| G["stop, restore best weights"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: at epoch 7 in our example, what is the counter? (Answer: 2; epochs 6 and 7 were not improvements.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: with patience 1, when would training stop here?</p>
+          <details><summary>Check your answer</summary>
+            <p>At epoch 6, the first epoch without improvement after epoch 5.</p>
+          </details>
+        </div>
+        <p>The kept model is the epoch with the lowest validation loss among those trained:</p>
+        $$e^* = \arg\min_{e \le e_{\text{stop}}} L_{\text{val}}(e) = 5, \qquad e_{\text{stop}} = e^* + \text{patience} = 8$$
+        <table>
+          <thead>
+            <tr><th>Epoch</th><th>Train loss</th><th>Val loss</th><th>Counter</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>4</td><td>0.40</td><td>0.52</td><td>0 (best)</td></tr>
+            <tr><td>5</td><td>0.33</td><td>0.50</td><td>0 (best)</td></tr>
+            <tr><td>6</td><td>0.28</td><td>0.51</td><td>1</td></tr>
+            <tr><td>7</td><td>0.24</td><td>0.54</td><td>2</td></tr>
+            <tr><td>8</td><td>0.21</td><td>0.58</td><td>3 → stop, keep epoch 5</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Restore the <strong>best</strong> weights, not the last ones. At the moment training stops, the model has already been getting worse for "patience" epochs.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Read the curves: both falling → keep training; training falling but validation rising → overfitting, stop at the validation minimum. Mention patience and restoring the best weights.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Keeping the weights from the stopping epoch instead of the best epoch.</li>
+          <li>Monitoring the training loss instead of the validation loss.</li>
+          <li>Using a patience of 0 or 1 with noisy validation losses, which stops too early.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Validation losses 0.9, 0.7, 0.72, 0.65, 0.66, 0.67, 0.68 with patience 2. When does training stop, and which epoch is kept?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>The counter resets at every new best.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>Best at epoch 2 (0.70); epoch 3 is worse (counter 1); epoch 4 improves (0.65, reset); epochs 5 and 6 are worse (counter 2): stop at epoch 6, keep epoch 4.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Explain why early stopping acts like L2 regularization for gradient descent starting from small weights. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Weights start near zero and grow as training proceeds. Stopping early limits how far they can travel from zero, which, like an L2 penalty, keeps them small and the model simpler.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Early stopping has been used since the 1990s; Lutz Prechelt's 1998 paper "Early Stopping — But When?" compared many stopping rules.</p>
+          <p>Deep-learning libraries have it built in, for example Keras's <code>EarlyStopping(patience=…, restore_best_weights=True)</code>.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The validation loss decides <strong>because</strong> it measures generalisation, unlike the training loss.</li>
+          <li>A rising validation loss signals overfitting <strong>because</strong> the model is fitting noise in the training set.</li>
+          <li>Patience tolerates noise <strong>because</strong> one bad epoch doesn't mean the trend has turned.</li>
+          <li>The best weights are restored <strong>because</strong> the last epochs before stopping were already worse.</li>
+          <li>It regularizes like L2 <strong>because</strong> it limits how far the weights move from their small starting values.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is early stopping like revising with unseen practice papers?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>You keep studying while your scores on new papers rise, and stop at your best score before memorising starts to hurt.</p></details></li>
+          <li><strong>With validation losses 1.05, 0.78, 0.60, 0.52, 0.50, 0.51, 0.54, 0.58 and patience 3, when do you stop and what do you keep?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Stop at epoch 8 and keep the weights from epoch 5, the lowest validation loss.</p></details></li>
+          <li><strong>Why does the code reset <code>wait</code> to 0 when a new best appears?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what <code>wait</code> counts.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p><code>wait</code> counts consecutive epochs without improvement; a new best breaks that run, so the count starts again.</p></details></li>
+          <li><strong>So what is early stopping, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Stopping training when the validation loss stops improving for a number of epochs and keeping the best-validation weights.</p></details></li>
+          <li><strong>Why does the training loss keep falling while the validation loss rises?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions memorising.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The model keeps fitting the training data, including its noise, which doesn't generalise, so performance on unseen validation data gets worse.</p></details></li>
+          <li><strong>What does patience control, and what are the trade-offs?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>How many non-improving epochs to tolerate; small patience may stop too early on noise, large patience wastes epochs.</p></details></li>
+          <li><strong>Why must you restore the best weights?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>When training stops, the model has been getting worse for "patience" epochs, so the last weights are not the best ones.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the L2 connection and noisy-patience details. I'd keep the revision analogy, the two curves with the minimum at epoch 5, and "stop at the validation minimum, keep the best weights".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://keras.io/api/callbacks/early_stopping/" target="_blank" rel="noopener">Keras docs: EarlyStopping</a>: patience and restore_best_weights in practice.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Early_stopping" target="_blank" rel="noopener">Wikipedia: Early stopping</a>: theory and the link to regularization.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/overfitting/interpreting-loss-curves" target="_blank" rel="noopener">Google ML Crash Course: Interpreting loss curves</a>: reading training and validation curves.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=early+stopping+neural+network+overfitting" target="_blank" rel="noopener">YouTube search: early stopping explained</a>: pick a short explainer.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

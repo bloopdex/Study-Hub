@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="450" viewBox="0 0 740 450" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Exponential search checks indices 1, 2, 4 and 8, overshoots at 18, then binary searches indices 4 to 8 and finds 14 at index 6</title>
+  <rect width="740" height="450" rx="16" fill="#f8fafc"/>
+  <text x="370" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Exponential search for 14: double, then binary search</text>
+  <rect x="30" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="50" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">2</text>
+  <rect x="76" y="56" width="40" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="96" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">4</text>
+  <rect x="122" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="142" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">6</text>
+  <rect x="168" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="188" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">8</text>
+  <rect x="214" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="234" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">10</text>
+  <rect x="260" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="280" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">12</text>
+  <rect x="306" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="326" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">14</text>
+  <rect x="352" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="372" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">16</text>
+  <rect x="398" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="418" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">18</text>
+  <rect x="444" y="56" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="464" y="85" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">20</text>
+  <text x="500" y="84" font-size="15" fill="#334155">i = 1: 4 &lt; 14 → double</text>
+  <text x="257" y="126" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="30" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="50" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">2</text>
+  <rect x="76" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="96" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">4</text>
+  <rect x="122" y="136" width="40" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="142" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">6</text>
+  <rect x="168" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="188" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">8</text>
+  <rect x="214" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="234" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">10</text>
+  <rect x="260" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="280" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">12</text>
+  <rect x="306" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="326" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">14</text>
+  <rect x="352" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="372" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">16</text>
+  <rect x="398" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="418" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">18</text>
+  <rect x="444" y="136" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="464" y="165" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">20</text>
+  <text x="500" y="164" font-size="15" fill="#334155">i = 2: 6 &lt; 14 → double</text>
+  <text x="257" y="206" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="30" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="50" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">2</text>
+  <rect x="76" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="96" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">4</text>
+  <rect x="122" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="142" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">6</text>
+  <rect x="168" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="188" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">8</text>
+  <rect x="214" y="216" width="40" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="234" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">10</text>
+  <rect x="260" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="280" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">12</text>
+  <rect x="306" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="326" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">14</text>
+  <rect x="352" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="372" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">16</text>
+  <rect x="398" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="418" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">18</text>
+  <rect x="444" y="216" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="464" y="245" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">20</text>
+  <text x="500" y="244" font-size="15" fill="#334155">i = 4: 10 &lt; 14 → double</text>
+  <text x="257" y="286" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="30" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="50" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">2</text>
+  <rect x="76" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="96" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">4</text>
+  <rect x="122" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="142" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">6</text>
+  <rect x="168" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="188" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">8</text>
+  <rect x="214" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="234" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">10</text>
+  <rect x="260" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="280" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">12</text>
+  <rect x="306" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="326" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">14</text>
+  <rect x="352" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="372" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">16</text>
+  <rect x="398" y="296" width="40" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="418" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">18</text>
+  <rect x="444" y="296" width="40" height="44" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/><text x="464" y="325" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">20</text>
+  <text x="500" y="324" font-size="15" fill="#334155">i = 8: 18 ≥ 14 → stop</text>
+  <text x="257" y="366" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="30" y="376" width="40" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="50" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#94a3b8">2</text>
+  <rect x="76" y="376" width="40" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="96" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#94a3b8">4</text>
+  <rect x="122" y="376" width="40" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="142" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#94a3b8">6</text>
+  <rect x="168" y="376" width="40" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="188" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#94a3b8">8</text>
+  <rect x="214" y="376" width="40" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="234" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">10</text>
+  <rect x="260" y="376" width="40" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="280" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">12</text>
+  <rect x="306" y="376" width="40" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="326" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">14</text>
+  <rect x="352" y="376" width="40" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="372" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">16</text>
+  <rect x="398" y="376" width="40" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="418" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#0f172a">18</text>
+  <rect x="444" y="376" width="40" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="464" y="405" text-anchor="middle" font-size="17" font-weight="600" fill="#94a3b8">20</text>
+  <text x="500" y="404" font-size="15" font-weight="700" fill="#15803d">binary search [4, 8] → index 6</text>
+</svg>

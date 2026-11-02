@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gaussian mixture model (GMM) · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-gmm" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Gaussian mixture model (GMM)</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Two bell curves explain some 1-D data: one centred at 0, one at 4, each with standard deviation 1 and weight ½. A point at $x = 1$ is far more likely under the first bell, so it belongs to it with 98% probability. A point at $x = 2$ sits exactly between them: 50/50. A GMM does soft clustering: every point gets a probability for each cluster, not a single hard label.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> unlike k-means, a GMM gives probabilities, handles elongated and differently sized clusters, and is a proper model of how the data is distributed, so it can also score how unusual a new point is.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-k-means.html">k-means</a>.</li>
+          <li>The normal (Gaussian) distribution: mean $\mu$, standard deviation $\sigma$.</li>
+          <li>Bayes' rule (see <a href="mla-naive-bayes.html">Naive Bayes</a>).</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Imagine two radio stations broadcasting from two towns. Between the towns you hear a mix of both; near one town that station dominates.</p>
+          <p>In a GMM, each cluster is a "station" with a bell-shaped signal. A point's responsibilities say how much of what it "hears" comes from each station.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Model:</strong> the density is a weighted sum of $K$ Gaussians: weights $\pi_k$ (summing to 1), means $\mu_k$, and variances $\sigma_k^2$ (covariance matrices in more dimensions).</p>
+        <h3>Start with the E-step by hand</h3>
+        <p>Components: $\pi_1 = \pi_2 = 0.5$, $\mu_1 = 0$, $\mu_2 = 4$, $\sigma = 1$. Gaussian density $\mathcal{N}(x \mid \mu, 1) = e^{-(x - \mu)^2/2} / \sqrt{2\pi}$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> For $x = 1$, compute the two densities.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$\mathcal{N}(1 \mid 0, 1) \approx 0.242$ and $\mathcal{N}(1 \mid 4, 1) = e^{-4.5}/\sqrt{2\pi} \approx 0.0044$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: the responsibility of component 1 for $x = 1$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$r_1 = 0.5 \cdot 0.242 / (0.5 \cdot 0.242 + 0.5 \cdot 0.0044) \approx 0.982$.</p></details>
+          <p><strong>Step 3.</strong> Do the same for $x = 2$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Both densities equal $e^{-2}/\sqrt{2\pi} \approx 0.054$, so $r_1 = r_2 = 0.5$: the point is shared equally.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-gmm-1.svg" alt="Two Gaussian bumps centred at 0 and 4; the point x = 1 lies mostly under the first, x = 2 exactly between" width="600" height="340">
+          <figcaption>What you just computed: each curve is one weighted component. At $x = 2$ the two curves are equally high, so the point is split 50/50.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does a responsibility $r_{ik}$ mean?</p>
+          <details><summary>Check your answer</summary>
+            <p>The probability that point $i$ was generated by component $k$, given the current parameters.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the M-step</h3>
+        <p>Suppose three points 0, 2, 4 have responsibilities for component 1 of 1.0, 0.5 and 0.0.</p>
+        <ul>
+          <li><strong>New weight $\pi_1$.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Average responsibility: $(1 + 0.5 + 0)/3 = 0.5$.</p></details></li>
+          <li><strong>New mean $\mu_1$.</strong> Predict it.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(1 \cdot 0 + 0.5 \cdot 2 + 0 \cdot 4)/(1 + 0.5 + 0) = 1/1.5 \approx 0.67$: the shared point pulls the mean towards it.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: in the M-step, how is a component's new mean computed?</p>
+          <details><summary>Check your answer</summary>
+            <p>As a weighted average of all the points, each weighted by its responsibility for that component.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>One full EM iteration for two 1-D Gaussians on the data 0, 1, 2, 4, 5. Start: $\pi_1 = \pi_2 = 0.5$, $\mu_1 = 0$, $\mu_2 = 4$, $\sigma_1 = \sigma_2 = 1$. The E-step computes soft assignments, the M-step refits the Gaussians.</p>
+        <table>
+          <thead>
+            <tr><th>$x$</th><th>density under 1 (∝)</th><th>density under 2 (∝)</th><th>$r_1 = P(\text{comp. 1}\mid x)$</th><th>$r_2 = 1 - r_1$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>$e^{0} = 1$</td><td>$e^{-8}$</td><td>0.9997</td><td>0.0003</td></tr>
+            <tr><td>1</td><td>$e^{-0.5}$</td><td>$e^{-4.5}$</td><td>0.982</td><td>0.018</td></tr>
+            <tr><td>2</td><td>$e^{-2}$</td><td>$e^{-2}$</td><td>0.5</td><td>0.5</td></tr>
+            <tr><td>4</td><td>$e^{-8}$</td><td>$e^{0} = 1$</td><td>0.0003</td><td>0.9997</td></tr>
+            <tr><td>5</td><td>$e^{-12.5}$</td><td>$e^{-0.5}$</td><td>0.0000</td><td>1.0000</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>E-step: likelihood under each component</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mathcal N(x; \mu, 1) \propto e^{-(x - \mu)^2/2}: \quad x = 1: \; e^{-1/2} \text{ vs } e^{-9/2}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Both Gaussians have the same $\sigma$ and the same $\pi$, so the constant factors cancel and only the exponent matters. A point 1 away from $\mu_1$ and 3 away from $\mu_2$ is far more likely under component 1.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>E-step: responsibilities</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$r_1(1) = \frac{e^{-0.5}}{e^{-0.5} + e^{-4.5}} = \frac{1}{1 + e^{-4}} \approx 0.982, \qquad r_1(2) = \frac{e^{-2}}{e^{-2} + e^{-2}} = 0.5$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each point is split between the components in proportion to how well each explains it. The point 2 sits exactly halfway between 0 and 4, so it is shared 50/50. Unlike k-means, nothing is forced into one cluster.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>M-step: effective sizes and weights</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$N_1 = \sum r_1 = 0.9997 + 0.982 + 0.5 + 0.0003 + 0 = 2.482, \quad N_2 = 5 - 2.482 = 2.518, \quad \pi_1 = \frac{2.482}{5} = 0.496$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$N_1$ is "how many points component 1 owns", counting fractions. The mixing weight is that share of the data.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>M-step: new means</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\mu_1 = \frac{\sum r_1 x}{N_1} = \frac{0 + 0.982 + 1 + 0.001 + 0}{2.482} = 0.799, \qquad \mu_2 = \frac{10.017}{2.518} = 3.978$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each mean is a <em>weighted</em> average of all points, with the responsibilities as weights. $\mu_1$ moves from 0 towards 1 and 2 because it owns most of point 1 and half of point 2.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>M-step: new variances</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\sigma_1^2 = \frac{\sum r_1 (x - \mu_1)^2}{N_1} = \frac{0.638 + 0.040 + 0.721 + 0.003}{2.482} = 0.565, \qquad \sigma_2^2 = 1.257$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Same idea for the spread: weighted squared distances to the <em>new</em> mean. Component 1 tightens (its points are close together), component 2 widens slightly.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Check: the log-likelihood went up</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\log L = \sum_i \ln\big(\pi_1 \mathcal N(x_i; \mu_1, \sigma_1^2) + \pi_2 \mathcal N(x_i; \mu_2, \sigma_2^2)\big): \quad -10.35 \;\to\; -9.30$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">EM guarantees that every iteration increases (or keeps) the likelihood of the data. We repeat E and M until it stops changing by more than a small tolerance.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>One EM round moved the components to $\mu = (0.80, 3.98)$, $\sigma^2 = (0.57, 1.26)$, $\pi = (0.50, 0.50)$ and raised the log-likelihood from −10.35 to −9.30.</p>
+          <p>The E-step is "soft k-means assignment", the M-step is "weighted mean and variance". The point at 2 stays ambiguous, and the model says so honestly with $r = 0.5$.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p><strong>E-step</strong>: with the current parameters, compute each point's responsibility for each component (Bayes' rule).</p>
+        <p><strong>M-step</strong>: update each component's weight, mean and variance as responsibility-weighted averages. Repeat until the log-likelihood stops improving.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe the E-step for two components, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Multiply each component's weight by its Gaussian density at the point, then divide each product by their sum.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have computed the responsibilities by hand. It will make more sense.</p>
+        <pre><code class="language-c">double gauss(double x, double mu, double sigma) {               /* normal density */
+    return exp(-(x - mu) * (x - mu) / (2 * sigma * sigma)) / (sigma * sqrt(2 * 3.141592653589793));
+}
+
+double responsibility1(double x, double pi1, double mu1, double s1, double mu2, double s2) {
+    double a = pi1 * gauss(x, mu1, s1), b = (1 - pi1) * gauss(x, mu2, s2);
+    return a / (a + b);                       /* E-step: P(component 1 | x) */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: a <strong>Gaussian mixture model</strong> describes the data as a weighted sum of Gaussian components and is fitted with the <strong>EM algorithm</strong>, alternating soft assignments (E-step) and parameter updates (M-step).</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["initialise weights, means, variances"] --&gt; E["E-step: responsibilities r_ik for every point"]
+  E --&gt; M["M-step: update weights, means, variances from r_ik"]
+  M --&gt; C{"log-likelihood still improving?"}
+  C --&gt;|yes| E
+  C --&gt;|no| D["done: soft clusters + density model"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: which step computes the 0.982 for $x = 1$? (Answer: the E-step.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what does EM do to the data likelihood at every iteration?</p>
+          <details><summary>Check your answer</summary>
+            <p>It never decreases it, so EM climbs steadily to a (local) maximum.</p>
+          </details>
+        </div>
+        <p>The mixture density and the E-step responsibility:</p>
+        $$p(x) = \sum_{k=1}^{K} \pi_k \, \mathcal{N}(x \mid \mu_k, \sigma_k^2), \qquad r_{ik} = \frac{\pi_k \mathcal{N}(x_i \mid \mu_k, \sigma_k^2)}{\sum_j \pi_j \mathcal{N}(x_i \mid \mu_j, \sigma_j^2)}$$
+        <p>M-step: $\pi_k = \frac{1}{n}\sum_i r_{ik}$, $\mu_k = \sum_i r_{ik} x_i / \sum_i r_{ik}$.</p>
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>One EM iteration (1-D or diagonal)</td><td>$O(nKd)$</td><td>Every point against every component</td></tr>
+            <tr><td>One iteration (full covariance)</td><td>$O(nKd^2 + Kd^3)$</td><td>Covariance matrices and their inverses</td></tr>
+            <tr><td>Scoring a new point</td><td>$O(Kd)$ to $O(Kd^2)$</td><td>Evaluate $K$ densities</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> clustering when clusters overlap or are elliptical, and density estimation or anomaly scoring.</p>
+        <ul>
+          <li><strong>Pro:</strong> Soft, probabilistic assignments.</li>
+          <li><strong>Pro:</strong> Flexible cluster shapes and sizes (with full covariances); gives a density for anomaly detection.</li>
+          <li><strong>Con:</strong> Must choose $K$; EM can get stuck in local optima and depends on initialisation.</li>
+          <li><strong>Con:</strong> Assumes Gaussian-shaped clusters; full covariances are costly in high dimensions.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>If a component shrinks onto a single point, its variance goes to 0 and the likelihood to infinity: a degenerate solution. Implementations add a small value to the variances (regularization) to prevent it.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Explain EM in two lines: "E-step: given the parameters, compute soft assignments. M-step: given the soft assignments, re-estimate the parameters." Then note that k-means is the hard-assignment special case.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Thinking a GMM gives hard labels; it gives probabilities (you can take the most likely component afterwards).</li>
+          <li>Forgetting the mixing weights $\pi_k$ in the responsibilities.</li>
+          <li>Running EM once from one initialisation and trusting the result.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>With the same two components, compute the responsibility of component 2 for $x = 3$.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>It mirrors $x = 1$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>By symmetry, about 0.982.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Points 0, 2, 4 have responsibilities for component 2 of 0.0, 0.5, 1.0. Compute the new $\pi_2$, $\mu_2$, and the new variance $\sigma_2^2 = \sum r_i (x_i - \mu_2)^2 / \sum r_i$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$\pi_2 = 0.5$. $\mu_2 = (0.5 \cdot 2 + 4)/1.5 = 3.33$. Variance: $(0.5 \cdot 1.78 + 1 \cdot 0.44)/1.5 \approx 0.89$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>The EM algorithm was formalised by Dempster, Laird and Rubin in 1977 and is one of the most cited papers in statistics.</p>
+          <p>Before deep learning, speech recognisers modelled the sound of each phoneme with a Gaussian mixture inside a hidden Markov model.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Assignments are soft <strong>because</strong> each point gets a probability for every component.</li>
+          <li>The E-step uses Bayes' rule <strong>because</strong> it inverts "component → point" into "point → component".</li>
+          <li>The M-step uses weighted averages <strong>because</strong> each point counts in proportion to its responsibility.</li>
+          <li>EM always improves the likelihood <strong>because</strong> each step maximises a bound on it.</li>
+          <li>k-means is a special case <strong>because</strong> it uses hard assignments and equal round clusters.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is a GMM like listening to two radio stations?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Between the towns you hear a mix of both; a GMM says how much of each point "comes from" each bell-shaped component.</p></details></li>
+          <li><strong>Compute the responsibilities for $x = 1$ and $x = 2$ with components at 0 and 4.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$x = 1$: about 0.98 for component 1. $x = 2$: 0.5 for each, since it is exactly between the means.</p></details></li>
+          <li><strong>Why does <code>responsibility1</code> divide <code>a</code> by <code>a + b</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions that probabilities sum to 1.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$a$ and $b$ are how strongly each component explains the point; dividing by their sum turns them into probabilities that add up to 1.</p></details></li>
+          <li><strong>So what is a Gaussian mixture model, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A model of the data as a weighted sum of Gaussian components, fitted with EM, that gives each point a probability for each cluster.</p></details></li>
+          <li><strong>Why is k-means a special case of a GMM with EM?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions hard assignments.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>If every component has the same tiny round variance, responsibilities become 0 or 1 (the nearest mean), and the M-step becomes "average the assigned points": exactly k-means.</p></details></li>
+          <li><strong>What does one EM iteration cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(nKd)$ with diagonal covariances; more with full covariance matrices.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: soft assignments, flexible elliptical clusters and a density model. Cons: must choose $K$, local optima and Gaussian assumptions.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the variance update and degenerate solutions. I'd keep the radio analogy, the 98% versus 50/50 example, and "E-step soft assign, M-step re-estimate".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://scikit-learn.org/stable/modules/mixture.html" target="_blank" rel="noopener">scikit-learn: Gaussian mixture models</a>: covariance types and model selection.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Mixture_model" target="_blank" rel="noopener">Wikipedia: Mixture model</a>: Gaussian mixtures and EM.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm" target="_blank" rel="noopener">Wikipedia: Expectation–maximization algorithm</a>: the general EM method.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=gaussian+mixture+model+EM+algorithm+explained" target="_blank" rel="noopener">YouTube search: GMM and EM explained</a>: pick a visual walkthrough.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

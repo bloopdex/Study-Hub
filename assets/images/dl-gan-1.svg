@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="300" viewBox="0 0 680 300" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">GAN diagram</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="680" height="300" rx="16" fill="#f8fafc"/>
+  <text x="340" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Generator vs discriminator</text>
+  <line x1="155.0" y1="210.0" x2="190.0" y2="210.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="350.0" y1="210.0" x2="380.0" y2="210.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="512.3" y1="183.0" x2="537.7" y2="172.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="508.4" y="167.5" width="33.2" height="19" rx="4" fill="#f8fafc"/>
+  <text x="525.0" y="182.5" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">0.2</text>
+  <line x1="512.3" y1="107.0" x2="537.7" y2="118.0" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="508.4" y="102.5" width="33.2" height="19" rx="4" fill="#f8fafc"/>
+  <text x="525.0" y="117.5" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">0.9</text>
+  <rect x="25" y="183" width="130" height="54" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="90" y="208" text-anchor="middle" font-size="14" font-weight="700" fill="#94a3b8">noise z</text>
+  <text x="90" y="225" text-anchor="middle" font-size="12" fill="#475569">random</text>
+  <rect x="190" y="183" width="160" height="54" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/>
+  <text x="270" y="216" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">generator G</text>
+  <rect x="380" y="183" width="140" height="54" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+  <text x="450" y="208" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">fake image</text>
+  <text x="450" y="225" text-anchor="middle" font-size="12" fill="#475569">G(z)</text>
+  <rect x="380" y="53" width="140" height="54" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="450" y="78" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">real image</text>
+  <text x="450" y="95" text-anchor="middle" font-size="12" fill="#475569">from data</text>
+  <rect x="525" y="118" width="150" height="54" rx="8" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="600" y="143" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">discriminator</text>
+  <text x="600" y="160" text-anchor="middle" font-size="12" fill="#475569">real?</text>
+  <text x="270" y="280" text-anchor="middle" font-size="15" font-weight="700" fill="#4338ca">G wants D(G(z)) → 1</text>
+  <text x="560" y="280" text-anchor="middle" font-size="15" font-weight="700" fill="#6d28d9">D wants D(real) → 1, D(fake) → 0</text>
+</svg>

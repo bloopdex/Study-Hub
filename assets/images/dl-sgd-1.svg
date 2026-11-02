@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="310" viewBox="0 0 640 310" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Full-batch, SGD and mini-batch steps</title>
+  <rect width="640" height="310" rx="16" fill="#f8fafc"/>
+  <text x="320" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">One step from w = 0 (true w = 2)</text>
+  <text x="75" y="66" text-anchor="middle" font-size="13" fill="#475569">(1, 2)</text>
+  <text x="157" y="66" text-anchor="middle" font-size="13" fill="#475569">(2, 4)</text>
+  <text x="239" y="66" text-anchor="middle" font-size="13" fill="#475569">(3, 6)</text>
+  <rect x="40" y="76" width="70" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="75" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−2</text>
+  <rect x="122" y="76" width="70" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="157" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−8</text>
+  <rect x="204" y="76" width="70" height="44" rx="8" fill="#c7d2fe" stroke="#6366f1" stroke-width="2"/><text x="239" y="105" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−18</text>
+  <text x="300" y="104" font-size="15" fill="#334155">full batch: avg −9.33 → w = 0.93</text>
+  <text x="157" y="146" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="156" width="70" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="75" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <rect x="122" y="156" width="70" height="44" rx="8" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="157" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−8</text>
+  <rect x="204" y="156" width="70" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="239" y="185" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <text x="300" y="184" font-size="15" fill="#334155">SGD (one example): w = 0.8</text>
+  <text x="157" y="226" text-anchor="middle" font-size="22" fill="#94a3b8">↓</text>
+  <rect x="40" y="236" width="70" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="75" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−2</text>
+  <rect x="122" y="236" width="70" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/><text x="157" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8"></text>
+  <rect x="204" y="236" width="70" height="44" rx="8" fill="#bbf7d0" stroke="#22c55e" stroke-width="2"/><text x="239" y="265" text-anchor="middle" font-size="20" font-weight="600" fill="#0f172a">−18</text>
+  <text x="300" y="264" font-size="15" font-weight="700" fill="#15803d">mini-batch of 2: avg −10 → w = 1.0</text>
+</svg>

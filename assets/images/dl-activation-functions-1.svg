@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="580" height="360" viewBox="0 0 580 360" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Activation function plot</title>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker></defs>
+  <rect width="580" height="360" rx="16" fill="#f8fafc"/>
+  <text x="290" y="32" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Sigmoid, tanh and ReLU</text>
+  <rect x="80" y="55" width="440" height="240" fill="#ffffff" stroke="#cbd5e1"/>
+  <line x1="80" y1="295" x2="80" y2="300" stroke="#94a3b8"/>  <text x="80" y="314" text-anchor="middle" font-size="12" fill="#64748b">-4</text>
+  <line x1="190" y1="295" x2="190" y2="300" stroke="#94a3b8"/>  <text x="190" y="314" text-anchor="middle" font-size="12" fill="#64748b">-2</text>
+  <line x1="300" y1="295" x2="300" y2="300" stroke="#94a3b8"/>  <text x="300" y="314" text-anchor="middle" font-size="12" fill="#64748b">0</text>
+  <line x1="410" y1="295" x2="410" y2="300" stroke="#94a3b8"/>  <text x="410" y="314" text-anchor="middle" font-size="12" fill="#64748b">2</text>
+  <line x1="520" y1="295" x2="520" y2="300" stroke="#94a3b8"/>  <text x="520" y="314" text-anchor="middle" font-size="12" fill="#64748b">4</text>
+  <line x1="75" y1="282.02702702702703" x2="80" y2="282.02702702702703" stroke="#94a3b8"/>  <text x="71" y="286.02702702702703" text-anchor="end" font-size="12" fill="#64748b">-1</text>
+  <line x1="75" y1="217.1621621621622" x2="80" y2="217.1621621621622" stroke="#94a3b8"/>  <text x="71" y="221.1621621621622" text-anchor="end" font-size="12" fill="#64748b">0</text>
+  <line x1="75" y1="152.2972972972973" x2="80" y2="152.2972972972973" stroke="#94a3b8"/>  <text x="71" y="156.2972972972973" text-anchor="end" font-size="12" fill="#64748b">1</text>
+  <line x1="75" y1="87.43243243243242" x2="80" y2="87.43243243243242" stroke="#94a3b8"/>  <text x="71" y="91.43243243243242" text-anchor="end" font-size="12" fill="#64748b">2</text>
+  <text x="300" y="333" text-anchor="middle" font-size="13" fill="#475569">z</text>
+  <polyline points="80.0,217.2 520.0,217.2" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+  <polyline points="80.0,216.0 91.0,215.7 102.0,215.4 113.0,215.1 124.0,214.6 135.0,214.1 146.0,213.4 157.0,212.7 168.0,211.8 179.0,210.7 190.0,209.4 201.0,208.0 212.0,206.3 223.0,204.3 234.0,202.1 245.0,199.7 256.0,197.1 267.0,194.2 278.0,191.1 289.0,188.0 300.0,184.7 311.0,181.5 322.0,178.3 333.0,175.3 344.0,172.4 355.0,169.7 366.0,167.3 377.0,165.1 388.0,163.2 399.0,161.5 410.0,160.0 421.0,158.8 432.0,157.7 443.0,156.8 454.0,156.0 465.0,155.4 476.0,154.8 487.0,154.4 498.0,154.0 509.0,153.7 520.0,153.5" fill="none" stroke="#6366f1" stroke-width="2.5"/>
+  <text x="426.5" y="142.5675675675676" text-anchor="start" font-size="13" font-weight="700" fill="#6366f1">sigmoid</text>
+  <polyline points="80.0,282.0 91.0,282.0 102.0,281.9 113.0,281.9 124.0,281.8 135.0,281.7 146.0,281.5 157.0,281.3 168.0,281.0 179.0,280.5 190.0,279.7 201.0,278.6 212.0,276.9 223.0,274.6 234.0,271.2 245.0,266.6 256.0,260.2 267.0,252.0 278.0,241.8 289.0,230.0 300.0,217.2 311.0,204.4 322.0,192.5 333.0,182.3 344.0,174.1 355.0,167.8 366.0,163.1 377.0,159.7 388.0,157.4 399.0,155.7 410.0,154.6 421.0,153.9 432.0,153.4 443.0,153.0 454.0,152.8 465.0,152.6 476.0,152.5 487.0,152.4 498.0,152.4 509.0,152.4 520.0,152.3" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+  <text x="91.00000000000001" y="265.81081081081084" text-anchor="start" font-size="13" font-weight="700" fill="#f59e0b">tanh</text>
+  <polyline points="80.0,217.2 91.0,217.2 102.0,217.2 113.0,217.2 124.0,217.2 135.0,217.2 146.0,217.2 157.0,217.2 168.0,217.2 179.0,217.2 190.0,217.2 201.0,217.2 212.0,217.2 223.0,217.2 234.0,217.2 245.0,217.2 256.0,217.2 267.0,217.2 278.0,217.2 289.0,217.2 300.0,217.2 311.0,204.2 322.0,191.2 333.0,178.2 344.0,165.3 355.0,152.3 366.0,139.3 377.0,126.4 388.0,113.4 399.0,100.4 410.0,87.4 421.0,74.5 432.0,61.5 443.0,48.5 454.0,35.5 465.0,22.6 476.0,9.6 487.0,-3.4 498.0,-16.4 509.0,-29.3 520.0,-42.3" fill="none" stroke="#22c55e" stroke-width="2.5"/>
+  <text x="382.5" y="74.45945945945945" text-anchor="start" font-size="13" font-weight="700" fill="#22c55e">ReLU</text>
+  <circle cx="190.0" cy="209.4" r="5" fill="#6366f1" stroke="#0f172a" stroke-width="1"/>
+  <circle cx="410.0" cy="160.0" r="5" fill="#6366f1" stroke="#0f172a" stroke-width="1"/>
+</svg>

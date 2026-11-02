@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Forward propagation · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-forward-propagation" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Forward propagation</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Push $x = [1, 2]$ through the 2 → 2 → 1 network in a strict order: $z_1 = W_1 x + b_1 = [-1.5, 2.5]$, then $a_1 = \text{ReLU}(z_1) = [0, 2.5]$, then $z_2 = -0.8$, then $\hat y = \sigma(z_2) = 0.31$, and finally the loss for the true label $y = 1$: $-\ln 0.31 \approx 1.17$. Keep every intermediate value. That's forward propagation.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it is how a network makes a prediction, and the intermediate values it stores ($z$ and $a$ of every layer) are exactly what backpropagation needs to compute gradients.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-mlp.html">The MLP</a> (same network and numbers).</li>
+          <li><a href="dl-loss-functions.html">Loss functions</a>: cross-entropy.</li>
+          <li>Function composition: $f(g(x))$.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of an assembly line: raw material enters, each station transforms it and passes it on, and quality control checks the final product. Each station keeps a note of what it did.</p>
+          <p>Forward propagation is that line: each layer transforms the previous layer's output, and the loss is the quality check. The notes are needed later to find which station caused a defect.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Order of operations:</strong> for each layer $\ell$: $z_\ell = W_\ell\, a_{\ell - 1} + b_\ell$, then $a_\ell = g_\ell(z_\ell)$, starting from $a_0 = x$; finally compute the loss $L(a_{\text{last}}, y)$. Store every $z_\ell$ and $a_\ell$.</p>
+        <h3>Start with the ordered steps by hand</h3>
+        <p>Same network as on the MLP page; true label $y = 1$, binary cross-entropy loss. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Steps 1–2: $z_1 = W_1 x + b_1$ and $a_1 = \text{ReLU}(z_1)$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$z_1 = [-1.5, 2.5]$, $a_1 = [0, 2.5]$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: steps 3–4, $z_2 = w_2 \cdot a_1 + b_2$ and $\hat y = \sigma(z_2)$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$z_2 = -0.8$, $\hat y \approx 0.310$.</p></details>
+          <p><strong>Step 3.</strong> Step 5: the loss $L = -\ln \hat y$ (since $y = 1$).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$-\ln 0.310 \approx 1.17$: a large loss, because the network gave the true class only 31%.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-forward-propagation-1.svg" alt="Chain of boxes x, z1, a1, z2, y-hat, loss with their values" width="720" height="220">
+          <figcaption>What you just did: each box is computed from the one before it. All of them are kept (the cache) for backpropagation.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: why must the steps happen in this exact order?</p>
+          <details><summary>Check your answer</summary>
+            <p>Each value is computed from the previous one: $a_1$ needs $z_1$, $z_2$ needs $a_1$, and so on.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: batches</h3>
+        <p>Now feed two inputs together, $x^{(1)} = [1, 2]$ and $x^{(2)} = [2, 0]$, both with $y = 1$.</p>
+        <ul>
+          <li><strong>Predictions.</strong> Predict $\hat y$ for each (use the MLP page if needed).
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>0.31 and 0.55.</p></details></li>
+          <li><strong>Batch loss.</strong> Predict the average loss.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$(-\ln 0.31 - \ln 0.55)/2 \approx (1.17 + 0.60)/2 \approx 0.89$.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what changes when you process a batch of 32 inputs at once?</p>
+          <details><summary>Check your answer</summary>
+            <p>The input becomes a $32 \times 2$ matrix, so each step is a matrix–matrix product; the order of steps is the same, and the loss is averaged over the batch.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Forward propagation for a whole mini-batch at once, as real frameworks do it. Same network ($W_1 = \begin{bmatrix} 0.5 & -1 \\ 1 & 0.5 \end{bmatrix}$, $b_1 = [0, 0.5]$, $w_2 = [1, -0.4]$, $b_2 = 0.2$), batch of two examples, labels $y = [1, 0]$.</p>
+        <table>
+          <thead>
+            <tr><th>Example</th><th>$x$</th><th>$z_1$</th><th>$a_1$</th><th>$z_2$</th><th>$\hat y$</th><th>$y$</th><th>Loss</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>[1, 2]</td><td>[−1.5, 2.5]</td><td>[0, 2.5]</td><td>−0.8</td><td>0.310</td><td>1</td><td>1.171</td></tr>
+            <tr><td>2</td><td>[2, 0]</td><td>[1, 2.5]</td><td>[1, 2.5]</td><td>0.2</td><td>0.550</td><td>0</td><td>0.798</td></tr>
+            <tr><td>Mean</td><td></td><td></td><td></td><td></td><td></td><td></td><td><strong>0.985</strong></td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Stack the batch into a matrix</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$X = \begin{bmatrix} 1 & 2 \\ 2 & 0 \end{bmatrix} \qquad (\text{one row per example})$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Instead of looping over examples, we put them in rows of one matrix. A single matrix product then processes the whole batch, which is what GPUs are fast at.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Layer 1: linear part</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$Z_1 = X W_1^\top + b_1 = \begin{bmatrix} 0.5 - 2 & 1 + 1 \\ 1 - 0 & 2 + 0 \end{bmatrix} + [0, 0.5] = \begin{bmatrix} -1.5 & 2.5 \\ 1 & 2.5 \end{bmatrix}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Entry $(i, j)$ is "example $i$, hidden neuron $j$". The bias row is added to every row (broadcasting).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Layer 1: activation</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$A_1 = \text{ReLU}(Z_1) = \begin{bmatrix} 0 & 2.5 \\ 1 & 2.5 \end{bmatrix}$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">ReLU is applied entry by entry. Keep $Z_1$ in memory: backpropagation needs to know which entries were negative (here only −1.5).</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Layer 2</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z_2 = A_1 w_2 + b_2 = [0 - 1 + 0.2,\; 1 - 1 + 0.2] = [-0.8,\; 0.2], \qquad \hat y = \sigma(z_2) = [0.310,\; 0.550]$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One output per example. Example 1 should be 1 but gets 0.31; example 2 should be 0 but gets 0.55. Both are wrong side of 0.5.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Loss per example</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L_1 = -\ln 0.310 = 1.171, \qquad L_2 = -\ln(1 - 0.550) = -\ln 0.450 = 0.798$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Binary cross-entropy: for a label of 1 use $-\ln \hat y$, for a label of 0 use $-\ln(1 - \hat y)$. Example 1 is more confidently wrong, so it costs more.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Batch loss</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L = \frac{1.171 + 0.798}{2} \approx 0.985$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Averaging over the batch makes the loss independent of the batch size. This single number is what backpropagation will differentiate.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Forward propagation is a fixed sequence: linear, activation, linear, activation, loss. For the batch it took two matrix products and gave a mean loss of 0.985.</p>
+          <p>Every intermediate ($Z_1$, $A_1$, $z_2$, $\hat y$) is stored, because the backward pass reuses all of them.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Set $a_0 = x$. For each layer in order: compute $z_\ell = W_\ell a_{\ell - 1} + b_\ell$, then $a_\ell = g_\ell(z_\ell)$, and store both.</p>
+        <p>After the last layer, compute the loss against the target. Average over the batch.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, list what a forward pass must store, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Every pre-activation $z$ and activation $a$ of every layer (plus the input), because backpropagation needs them to compute gradients.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the steps by hand. It will make more sense.</p>
+        <pre><code class="language-c">double forward(double W1[][2], double b1[], double w2[], double b2, double x[], int y,
+               double z1[], double a1[]) {                 /* fills the cache, returns the loss */
+    for (int i = 0; i &lt; 2; i++) {
+        z1[i] = b1[i] + W1[i][0] * x[0] + W1[i][1] * x[1];  /* step 1: z1 */
+        a1[i] = z1[i] &gt; 0 ? z1[i] : 0;                      /* step 2: ReLU */
+    }
+    double z2 = b2 + w2[0] * a1[0] + w2[1] * a1[1];         /* step 3 */
+    double p = 1 / (1 + exp(-z2));                          /* step 4: sigmoid */
+    return y ? -log(p) : -log(1 - p);                       /* step 5: loss */
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>forward propagation</strong> computes a network's output and loss by applying each layer in order, $z_\ell = W_\ell a_{\ell-1} + b_\ell$, $a_\ell = g(z_\ell)$, storing the intermediate values for backpropagation.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart LR
+  X["a0 = x"] --&gt; Z1["z1 = W1 a0 + b1"]
+  Z1 --&gt; A1["a1 = ReLU(z1)"]
+  A1 --&gt; Z2["z2 = w2 · a1 + b2"]
+  Z2 --&gt; Y["ŷ = sigmoid(z2)"]
+  Y --&gt; L["L = loss(ŷ, y)"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: which of these values does backpropagation need from the cache to compute the gradient for $W_1$? (Answer: $x$, $z_1$ (for the ReLU slope) and the gradient flowing back from $z_2$.)</figcaption>
+        </figure>
+
+        <h3>Putting numbers on it</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what would the loss be if the true label were 0?</p>
+          <details><summary>Check your answer</summary>
+            <p>$-\ln(1 - 0.31) = -\ln 0.69 \approx 0.37$: much smaller, since the network leaned towards class 0.</p>
+          </details>
+        </div>
+        <p>The whole forward pass as one composition, with our numbers:</p>
+        $$L = -\ln \sigma\big(w_2^\top \,\text{ReLU}(W_1 x + b_1) + b_2\big) = -\ln \sigma(-0.8) \approx 1.17$$
+        <table>
+          <thead>
+            <tr><th>Step</th><th>Operation</th><th>Value</th><th>Cost (layer $n_{\text{in}} \to n_{\text{out}}$)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>$z_1 = W_1 x + b_1$</td><td>$[-1.5, 2.5]$</td><td>$O(n_{\text{in}} n_{\text{out}})$</td></tr>
+            <tr><td>2</td><td>$a_1 = \text{ReLU}(z_1)$</td><td>$[0, 2.5]$</td><td>$O(n_{\text{out}})$</td></tr>
+            <tr><td>3</td><td>$z_2 = w_2^\top a_1 + b_2$</td><td>$-0.8$</td><td>$O(n_{\text{in}} n_{\text{out}})$</td></tr>
+            <tr><td>4</td><td>$\hat y = \sigma(z_2)$</td><td>$0.31$</td><td>$O(1)$</td></tr>
+            <tr><td>5</td><td>$L = -\ln \hat y$</td><td>$1.17$</td><td>$O(1)$</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>During training you must keep the cached values; at inference time you don't need them, which is why prediction uses much less memory than training (no cache, no gradients).</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Write the forward pass as a numbered list of $z$ and $a$ per layer, with numbers. Exams then usually continue with "now compute the gradient", which needs exactly those values.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Applying the activation before adding the bias.</li>
+          <li>Forgetting to store $z$ values, which are needed for the activation's derivative in backpropagation.</li>
+          <li>Using the sigmoid output to compute the loss for the wrong class (forgetting $1 - \hat y$ when $y = 0$).</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>For the same network and $x = [1, 2]$, compute the loss if the true label is 0.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Use $1 - \hat y$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$-\ln(1 - 0.31) \approx 0.37$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>Change $b_2$ from 0.2 to 1.0. Recompute $z_2$, $\hat y$ and the loss for $y = 1$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$z_2 = 0 - 1 + 1 = 0$, $\hat y = 0.5$, loss $= -\ln 0.5 \approx 0.69$: better than 1.17, since the network moved towards the true class.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>A modern GPU performs trillions of multiply-adds per second, and the forward pass of a network is almost entirely matrix multiplications, which is exactly what GPUs are built for.</p>
+          <p>Frameworks like PyTorch record each operation of the forward pass in a computation graph, so the backward pass can be generated automatically.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>The order is fixed <strong>because</strong> each layer's input is the previous layer's output.</li>
+          <li>Intermediate values are cached <strong>because</strong> backpropagation needs them to compute gradients.</li>
+          <li>The loss is the last step <strong>because</strong> it compares the final prediction with the target.</li>
+          <li>Batches are processed together <strong>because</strong> matrix–matrix products use hardware efficiently.</li>
+          <li>Inference needs less memory <strong>because</strong> no cache or gradients are kept.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is forward propagation like an assembly line?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each station transforms the product and passes it on, quality control checks the result, and each station keeps notes for later.</p></details></li>
+          <li><strong>List the five forward steps for $x = [1, 2]$ with their values.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$z_1 = [-1.5, 2.5]$, $a_1 = [0, 2.5]$, $z_2 = -0.8$, $\hat y = 0.31$, loss $= 1.17$ (for $y = 1$).</p></details></li>
+          <li><strong>Why does <code>forward</code> write <code>z1</code> and <code>a1</code> into arrays passed by the caller?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the backward pass.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Those arrays are the cache: the caller keeps them so backpropagation can use $z_1$ (for the ReLU slope) and $a_1$ (for the output weights' gradient).</p></details></li>
+          <li><strong>So what is forward propagation, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Computing a network's output and loss by applying the layers in order and storing the intermediate values.</p></details></li>
+          <li><strong>Why is the loss smaller when the true label is 0 here?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses $\hat y = 0.31$.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>The network gave 0.69 to class 0, and $-\ln 0.69 \approx 0.37$ is much smaller than $-\ln 0.31 \approx 1.17$.</p></details></li>
+          <li><strong>What does a forward pass cost per layer?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(n_{\text{in}} n_{\text{out}})$ multiply-adds for the matrix product, plus $O(n_{\text{out}})$ for the activation.</p></details></li>
+          <li><strong>Why does training use more memory than inference?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Training stores every intermediate value and the gradients; inference just passes values forward and discards them.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out batches and memory. I'd keep the assembly-line analogy, the five numbered steps with values, and "compute in order, cache everything, end with the loss".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="http://neuralnetworksanddeeplearning.com/chap2.html" target="_blank" rel="noopener">Neural Networks and Deep Learning, chapter 2</a>: the forward and backward pass, step by step.</li>
+          <li><a href="https://cs231n.github.io/optimization-2/" target="_blank" rel="noopener">Stanford CS231n: Backpropagation intuitions</a>: computational graphs for forward and backward.</li>
+          <li><a href="https://pytorch.org/tutorials/beginner/basics/buildmodel_tutorial.html" target="_blank" rel="noopener">PyTorch tutorial: Build the neural network</a>: defining <code>forward</code> in practice.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=forward+propagation+neural+network+step+by+step" target="_blank" rel="noopener">YouTube search: forward propagation step by step</a>: pick a worked numeric example.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

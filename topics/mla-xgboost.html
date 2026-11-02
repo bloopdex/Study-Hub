@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gradient boosting and XGBoost · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="mla-xgboost" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">Gradient boosting and XGBoost</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Four houses at $x = 1, 2, 3, 4$ cost $y = 3, 5, 7, 9$. Start by predicting the mean, 6, for all of them. The errors left over (residuals) are −3, −1, 1, 3. Fit a small tree to those residuals, splitting at $x \le 2$: left leaf −2, right leaf +2. Add a fraction of it to the predictions and the errors shrink. Repeat. That's gradient boosting; XGBoost adds regularization and speed tricks.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> gradient-boosted trees are the most accurate method on most tabular datasets: each small tree fixes what the ensemble so far still gets wrong. XGBoost, LightGBM and CatBoost dominate competitions and industry.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="mla-decision-tree.html">Decision trees</a>.</li>
+          <li><a href="mla-adaboost.html">AdaBoost</a>: the boosting idea.</li>
+          <li><a href="dl-gradient-descent.html">Gradients</a> and MSE.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Think of a golfer: the first shot lands short and left. The second shot doesn't restart from the tee, it aims at the remaining distance from where the ball is. Each shot corrects what is left.</p>
+          <p>Gradient boosting works the same way: each new tree is trained to predict the error the current ensemble still makes, and a fraction of its prediction is added.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Notation:</strong> for squared loss, the gradient for example $i$ is $g_i = \hat y_i - y_i$ (minus the residual) and the second derivative is $h_i = 1$. $\eta$ is the learning rate, $\lambda$ the L2 penalty on leaf values.</p>
+        <h3>Start with one boosting round by hand</h3>
+        <p>$y = [3, 5, 7, 9]$ at $x = 1, 2, 3, 4$. Start with $\hat y = 6$ for everyone. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the residuals $y - \hat y$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$[-3, -1, 1, 3]$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: fit a one-split tree at $x \le 2$. Plain gradient boosting uses the mean residual per leaf. Predict the two leaf values.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Left: $(-3 - 1)/2 = -2$. Right: $(1 + 3)/2 = +2$.</p></details>
+          <p><strong>Step 3.</strong> Update with learning rate $\eta = 0.5$. Predict the new predictions and residuals.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Left: $6 + 0.5 \cdot (-2) = 5$; right: $6 + 0.5 \cdot 2 = 7$. Residuals become $[-2, 0, 0, 2]$: smaller, and the next tree continues from there.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/mla-xgboost-1.svg" alt="Residuals before and after one boosting round with learning rate 0.5" width="680" height="390">
+          <figcaption>What you just did: one small tree, half-applied, shrinks the residuals. The next tree is trained on the new residuals.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what does each new tree in gradient boosting try to predict?</p>
+          <details><summary>Check your answer</summary>
+            <p>The residuals (more generally, the negative gradient of the loss) of the current ensemble.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: the XGBoost version</h3>
+        <p>Gradients $g = \hat y - y = [3, 1, -1, -3]$, $h = [1, 1, 1, 1]$, regularization λ = 1.</p>
+        <ul>
+          <li><strong>Leaf values $w = -G/(H + \lambda)$.</strong> Predict them for the split $x \le 2$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>Left: $G = 4$, $H = 2$, so $w = -4/3 \approx -1.33$. Right: $w = +1.33$. With λ = 0 they would be −2 and +2, the plain means.</p></details></li>
+          <li><strong>Split gain.</strong> Predict $\tfrac12 \big[G_L^2/(H_L + \lambda) + G_R^2/(H_R + \lambda) - (G_L + G_R)^2/(H_L + H_R + \lambda)\big]$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$\tfrac12 [16/3 + 16/3 - 0] \approx 5.33$. XGBoost keeps the split only if its gain exceeds the penalty γ for adding a leaf.</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: what are the XGBoost leaf values with λ = 1, and why are they smaller than −2 and +2?</p>
+          <details><summary>Check your answer</summary>
+            <p>−1.33 and +1.33. The λ term in the denominator shrinks leaf values towards 0, which regularizes each tree.</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>Two full boosting rounds on four points $x = 1, 2, 3, 4$ with targets $y = 3, 5, 7, 9$, using squared loss, learning rate $\eta = 0.3$ and penalty $\lambda = 1$. Every gradient, gain and leaf value is shown.</p>
+        <table>
+          <thead>
+            <tr><th>$x$</th><th>$y$</th><th>Start $\hat y$</th><th>$g$ round 1</th><th>After round 1</th><th>$g$ round 2</th><th>After round 2</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>3</td><td>6</td><td>3</td><td>5.6</td><td>2.6</td><td>5.28</td></tr>
+            <tr><td>2</td><td>5</td><td>6</td><td>1</td><td>5.6</td><td>0.6</td><td>5.28</td></tr>
+            <tr><td>3</td><td>7</td><td>6</td><td>−1</td><td>6.4</td><td>−0.6</td><td>6.72</td></tr>
+            <tr><td>4</td><td>9</td><td>6</td><td>−3</td><td>6.4</td><td>−2.6</td><td>6.72</td></tr>
+            <tr><td>MSE</td><td></td><td>5</td><td></td><td>3.56</td><td></td><td>2.638</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Start from a constant</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat y^{(0)} = \bar y = \frac{3 + 5 + 7 + 9}{4} = 6, \qquad \text{MSE} = \frac{9 + 1 + 1 + 9}{4} = 5$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The mean is the best single number under squared loss. Every tree from now on only corrects what is left over.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Gradients and second derivatives</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g_i = \hat y_i - y_i = [3, 1, -1, -3], \qquad h_i = 1$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For squared loss $\tfrac12(\hat y - y)^2$ the gradient is "prediction minus target" and the second derivative is always 1. So $H$ of a leaf is simply its number of points.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Score the three possible splits</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\text{Gain} = \tfrac12\left[\frac{G_L^2}{H_L + \lambda} + \frac{G_R^2}{H_R + \lambda} - \frac{G^2}{H + \lambda}\right]: \quad x \le 2: \tfrac12\left[\frac{4^2}{3} + \frac{(-4)^2}{3} - 0\right] = 5.333$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">$x \le 1$: $G_L = 3, H_L = 1$, $G_R = -3, H_R = 3$, gain $\tfrac12(4.5 + 2.25) = 3.375$. $x \le 3$ is symmetric, also 3.375. The middle split wins because it puts all positive gradients on one side and all negative ones on the other.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Leaf values</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w^* = -\frac{G}{H + \lambda}: \quad w_L = -\frac{4}{2 + 1} = -1.333, \qquad w_R = -\frac{-4}{3} = +1.333$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Without $\lambda$ the leaves would be $-2$ and $+2$, the average residuals. The penalty $\lambda = 1$ shrinks them towards 0, which keeps any one tree from overreacting.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Update with the learning rate</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat y^{(1)} = 6 + 0.3 \cdot (\mp 1.333) = [5.6, 5.6, 6.4, 6.4], \qquad \text{MSE} = \frac{2.6^2 + 0.6^2 + 0.6^2 + 2.6^2}{4} = 3.56$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Only 30% of the tree's output is added. The error falls from 5 to 3.56: a modest step, on purpose, so later trees can refine instead of undoing it.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Round 2: same recipe on the new gradients</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = [2.6, 0.6, -0.6, -2.6], \quad \text{Gain}(x \le 2) = \tfrac12 \cdot 2 \cdot \frac{3.2^2}{3} = 3.413, \quad w = \mp 1.067$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The same split wins again (the other two score 2.535). The leaves are smaller because the leftover error is smaller.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Round 2 result</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat y^{(2)} = [5.6 - 0.32,\; \ldots] = [5.28, 5.28, 6.72, 6.72], \qquad \text{MSE} = 2.638$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The error drops again, by about a quarter. A depth-1 tree can only produce two values, so deeper trees (or later rounds that split at $x \le 1$ or $x \le 3$) are needed to tell 3 from 5 and 7 from 9.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>Every XGBoost round is: gradients $g$, second derivatives $h$, choose the split with the highest gain, set leaves to $-G/(H + \lambda)$, add $\eta$ times the tree.</p>
+          <p>Training error went 5 → 3.56 → 2.64. The small learning rate means many rounds are needed, which is why early stopping on a validation set picks the number of trees.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Start from a constant prediction. Each round: compute every example's gradient (residual), fit a small tree to it, and add $\eta$ × the tree's output to the predictions.</p>
+        <p>XGBoost chooses splits and leaf values from the sums of gradients and second derivatives, with L2 (λ) and per-leaf (γ) penalties, and adds engineering for speed.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe how XGBoost computes a leaf value, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Sum the gradients $G$ and the second derivatives $H$ of the examples in the leaf, and set the leaf value to $-G/(H + \lambda)$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the round by hand. It will make more sense.</p>
+        <pre><code class="language-c">double leaf_weight(double g[], double h[], int n, double lambda) {   /* XGBoost optimal leaf */
+    double G = 0, H = 0;
+    for (int i = 0; i &lt; n; i++) { G += g[i]; H += h[i]; }
+    return -G / (H + lambda);
+}
+
+double split_gain(double GL, double HL, double GR, double HR, double lambda) {
+    return 0.5 * (GL * GL / (HL + lambda) + GR * GR / (HR + lambda)
+                  - (GL + GR) * (GL + GR) / (HL + HR + lambda));
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>gradient boosting</strong> builds an additive model of small trees, each fitted to the negative gradient (the residuals) of the loss of the current ensemble; <strong>XGBoost</strong> is a regularized, highly optimised implementation using second-order information.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["predict a constant (the mean)"] --&gt; B["compute residuals / gradients"]
+  B --&gt; C["fit a small tree to them"]
+  C --&gt; D["predictions += learning rate × tree"]
+  D --&gt; E{"more rounds?"}
+  E --&gt;|yes| B
+  E --&gt;|no| F["final model = sum of all trees"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: after the first round in our example, what residuals does the second tree see? (Answer: [−2, 0, 0, 2].)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: why use a small learning rate like 0.1 instead of adding each tree fully?</p>
+          <details><summary>Check your answer</summary>
+            <p>Small steps make each tree fix only part of the error, so many diverse trees combine; it overfits less, at the cost of more rounds.</p>
+          </details>
+        </div>
+        <p>The XGBoost leaf value and split gain, from gradients $g_i$ and second derivatives $h_i$:</p>
+        $$w^* = -\frac{G}{H + \lambda}, \qquad \text{Gain} = \frac12\left[\frac{G_L^2}{H_L + \lambda} + \frac{G_R^2}{H_R + \lambda} - \frac{(G_L + G_R)^2}{H_L + H_R + \lambda}\right] - \gamma$$
+        <table>
+          <thead>
+            <tr><th>Phase</th><th>Cost</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Training</td><td>$T$ rounds × (one tree on all rows)</td><td>Rounds are sequential</td></tr>
+            <tr><td>Split search (histogram)</td><td>about $O(n \cdot m)$ per tree level</td><td>Bins features instead of sorting</td></tr>
+            <tr><td>Prediction</td><td>$O(T \cdot \text{depth})$</td><td>Sum of all trees' outputs</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Best for:</strong> tabular data where accuracy matters most: ranking, risk scoring, forecasting with engineered features.</p>
+        <ul>
+          <li><strong>Pro:</strong> State-of-the-art accuracy on structured data.</li>
+          <li><strong>Pro:</strong> Handles missing values, mixed features and custom losses; fast implementations.</li>
+          <li><strong>Con:</strong> Many hyperparameters (rounds, depth, learning rate, λ, γ) to tune.</li>
+          <li><strong>Con:</strong> Can overfit if rounds aren't controlled; less interpretable than one tree.</li>
+        </ul>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Boosting keeps reducing training error as rounds are added, so it <strong>will</strong> overfit eventually. Use a validation set with early stopping, a small learning rate and shallow trees.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Contrast it with random forests: forests train deep trees in <em>parallel</em> and average them (variance reduction); boosting trains shallow trees in <em>sequence</em>, each fixing residuals (bias reduction).</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Using a large learning rate with many rounds, which overfits quickly.</li>
+          <li>Training without early stopping on a validation set.</li>
+          <li>Thinking each tree predicts $y$; each tree predicts the remaining error.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>Predictions are $[10, 10, 10]$ and targets $[8, 11, 14]$. What are the residuals the next tree fits?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>$y - \hat y$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$[-2, 1, 4]$.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>A leaf contains gradients $g = [2, 2, -1]$ with $h = 1$ each. Compute its XGBoost value for λ = 0 and for λ = 3. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>$G = 3$, $H = 3$. λ = 0: $w = -1$. λ = 3: $w = -3/6 = -0.5$. Larger λ shrinks the leaf towards 0.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Jerome Friedman described gradient boosting machines in 2001. Tianqi Chen's XGBoost (2014) became famous after powering many winning Kaggle solutions.</p>
+          <p>The "gradient" in the name is literal: boosting with squared loss is gradient descent in function space, where each tree is one step downhill.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>Each tree fits the residuals <strong>because</strong> they are what the current ensemble still gets wrong.</li>
+          <li>A small learning rate helps <strong>because</strong> many partial corrections generalise better than a few big ones.</li>
+          <li>XGBoost shrinks leaf values <strong>because</strong> λ in $-G/(H + \lambda)$ penalises large outputs.</li>
+          <li>Boosting reduces bias <strong>because</strong> each round adds the capacity the model lacked.</li>
+          <li>Early stopping is essential <strong>because</strong> training error keeps falling while test error eventually rises.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How is gradient boosting like a golfer's successive shots?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Each shot aims at the remaining distance from where the ball landed; each tree aims at the error the ensemble still makes.</p></details></li>
+          <li><strong>Do one round on $y = [3, 5, 7, 9]$ starting from 6, with the split $x \le 2$ and $\eta = 0.5$.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Residuals [−3, −1, 1, 3]; leaves −2 and +2; new predictions [5, 5, 7, 7]; new residuals [−2, 0, 0, 2].</p></details></li>
+          <li><strong>Why does <code>leaf_weight</code> return $-G/(H + \lambda)$ instead of the plain mean?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer covers both λ and the minus sign.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$G$ sums gradients $\hat y - y$, so moving against them needs a minus sign; with squared loss and λ = 0 it equals the mean residual, and λ &gt; 0 shrinks it to regularize.</p></details></li>
+          <li><strong>So what is gradient boosting, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>An ensemble of small trees built one after another, each fitted to the residuals (gradients) of the current model and added with a learning rate.</p></details></li>
+          <li><strong>Why does boosting reduce bias while random forests reduce variance?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares shallow sequential trees with deep parallel ones.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Boosting adds shallow trees that each fix remaining errors, increasing the model's capacity step by step. Forests average deep, already flexible trees to cancel their instability.</p></details></li>
+          <li><strong>What are the XGBoost leaf value and split gain formulas?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$w^* = -G/(H + \lambda)$; gain $= \tfrac12[G_L^2/(H_L + \lambda) + G_R^2/(H_R + \lambda) - (G_L + G_R)^2/(H_L + H_R + \lambda)] - \gamma$.</p></details></li>
+          <li><strong>Give two pros and two cons.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: top accuracy on tabular data; handles missing values and custom losses. Cons: many hyperparameters, and it overfits without early stopping.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the second-order formulas and γ. I'd keep the golfer analogy, the one-round residual example, and "each small tree fixes the leftover error; small learning rate, early stopping".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html" target="_blank" rel="noopener">XGBoost docs: Introduction to boosted trees</a>: the derivation of the leaf and gain formulas.</li>
+          <li><a href="https://scikit-learn.org/stable/modules/ensemble.html#gradient-boosting" target="_blank" rel="noopener">scikit-learn: Gradient boosting</a>: GradientBoosting and HistGradientBoosting.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Gradient_boosting" target="_blank" rel="noopener">Wikipedia: Gradient boosting</a>: theory and history.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+gradient+boost+XGBoost" target="_blank" rel="noopener">YouTube search: StatQuest gradient boosting and XGBoost</a>: StatQuest's multi-part series.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

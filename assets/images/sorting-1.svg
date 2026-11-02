@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="530" viewBox="0 0 660 530" font-family="Inter, Arial, sans-serif" role="img" aria-labelledby="t">
+  <title id="t">Lomuto partition of [7, 2, 9, 4, 1, 8, 3, 5] around pivot 5</title>
+  <rect width="660" height="530" rx="16" fill="#f8fafc"/>
+  <text x="330" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Before: pivot = 5 (last element)</text>
+  <g fill="#94a3b8">
+    <rect x="60" y="89" width="50" height="126" rx="4"/><rect x="130" y="179" width="50" height="36" rx="4"/>
+    <rect x="200" y="53" width="50" height="162" rx="4"/><rect x="270" y="143" width="50" height="72" rx="4"/>
+    <rect x="340" y="197" width="50" height="18" rx="4"/><rect x="410" y="71" width="50" height="144" rx="4"/>
+    <rect x="480" y="161" width="50" height="54" rx="4"/>
+  </g>
+  <rect x="550" y="125" width="50" height="90" rx="4" fill="#6366f1"/>
+  <g font-size="15" text-anchor="middle" fill="#0f172a">
+    <text x="85" y="235">7</text><text x="155" y="235">2</text><text x="225" y="235">9</text><text x="295" y="235">4</text>
+    <text x="365" y="235">1</text><text x="435" y="235">8</text><text x="505" y="235">3</text><text x="575" y="235">5</text>
+  </g>
+  <text x="330" y="272" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">After partition: pivot is in its final position</text>
+  <g fill="#38bdf8">
+    <rect x="60" y="434" width="50" height="36" rx="4"/><rect x="130" y="398" width="50" height="72" rx="4"/>
+    <rect x="200" y="452" width="50" height="18" rx="4"/><rect x="270" y="416" width="50" height="54" rx="4"/>
+  </g>
+  <rect x="340" y="380" width="50" height="90" rx="4" fill="#6366f1"/>
+  <g fill="#94a3b8">
+    <rect x="410" y="326" width="50" height="144" rx="4"/><rect x="480" y="344" width="50" height="126" rx="4"/>
+    <rect x="550" y="308" width="50" height="162" rx="4"/>
+  </g>
+  <g font-size="15" text-anchor="middle" fill="#0f172a">
+    <text x="85" y="490">2</text><text x="155" y="490">4</text><text x="225" y="490">1</text><text x="295" y="490">3</text>
+    <text x="365" y="490">5</text><text x="435" y="490">8</text><text x="505" y="490">7</text><text x="575" y="490">9</text>
+  </g>
+  <g font-size="14" text-anchor="middle" fill="#334155">
+    <path d="M60 500 v8 h260 v-8" fill="none" stroke="#38bdf8" stroke-width="2"/>
+    <text x="190" y="524">≤ pivot (recurse left)</text>
+    <path d="M410 500 v8 h190 v-8" fill="none" stroke="#94a3b8" stroke-width="2"/>
+    <text x="505" y="524">&gt; pivot (recurse right)</text>
+  </g>
+</svg>

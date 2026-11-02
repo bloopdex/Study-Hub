@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SGD and mini-batches · Study Hub</title>
+  <script src="../assets/js/main.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+  <script defer src="../assets/js/mdx-runtime.js"></script>
+  <script defer src="../assets/js/feynman.js"></script>
+</head>
+<body data-slug="dl-sgd" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
+  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
+      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
+      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+        <a href="dl.html" class="hover:text-indigo-500">Deep learning</a>
+      </nav>
+      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
+    <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <summary class="cursor-pointer font-semibold">On this page</summary>
+        <ul id="toc-list" class="mt-2"></ul>
+      </details>
+    </aside>
+
+    <main id="content" class="min-w-0">
+      <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
+      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Deep learning</p>
+        <h1 class="mt-1 text-3xl font-bold tracking-tight">SGD and mini-batches</h1>
+        <p class="mt-3 text-slate-700 dark:text-slate-300">Fit $\hat y = wx$ to three points (1, 2), (2, 4), (3, 6), starting at $w = 0$, learning rate 0.1. <strong>Full-batch</strong> gradient descent averages the gradient over all three points: −9.33, so $w = 0.93$. <strong>Stochastic</strong> gradient descent (SGD) uses one random point, say (2, 4): gradient −8, so $w = 0.8$. A <strong>mini-batch</strong> of two points, (1, 2) and (3, 6): gradient −10, so $w = 1.0$. Same direction, different noise and cost.</p>
+        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> with millions of examples, computing the exact gradient for every step is far too slow. SGD and mini-batches take many cheap, slightly noisy steps instead, and the noise even helps escape poor regions of the loss.</p>
+      </section>
+
+      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+        <h2>Prerequisites</h2>
+        <ul>
+          <li><a href="dl-gradient-descent.html">Gradient descent</a>.</li>
+          <li>Averages of numbers.</li>
+          <li><a href="dl-loss-functions.html">MSE loss</a>.</li>
+        </ul>
+
+        <h2>The analogy</h2>
+        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-sky-500">Everyday analogy</p>
+          <p>Asking every voter in the country before each decision is accurate but painfully slow. Asking one random person is fast but noisy. Polling a few hundred people is fast and accurate enough.</p>
+          <p>Full-batch, stochastic and mini-batch gradient descent make exactly that trade-off when estimating which way is downhill.</p>
+        </div>
+
+        <h2>How it works</h2>
+        <p><strong>Per-example loss:</strong> $L_i = \tfrac12 (w x_i - y_i)^2$, so its gradient is $g_i = (w x_i - y_i)\,x_i$. A batch gradient is the average of $g_i$ over the batch.</p>
+        <h3>Start with one step, three ways</h3>
+        <p>Points (1, 2), (2, 4), (3, 6); $w = 0$; $\eta = 0.1$. At $w = 0$, each gradient is $g_i = -y_i x_i$. Predict, then open "Check".</p>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+          <p><strong>Step 1.</strong> Compute the three per-example gradients.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>$g_1 = -2$, $g_2 = -8$, $g_3 = -18$.</p></details>
+          <p><strong>Step 2.</strong> Cover the next line and guess: full-batch step (average of all three).</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>Average $= -28/3 \approx -9.33$, so $w = 0 + 0.1 \cdot 9.33 \approx 0.93$.</p></details>
+          <p><strong>Step 3.</strong> SGD with point (2, 4), and a mini-batch {(1, 2), (3, 6)}. Predict both new $w$.</p>
+          <details><summary class="cursor-pointer font-medium">Check</summary><p>SGD: $w = 0.8$. Mini-batch: average $(-2 - 18)/2 = -10$, so $w = 1.0$. All move towards the true $w = 2$, by different amounts.</p></details>
+        </div>
+        <figure>
+          <img src="../assets/images/dl-sgd-1.svg" alt="Three rows comparing one step of full-batch, stochastic and mini-batch gradient descent, with the examples used and the new w" width="640" height="310">
+          <figcaption>What you just computed: three estimates of the same downhill direction. Smaller batches are cheaper per step but noisier.</figcaption>
+        </figure>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before reading further, cover the text above and say out loud: what is the difference between SGD and full-batch gradient descent?</p>
+          <details><summary>Check your answer</summary>
+            <p>SGD estimates the gradient from one (random) example per step; full-batch uses the average over all training examples.</p>
+          </details>
+        </div>
+
+        <h3>Finish the picture: one epoch of SGD</h3>
+        <p>Process all three points once in the order (1, 2), (2, 4), (3, 6), updating after each.</p>
+        <ul>
+          <li><strong>After (1, 2), then after (2, 4).</strong> Predict $w$.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>After (1, 2): $g = -2$, $w = 0.2$. After (2, 4): $g = (0.4 - 4) \cdot 2 = -7.2$, $w = 0.92$.</p></details></li>
+          <li><strong>After (3, 6).</strong> Predict $w$ and compare with one full-batch step.
+            <details><summary class="cursor-pointer font-medium">Check</summary><p>$g = (2.76 - 6) \cdot 3 = -9.72$, $w = 1.892$. One epoch of SGD made 3 updates and got much closer to 2 than one full-batch step (0.93).</p></details></li>
+        </ul>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Without scrolling up, say out loud: how many updates happen in one epoch of 1,000 examples with batch size 50?</p>
+          <details><summary>Check your answer</summary>
+            <p>20 updates (one per mini-batch).</p>
+          </details>
+        </div>
+
+        <h3>Full worked calculation</h3>
+        <p>One epoch over the three points (1, 2), (2, 4), (3, 6) with the model $\hat y = wx$, loss $\tfrac12(wx - y)^2$, learning rate 0.1, starting at $w = 0$ (the best value is $w = 2$). We compare full-batch, one-point SGD, and mini-batches of 2.</p>
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Updates in one epoch</th><th>$w$ after the epoch</th><th>Mean loss after</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Full batch</td><td>1</td><td>0.933</td><td>2.655</td></tr>
+            <tr><td>Mini-batch (size 2, then 1)</td><td>2</td><td>1.4</td><td>0.840</td></tr>
+            <tr><td>SGD (size 1)</td><td>3</td><td>1.892</td><td>0.027</td></tr>
+          </tbody>
+        </table>
+        <ol class="not-prose my-6 list-none space-y-3 p-0">
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Gradient for one point</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\partial}{\partial w}\tfrac12(wx - y)^2 = (wx - y)\,x$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Prediction error times the input. At $w = 0$ the point (3, 6) gives $(0 - 6) \cdot 3 = -18$, the point (1, 2) only $-2$.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Full batch: average all three</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = \frac{-2 - 8 - 18}{3} = -9.333, \qquad w = 0 + 0.1 \cdot 9.333 = 0.933$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One careful, exact step per epoch. It used all the data, but it only moved $w$ once.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>SGD: first point (2, 4)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = (0 \cdot 2 - 4) \cdot 2 = -8, \qquad w = 0 + 0.8 = 0.8$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One point gives a noisy estimate of the full gradient (−8 instead of −9.33), but we can act on it immediately.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>SGD: second point (1, 2)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = (0.8 \cdot 1 - 2) \cdot 1 = -1.2, \qquad w = 0.8 + 0.12 = 0.92$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">This point has a small input, so its gradient is small and the step is tiny. Different points pull with different strength.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>SGD: third point (3, 6)</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g = (0.92 \cdot 3 - 6) \cdot 3 = -9.72, \qquad w = 0.92 + 0.972 = 1.892$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">After one pass SGD is at 1.892, much closer to 2 than full batch (0.933), because it made three updates instead of one.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Mini-batches of 2: {(1, 2), (3, 6)} then {(2, 4)}</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$g_1 = \frac{-2 - 18}{2} = -10 \Rightarrow w = 1.0, \qquad g_2 = (1.0 \cdot 2 - 4) \cdot 2 = -4 \Rightarrow w = 1.4$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">A compromise: less noise than single points, more updates than full batch, and each batch is a matrix product a GPU computes efficiently.</p>
+          </li>
+          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Compare the losses</p>
+            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$L(w) = \tfrac13 \sum \tfrac12 (w x_i - y_i)^2: \quad L(0) = 9.33, \; L(0.933) = 2.66, \; L(1.4) = 0.84, \; L(1.892) = 0.027$$</div>
+            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Same data, same learning rate, same amount of computation, very different progress. On big datasets this difference is why everybody uses mini-batch SGD.</p>
+          </li>
+        </ol>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+          <p>More, noisier updates beat fewer, exact ones: after one epoch SGD reached $w = 1.89$, mini-batch 1.4, full batch 0.93.</p>
+          <p>The noise is not all bad: it can shake the weights out of poor regions. Usual batch sizes are 32–256, and the data is shuffled every epoch.</p>
+        </div>
+
+        <h3>The rule in plain words</h3>
+        <p>Shuffle the training set each epoch and split it into mini-batches (from 1 example, pure SGD, up to a few thousand).</p>
+        <p>For each mini-batch: average the gradients of its examples and take one step $w \leftarrow w - \eta \bar g$.</p>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before you read the code, describe one SGD epoch, in your own words. Then check below.</p>
+          <details><summary>Check your answer</summary>
+            <p>Shuffle the examples, then for each one compute its gradient at the current $w$ and immediately update $w$.</p>
+          </details>
+        </div>
+
+        <h3>The code</h3>
+        <p>Read this code <em>after</em> you have done the three steps by hand. It will make more sense.</p>
+        <pre><code class="language-c">double batch_grad(double x[], double y[], int idx[], int m, double w) {   /* average over a batch */
+    double g = 0;
+    for (int k = 0; k &lt; m; k++) {
+        int i = idx[k];
+        g += (w * x[i] - y[i]) * x[i];               /* gradient of 1/2 (wx - y)^2 */
+    }
+    return g / m;
+}
+
+double sgd_step(double x[], double y[], int idx[], int m, double w, double lr) {
+    return w - lr * batch_grad(x, y, idx, m, w);
+}</code></pre>
+        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-indigo-500">Definition</p>
+          <p>What you just did, in one line: <strong>stochastic gradient descent</strong> updates the parameters using the gradient of one example (or a small random <strong>mini-batch</strong>) at a time, instead of the whole training set.</p>
+        </div>
+        <figure>
+          <pre class="mermaid">
+flowchart TD
+  A["shuffle the training set"] --&gt; B["take the next mini-batch"]
+  B --&gt; C["average the gradients of its examples"]
+  C --&gt; D["w = w - learning rate × average"]
+  D --&gt; E{"more batches this epoch?"}
+  E --&gt;|yes| B
+  E --&gt;|no| F{"more epochs?"}
+  F --&gt;|yes| A
+  F --&gt;|no| G["done"]
+          </pre>
+          <figcaption>Before you scroll past this diagram, cover the right side and guess: with batch size 1 and 3 examples, how many times do you visit "w = w − …" per epoch? (Answer: 3.)</figcaption>
+        </figure>
+
+        <h3>How costly is it?</h3>
+        <div class="quick-recall">
+          <p><strong>Quick recall:</strong> Before looking at the formula, predict: what does a larger batch do to the noise in the gradient estimate?</p>
+          <details><summary>Check your answer</summary>
+            <p>It reduces it: averaging more examples gives an estimate closer to the true gradient.</p>
+          </details>
+        </div>
+        <p>A mini-batch $B$ estimates the full gradient by averaging; its noise shrinks with the batch size $m$:</p>
+        $$\bar g_B = \frac{1}{m}\sum_{i \in B} \nabla L_i(w) \approx \frac{1}{n}\sum_{i=1}^{n} \nabla L_i(w), \qquad \text{noise (std)} \propto \frac{1}{\sqrt m}$$
+        <table>
+          <thead>
+            <tr><th>Variant</th><th>Examples per step</th><th>Cost per step</th><th>Noise</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Full batch</td><td>$n$</td><td>$O(n)$</td><td>None</td></tr>
+            <tr><td>SGD</td><td>1</td><td>$O(1)$</td><td>High</td></tr>
+            <tr><td>Mini-batch</td><td>$m$ (e.g. 32–512)</td><td>$O(m)$, parallel on a GPU</td><td>Moderate</td></tr>
+            <tr><td>Updates per epoch</td><td>—</td><td>$n / m$</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-amber-500">Warning</p>
+          <p>Don't feed examples in a fixed order (e.g. all cats, then all dogs). Without shuffling, consecutive gradients are biased in one direction and training oscillates or stalls.</p>
+        </div>
+        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-fuchsia-500">Exam tip</p>
+          <p>Know the vocabulary: an <em>epoch</em> is one pass over the data, an <em>iteration</em> is one update, and iterations per epoch $= n / m$.</p>
+        </div>
+
+        <h2>Common mistakes</h2>
+        <ul>
+          <li>Confusing epochs with iterations.</li>
+          <li>Summing instead of averaging the batch gradients, so the effective learning rate changes with the batch size.</li>
+          <li>Increasing the batch size without adjusting the learning rate.</li>
+        </ul>
+
+        <h2>Try it yourself</h2>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+          <p>50,000 training images, batch size 100, 10 epochs: how many weight updates?</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Updates per epoch = $n/m$.</p></details>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$500 \times 10 = 5{,}000$ updates.</p></details>
+        </div>
+        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+          <p>From $w = 1$, compute the full-batch step and the SGD step on point (3, 6), with $\eta = 0.1$. Write your answer down before you open it.</p>
+          <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Gradients at $w = 1$: $(1 - 2) \cdot 1 = -1$, $(2 - 4) \cdot 2 = -4$, $(3 - 6) \cdot 3 = -9$. Full batch: average $-14/3$, $w \approx 1.47$. SGD on (3, 6): $w = 1 + 0.9 = 1.9$.</p></details>
+        </div>
+
+        <h2>Did you know?</h2>
+        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
+          <p class="callout-title text-violet-500">Did you know?</p>
+          <p>Robbins and Monro introduced stochastic approximation, the theory behind SGD, in 1951.</p>
+          <p>Mini-batch sizes are usually powers of two (32, 64, 128…) because they map neatly onto GPU memory and parallel hardware.</p>
+        </div>
+
+        <h2>Key points to remember</h2>
+        <p>If you remember one thing from each line, remember the <em>because</em>.</p>
+        <ul>
+          <li>SGD is cheap per step <strong>because</strong> it uses only a few examples to estimate the gradient.</li>
+          <li>Mini-batch gradients are noisy <strong>because</strong> a small sample doesn't represent the whole dataset exactly.</li>
+          <li>Larger batches are less noisy <strong>because</strong> averaging more examples reduces variance.</li>
+          <li>Shuffling matters <strong>because</strong> ordered data biases consecutive updates.</li>
+          <li>Many cheap steps beat few exact ones <strong>because</strong> progress depends more on the number of updates than on their precision.</li>
+        </ul>
+
+        <h2>Self-check questions</h2>
+        <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
+        <ol class="space-y-4">
+          <li><strong>How are full-batch, SGD and mini-batch like polling voters?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Asking everyone is exact but slow, one person is fast but noisy, and a few hundred is fast and accurate enough.</p></details></li>
+          <li><strong>From $w = 0$ with $\eta = 0.1$, compute the full-batch, SGD (point (2, 4)) and mini-batch ({(1, 2), (3, 6)}) steps.</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Full batch: $w \approx 0.93$. SGD: $w = 0.8$. Mini-batch: $w = 1.0$.</p></details></li>
+          <li><strong>Why does <code>batch_grad</code> divide by <code>m</code>?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer mentions the learning rate.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Averaging keeps the gradient's scale independent of the batch size, so the same learning rate works whatever $m$ is.</p></details></li>
+          <li><strong>So what is SGD with mini-batches, in one sentence?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Gradient descent where each update uses the average gradient of a small random batch of examples instead of the whole dataset.</p></details></li>
+          <li><strong>Why did one epoch of SGD get closer to the answer than one full-batch step?</strong>
+            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer counts updates.</p>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>SGD made three updates in that epoch, each using the latest $w$, while full-batch made only one.</p></details></li>
+          <li><strong>How many updates per epoch, and what does each step cost?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$n/m$ updates per epoch, each costing $O(m)$ gradient computations.</p></details></li>
+          <li><strong>Why must the data be shuffled each epoch?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Otherwise consecutive batches come from similar examples and push the weights in biased directions.</p></details></li>
+          <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
+            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the $1/\sqrt{m}$ noise formula. I'd keep the polling analogy, the three one-step results from $w = 0$, and "small random batches, many cheap noisy steps, shuffle every epoch".</p></details></li>
+        </ol>
+
+        <h2>External resources</h2>
+        <ul>
+          <li><a href="https://pytorch.org/docs/stable/generated/torch.optim.SGD.html" target="_blank" rel="noopener">PyTorch docs: torch.optim.SGD</a>: SGD with optional momentum.</li>
+          <li><a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent" target="_blank" rel="noopener">Wikipedia: Stochastic gradient descent</a>: variants and history.</li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/linear-regression/hyperparameters" target="_blank" rel="noopener">Google ML Crash Course: Batch size</a>: batch size, epochs and learning rate.</li>
+        </ul>
+        <p><strong>Videos</strong></p>
+        <ul>
+          <li><a href="https://www.youtube.com/results?search_query=StatQuest+stochastic+gradient+descent" target="_blank" rel="noopener">YouTube search: StatQuest SGD</a>: StatQuest's clear explanation.</li>
+        </ul>
+      </article>
+
+      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">Review schedule</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
+          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
+        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+        <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <ul class="mt-4 space-y-2">
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+          <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
+          <div class="flex gap-2">
+            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
+            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+          </div>
+        </div>
+        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+      </section>
+
+      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+        <h2 class="text-2xl font-bold">My notes</h2>
+        <label for="notes" class="sr-only">My notes for this topic</label>
+        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
+          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
+          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
