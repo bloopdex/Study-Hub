@@ -7,6 +7,7 @@
   <script src="../assets/js/main.js"></script>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="icon" href="../assets/images/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -18,22 +19,36 @@
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
   <script defer src="../assets/js/mdx-runtime.js"></script>
   <script defer src="../assets/js/feynman.js"></script>
+  <script defer src="../assets/js/flashcards.js"></script>
+  <script defer src="../assets/js/flashcard-runner.js"></script>
 </head>
-<body data-slug="mlf-regularization" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
-  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+<body data-slug="mlf-regularization" class="font-sans antialiased">
+  <div class="progress-bar no-print" aria-hidden="true"></div>
+  <header class="site-header no-print">
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
-      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
-      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
-        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
-        <a href="ml-foundations.html" class="hover:text-indigo-500">ML foundations</a>
+      <a href="../index.html" class="brand">
+        <svg class="logo" viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+          <rect class="logo-bg" width="64" height="64" rx="14" fill="#6366f1"/>
+          <g class="logo-loop" fill="none" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M49.6 19.2A23 23 0 1 1 36 11.3"/><path d="M32.6 7.6 36 11.3 31.6 13.6"/></g>
+          <path d="M32 15.5Q33 20 37.5 21Q33 22 32 26.5Q31 22 26.5 21Q31 20 32 15.5Z" fill="#fcd34d"/>
+          <path d="M32 33Q24 28 17 30V43Q24 41 32 45ZM32 33Q40 28 47 30V43Q40 41 32 45" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        StudyHub
+      </a>
+      <nav class="site-nav ml-auto flex items-center gap-3 sm:gap-4 text-sm">
+        <a href="../index.html">Dashboard</a>
+        <a href="ml-foundations.html">ML foundations</a>
+        <button data-theme-toggle class="theme-toggle" aria-label="Toggle dark mode">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
       </nav>
-      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
     </div>
   </header>
 
   <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
     <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
-      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+      <details id="toc" class="card text-sm">
         <summary class="cursor-pointer font-semibold">On this page</summary>
         <ul id="toc-list" class="mt-2"></ul>
       </details>
@@ -41,14 +56,14 @@
 
     <main id="content" class="min-w-0">
       <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
-      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
-        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Foundations</p>
-        <h1 class="mt-1 text-3xl font-bold tracking-tight">Regularization (L1 and L2)</h1>
-        <p class="mt-3 text-slate-700 dark:text-slate-300">A linear model learned weights $[4.0, -3.0, 0.5, 0.1]$ for four features. Add an <strong>L2</strong> penalty (ridge, λ = 1) and every weight shrinks: $[2.0, -1.5, 0.25, 0.05]$. Add an <strong>L1</strong> penalty (lasso, λ = 0.6) instead and the big weights shrink a little while the small ones become exactly zero: $[3.4, -2.4, 0, 0]$. That's regularization: charging the model for large weights.</p>
-        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> large weights let a model chase noise. A penalty on their size reduces variance (overfitting), and L1 even selects features automatically by switching useless ones off.</p>
+      <section class="card card-accent">
+        <p class="text-xs font-semibold uppercase tracking-wider text-accent">ML/DL · Foundations</p>
+        <h1 class="mt-1 text-3xl tracking-tight">Regularization (L1 and L2)</h1>
+        <p class="mt-3">A linear model learned weights $[4.0, -3.0, 0.5, 0.1]$ for four features. Add an <strong>L2</strong> penalty (ridge, λ = 1) and every weight shrinks: $[2.0, -1.5, 0.25, 0.05]$. Add an <strong>L1</strong> penalty (lasso, λ = 0.6) instead and the big weights shrink a little while the small ones become exactly zero: $[3.4, -2.4, 0, 0]$. That's regularization: charging the model for large weights.</p>
+        <p class="mt-2"><strong>Why it matters:</strong> large weights let a model chase noise. A penalty on their size reduces variance (overfitting), and L1 even selects features automatically by switching useless ones off.</p>
       </section>
 
-      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+      <article class="prose max-w-none mt-8">
         <h2>Prerequisites</h2>
         <ul>
           <li><a href="mlf-bias-variance.html">Bias–variance trade-off</a>.</li>
@@ -57,8 +72,8 @@
         </ul>
 
         <h2>The analogy</h2>
-        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-sky-500">Everyday analogy</p>
+        <div class="callout">
+          <p class="callout-title">Everyday analogy</p>
           <p>Think of a travel budget. Without limits, you'd buy everything that looks slightly useful. With a fee per item (L1), you drop the marginal items altogether; with a fee that grows with each item's size (L2), you keep everything but buy smaller versions.</p>
           <p>Regularization adds such a fee to the model's loss: the model may still use large weights, but only if they reduce the error enough to pay for themselves.</p>
         </div>
@@ -67,8 +82,8 @@
         <p><strong>Assumption for the numbers:</strong> features are standardized and uncorrelated (orthonormal). Then ridge and lasso have simple closed forms per weight; with correlated features the effect is similar but not exactly these numbers.</p>
         <h3>Start with four weights by hand</h3>
         <p>Unregularized weights $w = [4.0, -3.0, 0.5, 0.1]$. Ridge with λ = 1 divides each weight by $1 + \lambda$. Lasso with λ = 0.6 moves each weight towards 0 by 0.6, stopping at 0. Predict, then open "Check".</p>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+        <div class="callout callout-example">
+          <p class="callout-title">Example: predict before you read</p>
           <p><strong>Step 1.</strong> Apply ridge (L2), λ = 1.</p>
           <details><summary class="cursor-pointer font-medium">Check</summary><p>$[2.0, -1.5, 0.25, 0.05]$: everything halves; nothing becomes exactly 0.</p></details>
           <p><strong>Step 2.</strong> Cover the next line and guess: apply lasso (L1), λ = 0.6, to 4.0 and −3.0.</p>
@@ -115,44 +130,44 @@
           </tbody>
         </table>
         <ol class="not-prose my-6 list-none space-y-3 p-0">
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Ridge for one weight</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{d}{dw}\Big[\tfrac12 (w - 4)^2 + \tfrac{\lambda}{2} w^2\Big] = (w - 4) + \lambda w = 0 \;\Rightarrow\; w = \frac{4}{1 + \lambda} = 2$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Setting the derivative to zero balances the pull towards the data ($w - 4$) against the pull towards 0 ($\lambda w$). With $\lambda = 1$ they meet halfway.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">1</span>Ridge for one weight</p>
+            <div class="my-2 overflow-x-auto">$$\frac{d}{dw}\Big[\tfrac12 (w - 4)^2 + \tfrac{\lambda}{2} w^2\Big] = (w - 4) + \lambda w = 0 \;\Rightarrow\; w = \frac{4}{1 + \lambda} = 2$$</div>
+            <p class="mt-1 leading-relaxed">Setting the derivative to zero balances the pull towards the data ($w - 4$) against the pull towards 0 ($\lambda w$). With $\lambda = 1$ they meet halfway.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Ridge for all four</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w = \frac{\hat w}{2} = [2.0,\; -1.5,\; 0.25,\; 0.05]$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Every weight is divided by the same factor. Big or small, nothing reaches exactly 0, so all four features stay in the model.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">2</span>Ridge for all four</p>
+            <div class="my-2 overflow-x-auto">$$w = \frac{\hat w}{2} = [2.0,\; -1.5,\; 0.25,\; 0.05]$$</div>
+            <p class="mt-1 leading-relaxed">Every weight is divided by the same factor. Big or small, nothing reaches exactly 0, so all four features stay in the model.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Ridge pays off</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\underbrace{\tfrac12(4 + 2.25 + 0.0625 + 0.0025)}_{\text{fit cost} = 3.16} + \underbrace{\tfrac12(4 + 2.25 + 0.0625 + 0.0025)}_{\text{penalty} = 3.16} = 6.32 < \tfrac12 \cdot 25.26 = 12.63$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Staying at $\hat w$ costs nothing in fit but 12.63 in penalty. Moving halfway costs 3.16 in fit and saves far more in penalty: the optimiser happily gives up a little accuracy on the training data.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">3</span>Ridge pays off</p>
+            <div class="my-2 overflow-x-auto">$$\underbrace{\tfrac12(4 + 2.25 + 0.0625 + 0.0025)}_{\text{fit cost} = 3.16} + \underbrace{\tfrac12(4 + 2.25 + 0.0625 + 0.0025)}_{\text{penalty} = 3.16} = 6.32 < \tfrac12 \cdot 25.26 = 12.63$$</div>
+            <p class="mt-1 leading-relaxed">Staying at $\hat w$ costs nothing in fit but 12.63 in penalty. Moving halfway costs 3.16 in fit and saves far more in penalty: the optimiser happily gives up a little accuracy on the training data.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Lasso for a big weight</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{d}{dw}\Big[\tfrac12 (w - 4)^2 + 0.6\,|w|\Big] = (w - 4) + 0.6 = 0 \;\Rightarrow\; w = 3.4$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">For $w > 0$ the derivative of $|w|$ is just 1, so the L1 pull is a constant 0.6, whatever the size of the weight. Big weights move by exactly $\lambda$. For $-3.0$ the same logic gives $-2.4$.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">4</span>Lasso for a big weight</p>
+            <div class="my-2 overflow-x-auto">$$\frac{d}{dw}\Big[\tfrac12 (w - 4)^2 + 0.6\,|w|\Big] = (w - 4) + 0.6 = 0 \;\Rightarrow\; w = 3.4$$</div>
+            <p class="mt-1 leading-relaxed">For $w > 0$ the derivative of $|w|$ is just 1, so the L1 pull is a constant 0.6, whatever the size of the weight. Big weights move by exactly $\lambda$. For $-3.0$ the same logic gives $-2.4$.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Lasso for a small weight</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$w = 0.5: \quad \frac{d}{dw}\Big[\tfrac12 (w - 0.5)^2 + 0.6\,w\Big]_{w = 0^+} = -0.5 + 0.6 = 0.1 > 0$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Right at 0 the cost is already increasing towards the right: the data's pull (0.5) is weaker than the constant penalty (0.6). The minimum is exactly $w = 0$, so the feature is switched off. The same happens to 0.1.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">5</span>Lasso for a small weight</p>
+            <div class="my-2 overflow-x-auto">$$w = 0.5: \quad \frac{d}{dw}\Big[\tfrac12 (w - 0.5)^2 + 0.6\,w\Big]_{w = 0^+} = -0.5 + 0.6 = 0.1 > 0$$</div>
+            <p class="mt-1 leading-relaxed">Right at 0 the cost is already increasing towards the right: the data's pull (0.5) is weaker than the constant penalty (0.6). The minimum is exactly $w = 0$, so the feature is switched off. The same happens to 0.1.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Lasso pays off</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\underbrace{\tfrac12(0.36 + 0.36 + 0.25 + 0.01)}_{0.49} + \underbrace{0.6\,(3.4 + 2.4 + 0 + 0)}_{3.48} = 3.97 < 0.6 \cdot 7.6 = 4.56$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Zeroing the two small weights costs only 0.13 in fit and saves 0.36 in penalty, so the optimiser prefers a simpler model with 2 features instead of 4.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">6</span>Lasso pays off</p>
+            <div class="my-2 overflow-x-auto">$$\underbrace{\tfrac12(0.36 + 0.36 + 0.25 + 0.01)}_{0.49} + \underbrace{0.6\,(3.4 + 2.4 + 0 + 0)}_{3.48} = 3.97 < 0.6 \cdot 7.6 = 4.56$$</div>
+            <p class="mt-1 leading-relaxed">Zeroing the two small weights costs only 0.13 in fit and saves 0.36 in penalty, so the optimiser prefers a simpler model with 2 features instead of 4.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>Effect on a prediction</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$x = [1, 1, 1, 1]: \quad \hat w \cdot x = 1.6, \qquad w_{\text{ridge}} \cdot x = 0.8, \qquad w_{\text{lasso}} \cdot x = 1.0$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Regularized models make smaller, more cautious predictions. That costs a little accuracy on training data and usually gains more on new data, where large weights would amplify noise.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">7</span>Effect on a prediction</p>
+            <div class="my-2 overflow-x-auto">$$x = [1, 1, 1, 1]: \quad \hat w \cdot x = 1.6, \qquad w_{\text{ridge}} \cdot x = 0.8, \qquad w_{\text{lasso}} \cdot x = 1.0$$</div>
+            <p class="mt-1 leading-relaxed">Regularized models make smaller, more cautious predictions. That costs a little accuracy on training data and usually gains more on new data, where large weights would amplify noise.</p>
           </li>
         </ol>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+        <div class="callout callout-example">
+          <p class="callout-title">What the numbers tell us</p>
           <p>Ridge halved every weight ($[2, -1.5, 0.25, 0.05]$) and cut the total cost from 12.63 to 6.32. Lasso moved big weights by 0.6 and set small ones to exactly 0 ($[3.4, -2.4, 0, 0]$).</p>
           <p>L2's pull is proportional to the weight, so it shrinks smoothly; L1's pull is constant, so it wins outright against small weights. That is why lasso also performs feature selection.</p>
         </div>
@@ -178,8 +193,8 @@ double lasso_shrink(double w, double lambda) {      /* L1: soft-thresholding */
     if (w &lt; -lambda) return w + lambda;
     return 0;                                        /* small weights switched off */
 }</code></pre>
-        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-indigo-500">Definition</p>
+        <div class="callout callout-definition">
+          <p class="callout-title text-accent">Definition</p>
           <p>What you just did, in one line: <strong>regularization</strong> adds a penalty on the size of the weights to the loss; <strong>L2 (ridge)</strong> penalises squared weights and shrinks them, <strong>L1 (lasso)</strong> penalises absolute weights and can set some exactly to zero.</p>
         </div>
         <figure>
@@ -216,12 +231,12 @@ flowchart TD
             <tr><td>Our example</td><td>$[2.0, -1.5, 0.25, 0.05]$</td><td>$[3.4, -2.4, 0, 0]$</td></tr>
           </tbody>
         </table>
-        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-amber-500">Warning</p>
+        <div class="callout callout-warning">
+          <p class="callout-title">Warning</p>
           <p>Standardize features before regularizing. A feature measured in millimetres needs a weight 1,000 times bigger than the same feature in metres, so the penalty would unfairly punish it.</p>
         </div>
-        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-fuchsia-500">Exam tip</p>
+        <div class="callout callout-tip">
+          <p class="callout-title">Exam tip</p>
           <p>The classic question: "Why does L1 produce sparse weights and L2 doesn't?" Answer with the per-weight rules: L1 subtracts a constant (reaching 0), L2 divides by a constant (never reaching 0).</p>
         </div>
 
@@ -233,21 +248,21 @@ flowchart TD
         </ul>
 
         <h2>Try it yourself</h2>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+        <div class="callout callout-example">
+          <p class="callout-title">Exercise 1 (warm-up)</p>
           <p>Apply ridge with λ = 3 to the weights $[4.0, -3.0, 0.5, 0.1]$.</p>
           <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Divide by $1 + \lambda$.</p></details>
           <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>$[1.0, -0.75, 0.125, 0.025]$.</p></details>
         </div>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+        <div class="callout callout-example">
+          <p class="callout-title">Exercise 2 (a bit harder)</p>
           <p>Apply lasso with λ = 1 to $[4.0, -3.0, 0.5, 0.1]$. How many features does the model still use, and what is the total penalty $\lambda \sum |w_j|$ after shrinking? Write your answer down before you open it.</p>
           <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Weights $[3.0, -2.0, 0, 0]$: two features remain. Penalty $= 1 \cdot (3 + 2) = 5$.</p></details>
         </div>
 
         <h2>Did you know?</h2>
-        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-violet-500">Did you know?</p>
+        <div class="callout">
+          <p class="callout-title">Did you know?</p>
           <p>Ridge regression was introduced by Hoerl and Kennard in 1970 to stabilise regressions with correlated inputs; the lasso came from Robert Tibshirani in 1996.</p>
           <p>In neural networks, L2 regularization is usually called <em>weight decay</em>, because each gradient step shrinks the weights by a small factor.</p>
         </div>
@@ -266,23 +281,23 @@ flowchart TD
         <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
         <ol class="space-y-4">
           <li><strong>How is regularization like a fee on a travel budget?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A fee per item makes you drop marginal items (L1); a fee that grows with size makes you buy smaller versions of everything (L2).</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>A fee per item makes you drop marginal items (L1); a fee that grows with size makes you buy smaller versions of everything (L2).</p></details></li>
           <li><strong>Apply ridge (λ = 1) and lasso (λ = 0.6) to $[4.0, -3.0, 0.5, 0.1]$.</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Ridge: $[2.0, -1.5, 0.25, 0.05]$. Lasso: $[3.4, -2.4, 0, 0]$.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>Ridge: $[2.0, -1.5, 0.25, 0.05]$. Lasso: $[3.4, -2.4, 0, 0]$.</p></details></li>
           <li><strong>Why does <code>lasso_shrink</code> return 0 when $-\lambda \le w \le \lambda$?</strong>
-            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer compares the gain and the cost.</p>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>For small weights the reduction in error is smaller than the L1 cost of keeping them, so the best value is exactly 0.</p></details></li>
+            <p class="text-sm text-soft">A good answer compares the gain and the cost.</p>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>For small weights the reduction in error is smaller than the L1 cost of keeping them, so the best value is exactly 0.</p></details></li>
           <li><strong>So what is regularization, in one sentence?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Adding a penalty on the size of the model's weights to its loss, to discourage overfitting.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>Adding a penalty on the size of the model's weights to its loss, to discourage overfitting.</p></details></li>
           <li><strong>Why does L1 produce sparse models but L2 doesn't?</strong>
-            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses the per-weight update rules.</p>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>L1 shrinks each weight by a fixed amount and stops at 0, so small weights land exactly on 0. L2 shrinks by a factor, so weights get smaller but never reach 0.</p></details></li>
+            <p class="text-sm text-soft">A good answer uses the per-weight update rules.</p>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>L1 shrinks each weight by a fixed amount and stops at 0, so small weights land exactly on 0. L2 shrinks by a factor, so weights get smaller but never reach 0.</p></details></li>
           <li><strong>What do the L1 and L2 penalties look like?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>L1: $\lambda \sum |w_j|$. L2: $\lambda \sum w_j^2$ (often with a factor of ½).</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>L1: $\lambda \sum |w_j|$. L2: $\lambda \sum w_j^2$ (often with a factor of ½).</p></details></li>
           <li><strong>How do you choose λ?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>By cross-validation: try several values and keep the one with the best validation score.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>By cross-validation: try several values and keep the one with the best validation score.</p></details></li>
           <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out the exact loss conventions and elastic net. I'd keep the budget analogy, the four-weight example, and "penalty on weights; L2 shrinks, L1 shrinks and zeroes; tune λ".</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>I'd leave out the exact loss conventions and elastic net. I'd keep the budget analogy, the four-weight example, and "penalty on weights; L2 shrinks, L1 shrinks and zeroes; tune λ".</p></details></li>
         </ol>
 
         <h2>External resources</h2>
@@ -297,49 +312,79 @@ flowchart TD
         </ul>
       </article>
 
-      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h2 class="text-2xl font-bold">Review schedule</h2>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+      <section id="video-section" class="card no-print mt-12">
+        <h2 class="flex items-center gap-2 text-2xl">
+          <svg class="text-accent" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8.5v7l6-3.5z" fill="currentColor"/></svg>
+          Video talking points
+        </h2>
+        <p class="mt-2 text-sm text-soft">Use these 7 bullets as your script outline. Say each one in your own words. Do not read them: glance at them and speak.</p>
+        <ol class="talking-points mt-4">
+          <li><strong>Hook (5 sec).</strong> Ask: how can making a model's weights smaller make its predictions better?</li>
+          <li><strong>What it is (15 sec).</strong> Regularization adds a penalty on weight size to the loss: L2 (ridge) penalises squared weights, L1 (lasso) absolute weights.</li>
+          <li><strong>Why it exists (15 sec).</strong> Large weights let a model chase noise; a penalty reduces variance, and L1 even switches useless features off.</li>
+          <li><strong>How it works (45 sec).</strong> Weights [4.0, −3.0, 0.5, 0.1]: L2 with λ = 1 gives [2.0, −1.5, 0.25, 0.05]; L1 with λ = 0.6 gives [3.4, −2.4, 0, 0].</li>
+          <li><strong>The cost (20 sec).</strong> The penalty is $\lambda \lVert w \rVert_2^2$ or $\lambda \lVert w \rVert_1$; λ is tuned by cross-validation, because too little does nothing and too much underfits.</li>
+          <li><strong>When it fails (20 sec).</strong> Regularize without standardizing: a length in millimetres gets a weight 1000 times smaller than the same length in metres, so the penalty treats the two features completely differently for no reason.</li>
+          <li><strong>One takeaway (10 sec).</strong> L2 shrinks every weight; L1 shrinks and selects.</li>
+        </ol>
+      </section>
+
+      <section id="flashcards-section" class="card no-print mt-8">
+        <h2 class="text-2xl">Flashcards</h2>
+        <p class="mt-2 text-sm text-soft">Flip each card. Rate yourself honestly: Again, Hard, Good, or Easy. Cards you rate "Again" will show up again at the end of the session.</p>
+        <div data-flashcards class="mt-4"></div>
+      </section>
+
+      <section class="no-print mt-12 card">
+        <h2 class="text-2xl">Review schedule</h2>
+        <p class="mt-2 text-sm text-soft">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
         <div class="mt-4 flex flex-wrap items-center gap-3">
-          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
-          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+          <button id="review-done" class="btn btn-primary">I studied this today</button>
+          <span id="review-status" class="text-sm text-soft" aria-live="polite"></span>
         </div>
       </section>
 
-      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
-        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+      <section id="feynman" class="no-print mt-12 card card-tint">
+        <h2 class="text-2xl">Feynman prompt</h2>
         <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
-        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <p class="mt-1 text-sm text-soft">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
         <ul class="mt-4 space-y-2">
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> I identified at least one gap in my explanation and filled it.</label></li>
         </ul>
         <div class="mt-6 flex flex-wrap items-center gap-4">
           <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
           <div class="flex gap-2">
-            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
-            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
-            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+            <button data-action="start" class="btn btn-primary disabled:opacity-40">Start</button>
+            <button data-action="pause" class="btn disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="btn">Reset</button>
           </div>
         </div>
-        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
-        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+        <p data-done hidden class="mt-3 font-semibold text-accent" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-soft p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
       </section>
 
-      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h2 class="text-2xl font-bold">My notes</h2>
+      <section class="no-print mt-8 card">
+        <h2 class="text-2xl">My notes</h2>
         <label for="notes" class="sr-only">My notes for this topic</label>
-        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <textarea id="notes" rows="8" class="field mt-3" placeholder="Write your explanation outline here…"></textarea>
         <div class="mt-3 flex items-center gap-2">
-          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
-          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
-          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+          <button id="notes-save" class="btn btn-primary">Save</button>
+          <button id="notes-clear" class="btn">Clear</button>
+          <span id="notes-status" class="text-sm text-soft" aria-live="polite"></span>
         </div>
-        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+        <p class="mt-2 text-xs text-soft">Saved only in this browser (localStorage). Nothing is uploaded.</p>
       </section>
     </main>
   </div>
+  <footer class="site-footer no-print">
+    <div class="site-footer-inner">
+      <p><strong>StudyHub</strong> — a free, open study site for Algorithms and Machine Learning.</p>
+      <p>Found a mistake, want to add a page, or improve an explanation? <a href="https://github.com/bloopdex/study-hub" target="_blank" rel="noopener">Contribute on GitHub</a>.</p>
+      <p class="site-footer-meta">Made with care. Licensed under MIT.</p>
+    </div>
+  </footer>
 </body>
 </html>

@@ -7,6 +7,7 @@
   <script src="../assets/js/main.js"></script>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="icon" href="../assets/images/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -18,22 +19,36 @@
   <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
   <script defer src="../assets/js/mdx-runtime.js"></script>
   <script defer src="../assets/js/feynman.js"></script>
+  <script defer src="../assets/js/flashcards.js"></script>
+  <script defer src="../assets/js/flashcard-runner.js"></script>
 </head>
-<body data-slug="mla-pca" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
-  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+<body data-slug="mla-pca" class="font-sans antialiased">
+  <div class="progress-bar no-print" aria-hidden="true"></div>
+  <header class="site-header no-print">
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
-      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
-      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
-        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
-        <a href="ml-algorithms.html" class="hover:text-indigo-500">ML algorithms</a>
+      <a href="../index.html" class="brand">
+        <svg class="logo" viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+          <rect class="logo-bg" width="64" height="64" rx="14" fill="#6366f1"/>
+          <g class="logo-loop" fill="none" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M49.6 19.2A23 23 0 1 1 36 11.3"/><path d="M32.6 7.6 36 11.3 31.6 13.6"/></g>
+          <path d="M32 15.5Q33 20 37.5 21Q33 22 32 26.5Q31 22 26.5 21Q31 20 32 15.5Z" fill="#fcd34d"/>
+          <path d="M32 33Q24 28 17 30V43Q24 41 32 45ZM32 33Q40 28 47 30V43Q40 41 32 45" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        StudyHub
+      </a>
+      <nav class="site-nav ml-auto flex items-center gap-3 sm:gap-4 text-sm">
+        <a href="../index.html">Dashboard</a>
+        <a href="ml-algorithms.html">ML algorithms</a>
+        <button data-theme-toggle class="theme-toggle" aria-label="Toggle dark mode">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
       </nav>
-      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
     </div>
   </header>
 
   <div class="max-w-6xl mx-auto px-4 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-10">
     <aside class="no-print mb-6 lg:order-2 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
-      <details id="toc" class="rounded-xl bg-white dark:bg-slate-800 p-4 text-sm shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+      <details id="toc" class="card text-sm">
         <summary class="cursor-pointer font-semibold">On this page</summary>
         <ul id="toc-list" class="mt-2"></ul>
       </details>
@@ -41,14 +56,14 @@
 
     <main id="content" class="min-w-0">
       <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
-      <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
-        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · ML algorithms</p>
-        <h1 class="mt-1 text-3xl font-bold tracking-tight">Principal component analysis (PCA)</h1>
-        <p class="mt-3 text-slate-700 dark:text-slate-300">A dataset has 4 features. PCA finds 4 new directions (principal components) and how much of the data's variance lies along each: eigenvalues 4, 2, 1 and 0.5, out of a total of 7.5. The first two directions carry $(4 + 2)/7.5 = 80\%$ of the variance. Keep just those two and you have compressed 4 features into 2 while keeping most of the information. That's PCA.</p>
-        <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> it reduces many correlated features to a few uncorrelated ones, which speeds up other models, removes redundancy, and lets you plot high-dimensional data in 2-D.</p>
+      <section class="card card-accent">
+        <p class="text-xs font-semibold uppercase tracking-wider text-accent">ML/DL · ML algorithms</p>
+        <h1 class="mt-1 text-3xl tracking-tight">Principal component analysis (PCA)</h1>
+        <p class="mt-3">A dataset has 4 features. PCA finds 4 new directions (principal components) and how much of the data's variance lies along each: eigenvalues 4, 2, 1 and 0.5, out of a total of 7.5. The first two directions carry $(4 + 2)/7.5 = 80\%$ of the variance. Keep just those two and you have compressed 4 features into 2 while keeping most of the information. That's PCA.</p>
+        <p class="mt-2"><strong>Why it matters:</strong> it reduces many correlated features to a few uncorrelated ones, which speeds up other models, removes redundancy, and lets you plot high-dimensional data in 2-D.</p>
       </section>
 
-      <article class="prose prose-slate dark:prose-invert max-w-none mt-8 prose-a:text-indigo-500">
+      <article class="prose max-w-none mt-8">
         <h2>Prerequisites</h2>
         <ul>
           <li>Variance and covariance.</li>
@@ -57,8 +72,8 @@
         </ul>
 
         <h2>The analogy</h2>
-        <div class="callout border-l-4 border-sky-500 bg-sky-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-sky-500">Everyday analogy</p>
+        <div class="callout">
+          <p class="callout-title">Everyday analogy</p>
           <p>Think of photographing a long, flat object such as a surfboard. A photo from above shows almost everything; a photo from the end shows almost nothing.</p>
           <p>PCA picks the "camera angles" that show the most spread in the data: the first component is the best single view, the second the best view at a right angle to it, and so on.</p>
         </div>
@@ -67,8 +82,8 @@
         <p><strong>Before PCA:</strong> centre each feature (subtract its mean) and usually standardize it, so that features measured in large units don't dominate the variance.</p>
         <h3>Start with explained variance by hand</h3>
         <p>The covariance matrix of 4 standardized-ish features has eigenvalues $\lambda = 4, 2, 1, 0.5$. Each eigenvalue is the variance along one principal component. Predict, then open "Check".</p>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">Example: predict before you read</p>
+        <div class="callout callout-example">
+          <p class="callout-title">Example: predict before you read</p>
           <p><strong>Step 1.</strong> Total variance, and the share of the first component.</p>
           <details><summary class="cursor-pointer font-medium">Check</summary><p>Total $= 4 + 2 + 1 + 0.5 = 7.5$. First share $= 4/7.5 \approx 53.3\%$.</p></details>
           <p><strong>Step 2.</strong> Cover the next line and guess: the shares of components 2, 3 and 4.</p>
@@ -117,44 +132,44 @@
           </tbody>
         </table>
         <ol class="not-prose my-6 list-none space-y-3 p-0">
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">1</span>Centre the data</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\bar x = \frac{1 + 2 + 3 + 4}{4} = 2.5, \qquad \bar y = \frac{1 + 3 + 2 + 4}{4} = 2.5$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">PCA looks for directions of spread around the centre, so we subtract the mean from every point first. Without this step the first "component" would just point at the mean.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">1</span>Centre the data</p>
+            <div class="my-2 overflow-x-auto">$$\bar x = \frac{1 + 2 + 3 + 4}{4} = 2.5, \qquad \bar y = \frac{1 + 3 + 2 + 4}{4} = 2.5$$</div>
+            <p class="mt-1 leading-relaxed">PCA looks for directions of spread around the centre, so we subtract the mean from every point first. Without this step the first "component" would just point at the mean.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">2</span>Covariance matrix</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$C = \frac{1}{n - 1}\begin{pmatrix} \sum x_c^2 & \sum x_c y_c \\ \sum x_c y_c & \sum y_c^2 \end{pmatrix} = \frac{1}{3}\begin{pmatrix} 5 & 4 \\ 4 & 5 \end{pmatrix} = \begin{pmatrix} 1.667 & 1.333 \\ 1.333 & 1.667 \end{pmatrix}$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">The diagonal is the variance of each feature; the off-diagonal says they move together (positive). The sums come straight from the table.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">2</span>Covariance matrix</p>
+            <div class="my-2 overflow-x-auto">$$C = \frac{1}{n - 1}\begin{pmatrix} \sum x_c^2 & \sum x_c y_c \\ \sum x_c y_c & \sum y_c^2 \end{pmatrix} = \frac{1}{3}\begin{pmatrix} 5 & 4 \\ 4 & 5 \end{pmatrix} = \begin{pmatrix} 1.667 & 1.333 \\ 1.333 & 1.667 \end{pmatrix}$$</div>
+            <p class="mt-1 leading-relaxed">The diagonal is the variance of each feature; the off-diagonal says they move together (positive). The sums come straight from the table.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">3</span>Eigenvalues</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\det(C - \lambda I) = (1.667 - \lambda)^2 - 1.333^2 = 0 \;\Rightarrow\; \lambda = 1.667 \pm 1.333 = 3 \text{ and } 0.333$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Each eigenvalue is the variance of the data along one principal direction. For a symmetric 2×2 matrix with equal diagonals, the eigenvalues are "diagonal ± off-diagonal".</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">3</span>Eigenvalues</p>
+            <div class="my-2 overflow-x-auto">$$\det(C - \lambda I) = (1.667 - \lambda)^2 - 1.333^2 = 0 \;\Rightarrow\; \lambda = 1.667 \pm 1.333 = 3 \text{ and } 0.333$$</div>
+            <p class="mt-1 leading-relaxed">Each eigenvalue is the variance of the data along one principal direction. For a symmetric 2×2 matrix with equal diagonals, the eigenvalues are "diagonal ± off-diagonal".</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">4</span>Eigenvectors</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\lambda_1 = 3: \; v_1 = \tfrac{1}{\sqrt 2}(1, 1) \approx (0.707, 0.707), \qquad \lambda_2 = 0.333: \; v_2 = \tfrac{1}{\sqrt 2}(1, -1)$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Check: $C(1, 1)^\top = (3, 3)^\top = 3 \cdot (1, 1)^\top$. PC1 runs along the diagonal, where the points are spread out; PC2 is perpendicular to it.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">4</span>Eigenvectors</p>
+            <div class="my-2 overflow-x-auto">$$\lambda_1 = 3: \; v_1 = \tfrac{1}{\sqrt 2}(1, 1) \approx (0.707, 0.707), \qquad \lambda_2 = 0.333: \; v_2 = \tfrac{1}{\sqrt 2}(1, -1)$$</div>
+            <p class="mt-1 leading-relaxed">Check: $C(1, 1)^\top = (3, 3)^\top = 3 \cdot (1, 1)^\top$. PC1 runs along the diagonal, where the points are spread out; PC2 is perpendicular to it.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">5</span>Explained variance</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\frac{\lambda_1}{\lambda_1 + \lambda_2} = \frac{3}{3.333} = 0.9$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">PC1 alone keeps 90% of the total variance. If 90% is enough for the task, we can describe each point with one number instead of two.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">5</span>Explained variance</p>
+            <div class="my-2 overflow-x-auto">$$\frac{\lambda_1}{\lambda_1 + \lambda_2} = \frac{3}{3.333} = 0.9$$</div>
+            <p class="mt-1 leading-relaxed">PC1 alone keeps 90% of the total variance. If 90% is enough for the task, we can describe each point with one number instead of two.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">6</span>Project onto PC1</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$z = x_c \cdot v_1: \quad (-1.5, -1.5) \cdot (0.707, 0.707) = -2.121, \qquad (-0.5, 0.5) \cdot (0.707, 0.707) = 0$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">One dot product per point gives its new 1-D coordinate. The variance of these coordinates, $(4.5 + 0 + 0 + 4.5)/3 = 3$, is exactly $\lambda_1$.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">6</span>Project onto PC1</p>
+            <div class="my-2 overflow-x-auto">$$z = x_c \cdot v_1: \quad (-1.5, -1.5) \cdot (0.707, 0.707) = -2.121, \qquad (-0.5, 0.5) \cdot (0.707, 0.707) = 0$$</div>
+            <p class="mt-1 leading-relaxed">One dot product per point gives its new 1-D coordinate. The variance of these coordinates, $(4.5 + 0 + 0 + 4.5)/3 = 3$, is exactly $\lambda_1$.</p>
           </li>
-          <li class="rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-            <p class="font-semibold text-slate-900 dark:text-slate-100"><span class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">7</span>What is lost</p>
-            <div class="my-2 overflow-x-auto text-slate-900 dark:text-slate-100">$$\hat x = \bar x + z\,v_1: \quad (2, 3) \to (2.5, 2.5), \quad \text{error} = 0.5^2 + 0.5^2 = 0.5$$</div>
-            <p class="mt-1 leading-relaxed text-slate-700 dark:text-slate-300">Reconstructing from one coordinate puts (2, 3) and (3, 2) both at the centre. The total squared error is $0 + 0.5 + 0.5 + 0 = 1 = \lambda_2 (n - 1)$: we lose exactly the variance of the dropped component.</p>
+          <li class="card">
+            <p class="font-semibold"><span class="step-num mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">7</span>What is lost</p>
+            <div class="my-2 overflow-x-auto">$$\hat x = \bar x + z\,v_1: \quad (2, 3) \to (2.5, 2.5), \quad \text{error} = 0.5^2 + 0.5^2 = 0.5$$</div>
+            <p class="mt-1 leading-relaxed">Reconstructing from one coordinate puts (2, 3) and (3, 2) both at the centre. The total squared error is $0 + 0.5 + 0.5 + 0 = 1 = \lambda_2 (n - 1)$: we lose exactly the variance of the dropped component.</p>
           </li>
         </ol>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">What the numbers tell us</p>
+        <div class="callout callout-example">
+          <p class="callout-title">What the numbers tell us</p>
           <p>PCA is: centre, covariance, eigen-decomposition, sort by eigenvalue, project. Here one component keeps 90% of the variance.</p>
           <p>The dropped 10% is exactly the spread along PC2; points that differed only in that direction, (2, 3) and (3, 2), become indistinguishable.</p>
         </div>
@@ -182,8 +197,8 @@ double project(double x[], double v[], int d) {      /* coordinate of x along un
     for (int j = 0; j &lt; d; j++) s += x[j] * v[j];
     return s;
 }</code></pre>
-        <div class="callout border-l-4 border-indigo-500 bg-indigo-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-indigo-500">Definition</p>
+        <div class="callout callout-definition">
+          <p class="callout-title text-accent">Definition</p>
           <p>What you just did, in one line: <strong>PCA</strong> finds orthogonal directions of maximum variance (the eigenvectors of the covariance matrix) and represents the data by its projections onto the top few of them.</p>
         </div>
         <figure>
@@ -224,12 +239,12 @@ flowchart LR
           <li><strong>Con:</strong> Only finds linear structure.</li>
           <li><strong>Con:</strong> Components are mixtures of features, so they are harder to interpret; sensitive to scaling.</li>
         </ul>
-        <div class="callout border-l-4 border-amber-500 bg-amber-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-amber-500">Warning</p>
+        <div class="callout callout-warning">
+          <p class="callout-title">Warning</p>
           <p>PCA keeps directions of large <em>variance</em>, not directions that matter for your <em>target</em>. A low-variance feature can be the most predictive one, and PCA may throw it away.</p>
         </div>
-        <div class="callout border-l-4 border-fuchsia-500 bg-fuchsia-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-fuchsia-500">Exam tip</p>
+        <div class="callout callout-tip">
+          <p class="callout-title">Exam tip</p>
           <p>Given eigenvalues, compute the explained-variance ratios and cumulative sums, then pick the smallest $k$ that reaches the required percentage. Always mention centring and scaling first.</p>
         </div>
 
@@ -241,21 +256,21 @@ flowchart LR
         </ul>
 
         <h2>Try it yourself</h2>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">Exercise 1 (warm-up)</p>
+        <div class="callout callout-example">
+          <p class="callout-title">Exercise 1 (warm-up)</p>
           <p>Eigenvalues 6, 3, 1. What share of the variance does the first component explain, and how many components give at least 90%?</p>
           <details class="mt-2"><summary class="cursor-pointer font-medium">Hint</summary><p>Total is 10.</p></details>
           <details class="mt-2"><summary class="cursor-pointer font-medium">Answer</summary><p>60%. Two components give 90%.</p></details>
         </div>
-        <div class="callout border-l-4 border-emerald-500 bg-emerald-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-emerald-500">Exercise 2 (a bit harder)</p>
+        <div class="callout callout-example">
+          <p class="callout-title">Exercise 2 (a bit harder)</p>
           <p>Project the centred points (−1, −1), (0, 0), (1, 1) onto $v_1 = (0.707, 0.707)$ and compute the variance of the projections (population). Compare with $\lambda_1$. Write your answer down before you open it.</p>
           <details class="mt-2"><summary class="cursor-pointer font-medium">Show answer</summary><p>Projections: −1.414, 0, 1.414. Variance $= (2 + 0 + 2)/3 \approx 1.33$. That equals $\lambda_1$ of the covariance matrix: the variance along PC1 is its eigenvalue.</p></details>
         </div>
 
         <h2>Did you know?</h2>
-        <div class="callout border-l-4 border-violet-500 bg-violet-500/10 rounded-r-xl px-5 py-3 my-6">
-          <p class="callout-title text-violet-500">Did you know?</p>
+        <div class="callout">
+          <p class="callout-title">Did you know?</p>
           <p>Karl Pearson described PCA in 1901 as finding "lines and planes of closest fit"; Harold Hotelling developed it further in 1933.</p>
           <p>"Eigenfaces" (1991) used PCA on face images: each face is approximated as the average face plus a few principal components, an early face-recognition method.</p>
         </div>
@@ -274,23 +289,23 @@ flowchart LR
         <p>Answer these in order, out loud. They follow the page, so your answers become the script of your video.</p>
         <ol class="space-y-4">
           <li><strong>How is PCA like choosing the best camera angle for a surfboard?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It picks the views that show the most spread: the first component is the best single view, the next the best one at a right angle.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>It picks the views that show the most spread: the first component is the best single view, the next the best one at a right angle.</p></details></li>
           <li><strong>With eigenvalues 4, 2, 1, 0.5, how much variance do the first two components explain?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$6/7.5 = 80\%$.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>$6/7.5 = 80\%$.</p></details></li>
           <li><strong>Why does <code>explained</code> need the eigenvalues sorted from largest?</strong>
-            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer says what "the first $k$" must mean.</p>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>It adds the first $k$ entries, which must be the $k$ largest variances; unsorted input would mix in small components.</p></details></li>
+            <p class="text-sm text-soft">A good answer says what "the first $k$" must mean.</p>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>It adds the first $k$ entries, which must be the $k$ largest variances; unsorted input would mix in small components.</p></details></li>
           <li><strong>So what is PCA, in one sentence?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>A linear method that finds orthogonal directions of maximum variance and represents data by its projections onto the top few.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>A linear method that finds orthogonal directions of maximum variance and represents data by its projections onto the top few.</p></details></li>
           <li><strong>Why does PCA need standardized features?</strong>
-            <p class="text-sm text-slate-500 dark:text-slate-400">A good answer uses units.</p>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Variance depends on units: income in euros varies in thousands, age in tens, so without scaling the income direction would dominate PC1 just because of its units.</p></details></li>
+            <p class="text-sm text-soft">A good answer uses units.</p>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>Variance depends on units: income in euros varies in thousands, age in tens, so without scaling the income direction would dominate PC1 just because of its units.</p></details></li>
           <li><strong>What does PCA cost?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>$O(nd^2)$ for the covariance matrix plus $O(d^3)$ for the eigendecomposition; projecting a point is $O(dk)$.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>$O(nd^2)$ for the covariance matrix plus $O(d^3)$ for the eigendecomposition; projecting a point is $O(dk)$.</p></details></li>
           <li><strong>Give two pros and two cons.</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>Pros: removes redundancy with uncorrelated components, and fast with a clear "information kept" measure. Cons: linear only, and components are hard to interpret and scale-sensitive.</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>Pros: removes redundancy with uncorrelated components, and fast with a clear "information kept" measure. Cons: linear only, and components are hard to interpret and scale-sensitive.</p></details></li>
           <li><strong>If you had to teach this to a friend in 2 minutes, what would you leave out, and why?</strong>
-            <details><summary class="cursor-pointer text-indigo-500">Sample answer</summary><p>I'd leave out eigendecomposition details and the cost. I'd keep the camera-angle analogy, the 4-2-1-0.5 explained-variance example, and "keep the directions with the most spread".</p></details></li>
+            <details><summary class="cursor-pointer text-accent">Sample answer</summary><p>I'd leave out eigendecomposition details and the cost. I'd keep the camera-angle analogy, the 4-2-1-0.5 explained-variance example, and "keep the directions with the most spread".</p></details></li>
         </ol>
 
         <h2>External resources</h2>
@@ -305,49 +320,79 @@ flowchart LR
         </ul>
       </article>
 
-      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h2 class="text-2xl font-bold">Review schedule</h2>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
+      <section id="video-section" class="card no-print mt-12">
+        <h2 class="flex items-center gap-2 text-2xl">
+          <svg class="text-accent" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8.5v7l6-3.5z" fill="currentColor"/></svg>
+          Video talking points
+        </h2>
+        <p class="mt-2 text-sm text-soft">Use these 7 bullets as your script outline. Say each one in your own words. Do not read them: glance at them and speak.</p>
+        <ol class="talking-points mt-4">
+          <li><strong>Hook (5 sec).</strong> Ask: can you squeeze 4 features into 2 and keep most of the information?</li>
+          <li><strong>What it is (15 sec).</strong> PCA finds orthogonal directions of maximum variance, the eigenvectors of the covariance matrix, and projects the data onto the top few.</li>
+          <li><strong>Why it exists (15 sec).</strong> Fewer, uncorrelated features mean faster models, less redundancy, and 2-D plots of high-dimensional data.</li>
+          <li><strong>How it works (45 sec).</strong> Eigenvalues 4, 2, 1 and 0.5 sum to 7.5; the first two explain $(4 + 2)/7.5 = 80\%$ of the variance, so keep two components.</li>
+          <li><strong>The cost (20 sec).</strong> Computing the covariance costs $O(nd^2)$ and its eigendecomposition $O(d^3)$.</li>
+          <li><strong>When it fails (20 sec).</strong> Classify data whose useful signal lies along a low-variance direction: PCA keeps the high-variance noise and drops the signal, because it ignores the labels.</li>
+          <li><strong>One takeaway (10 sec).</strong> Keep the directions with the most variance, and remember that variance is not always signal.</li>
+        </ol>
+      </section>
+
+      <section id="flashcards-section" class="card no-print mt-8">
+        <h2 class="text-2xl">Flashcards</h2>
+        <p class="mt-2 text-sm text-soft">Flip each card. Rate yourself honestly: Again, Hard, Good, or Easy. Cards you rate "Again" will show up again at the end of the session.</p>
+        <div data-flashcards class="mt-4"></div>
+      </section>
+
+      <section class="no-print mt-12 card">
+        <h2 class="text-2xl">Review schedule</h2>
+        <p class="mt-2 text-sm text-soft">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
         <div class="mt-4 flex flex-wrap items-center gap-3">
-          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
-          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
+          <button id="review-done" class="btn btn-primary">I studied this today</button>
+          <span id="review-status" class="text-sm text-soft" aria-live="polite"></span>
         </div>
       </section>
 
-      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
-        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+      <section id="feynman" class="no-print mt-12 card card-tint">
+        <h2 class="text-2xl">Feynman prompt</h2>
         <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
-        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <p class="mt-1 text-sm text-soft">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
         <ul class="mt-4 space-y-2">
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> I identified at least one gap in my explanation and filled it.</label></li>
         </ul>
         <div class="mt-6 flex flex-wrap items-center gap-4">
           <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
           <div class="flex gap-2">
-            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
-            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
-            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+            <button data-action="start" class="btn btn-primary disabled:opacity-40">Start</button>
+            <button data-action="pause" class="btn disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="btn">Reset</button>
           </div>
         </div>
-        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
-        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+        <p data-done hidden class="mt-3 font-semibold text-accent" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-soft p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
       </section>
 
-      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h2 class="text-2xl font-bold">My notes</h2>
+      <section class="no-print mt-8 card">
+        <h2 class="text-2xl">My notes</h2>
         <label for="notes" class="sr-only">My notes for this topic</label>
-        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <textarea id="notes" rows="8" class="field mt-3" placeholder="Write your explanation outline here…"></textarea>
         <div class="mt-3 flex items-center gap-2">
-          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
-          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
-          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+          <button id="notes-save" class="btn btn-primary">Save</button>
+          <button id="notes-clear" class="btn">Clear</button>
+          <span id="notes-status" class="text-sm text-soft" aria-live="polite"></span>
         </div>
-        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+        <p class="mt-2 text-xs text-soft">Saved only in this browser (localStorage). Nothing is uploaded.</p>
       </section>
     </main>
   </div>
+  <footer class="site-footer no-print">
+    <div class="site-footer-inner">
+      <p><strong>StudyHub</strong> — a free, open study site for Algorithms and Machine Learning.</p>
+      <p>Found a mistake, want to add a page, or improve an explanation? <a href="https://github.com/bloopdex/study-hub" target="_blank" rel="noopener">Contribute on GitHub</a>.</p>
+      <p class="site-footer-meta">Made with care. Licensed under MIT.</p>
+    </div>
+  </footer>
 </body>
 </html>

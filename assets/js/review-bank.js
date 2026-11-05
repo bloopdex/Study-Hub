@@ -108,4 +108,16 @@ window.REVIEW_BANK = {
     { q: 'Write the attention formula.', a: '$\\text{softmax}(QK^\\top/\\sqrt{d_k})\\,V$.' },
     { q: 'What are the two parts of the VAE loss?', a: 'Reconstruction error plus the KL divergence between the code distribution and $\\mathcal{N}(0, 1)$.' },
   ],
+  'complexity-analysis': [
+    { q: 'What does Big-O notation describe?', a: 'An upper bound on how an algorithm\'s work grows with the input size $n$, ignoring constant factors.' },
+    { q: 'What is the complexity of two nested loops that each run $n$ times?', a: '$O(n^2)$: the inner body runs $n$ times for each of the $n$ outer steps.' },
+    { q: 'Why is binary search $O(\\log n)$?', a: 'Each comparison halves the range, and $n$ can be halved only about $\\log_2 n$ times.' },
+    { q: 'What is the difference between $O$, $\\Omega$ and $\\Theta$?', a: '$O$ is an upper bound, $\\Omega$ a lower bound, and $\\Theta$ a tight bound that is both.' },
+    { q: 'Why do we drop constants and lower-order terms?', a: 'For large $n$, the fastest-growing term dominates, so $3n^2 + 5n$ behaves like $n^2$.' },
+    { q: 'About how many steps is $n \\log_2 n$ for $n = 1{,}000{,}000$?', a: 'About 20 million, because $\\log_2 10^6 \\approx 20$.' },
+    { q: 'What is the difference between best, average and worst case?', a: 'The cost on the easiest input, on a typical input, and on the hardest input of size $n$.' },
+    { q: 'What does amortized $O(1)$ mean for appending to a dynamic array?', a: 'Occasional $O(n)$ copies are spread over many cheap appends, so the average cost per append is constant.' },
+    { q: 'What does space complexity measure?', a: 'The extra memory an algorithm needs beyond its input, such as a scratch array or the recursion stack.' },
+    { q: 'Why is $O(2^n)$ hopeless for $n = 100$?', a: '$2^{100} \\approx 10^{30}$ steps: even at a billion per second that takes far longer than the age of the universe.' },
+  ],
 };

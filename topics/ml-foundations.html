@@ -7,6 +7,7 @@
   <script src="../assets/js/main.js"></script>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <script>tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] } } } };</script>
+  <link rel="icon" href="../assets/images/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -16,38 +17,52 @@
   <script defer src="../assets/js/mdx-runtime.js"></script>
   <script defer src="../assets/js/review-bank.js"></script>
   <script defer src="../assets/js/feynman.js"></script>
+  <script defer src="../assets/js/flashcards.js"></script>
+  <script defer src="../assets/js/flashcard-runner.js"></script>
 </head>
-<body data-hub="ml-foundations" data-slug="ml-foundations" class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased">
-  <header class="no-print sticky top-0 z-20 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur">
+<body data-hub="ml-foundations" data-slug="ml-foundations" class="font-sans antialiased">
+  <div class="progress-bar no-print" aria-hidden="true"></div>
+  <header class="site-header no-print">
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-4">
-      <a href="../index.html" class="font-bold tracking-tight">Study<span class="text-indigo-500">Hub</span></a>
-      <nav class="flex gap-3 text-sm text-slate-600 dark:text-slate-300">
-        <a href="../index.html" class="hover:text-indigo-500">Dashboard</a>
+      <a href="../index.html" class="brand">
+        <svg class="logo" viewBox="0 0 64 64" width="32" height="32" aria-hidden="true">
+          <rect class="logo-bg" width="64" height="64" rx="14" fill="#6366f1"/>
+          <g class="logo-loop" fill="none" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M49.6 19.2A23 23 0 1 1 36 11.3"/><path d="M32.6 7.6 36 11.3 31.6 13.6"/></g>
+          <path d="M32 15.5Q33 20 37.5 21Q33 22 32 26.5Q31 22 26.5 21Q31 20 32 15.5Z" fill="#fcd34d"/>
+          <path d="M32 33Q24 28 17 30V43Q24 41 32 45ZM32 33Q40 28 47 30V43Q40 41 32 45" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        StudyHub
+      </a>
+      <nav class="site-nav ml-auto flex items-center gap-3 sm:gap-4 text-sm">
+        <a href="../index.html">Dashboard</a>
+        <button data-theme-toggle class="theme-toggle" aria-label="Toggle dark mode">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
       </nav>
-      <button data-theme-toggle class="ml-auto rounded-lg px-3 py-1.5 text-sm ring-1 ring-slate-300 dark:ring-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label="Toggle dark mode">◐ Theme</button>
     </div>
   </header>
 
   <main id="content" class="max-w-6xl mx-auto px-4 py-8">
       <div id="review-banner" hidden class="review-due-banner no-print" role="status">This page is due for review. Re-read the key points and answer the self-check questions before recording your video.</div>
-    <section class="rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 border-l-4 border-indigo-500">
-      <p class="text-xs font-semibold uppercase tracking-wider text-indigo-500">ML/DL · Hub</p>
-      <h1 class="mt-1 text-3xl font-bold tracking-tight">ML foundations</h1>
-      <p class="mt-3 text-slate-700 dark:text-slate-300">Eight ideas every machine-learning project rests on: the learning paradigms, how to score classifiers and regressors, why models underfit or overfit, how regularization helps, how to evaluate honestly with cross-validation, how to prepare data, and how to avoid leakage.</p>
-      <p class="mt-2 text-slate-700 dark:text-slate-300"><strong>Why it matters:</strong> most failed ML projects fail here, not in the choice of algorithm: a wrong metric, an overfit model, unscaled features or a leaky evaluation.</p>
+    <section class="card card-accent">
+      <p class="text-xs font-semibold uppercase tracking-wider text-accent">ML/DL · Hub</p>
+      <h1 class="mt-1 text-3xl tracking-tight">ML foundations</h1>
+      <p class="mt-3">Eight ideas every machine-learning project rests on: the learning paradigms, how to score classifiers and regressors, why models underfit or overfit, how regularization helps, how to evaluate honestly with cross-validation, how to prepare data, and how to avoid leakage.</p>
+      <p class="mt-2"><strong>Why it matters:</strong> most failed ML projects fail here, not in the choice of algorithm: a wrong metric, an overfit model, unscaled features or a leaky evaluation.</p>
       <div class="mt-4 flex flex-wrap items-center gap-3">
-        <button id="mixed-review" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Mixed review</button>
-        <span class="text-sm text-slate-500 dark:text-slate-400">5 random questions mixed from all eight foundation pages.</span>
+        <button id="mixed-review" class="btn btn-primary">Mixed review</button>
+        <span class="text-sm text-soft">5 random questions mixed from all eight foundation pages.</span>
       </div>
     </section>
 
-    <section id="mixed-review-panel" hidden class="mt-6 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-      <h2 class="text-xl font-semibold">Mixed review</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Answer each one out loud before opening the sample answer.</p>
+    <section id="mixed-review-panel" hidden class="mt-6 card">
+      <h2 class="text-xl">Mixed review</h2>
+      <p class="mt-1 text-sm text-soft">Answer each one out loud before opening the sample answer.</p>
       <ol id="mixed-review-list" class="mt-4 list-decimal space-y-4 pl-5"></ol>
     </section>
 
-    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+    <article class="prose max-w-none mt-10">
       <h2>Quick comparison</h2>
       <table>
         <thead>
@@ -66,59 +81,59 @@
       </table>
     </article>
 
-    <h2 class="mt-10 text-xl font-semibold">The eight foundation pages</h2>
+    <h2 class="mt-10 text-xl">The eight foundation pages</h2>
     <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-paradigms">Learning paradigms</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Supervised, unsupervised, reinforcement.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">labels → supervised · no labels → unsupervised</p>
-        <a href="mlf-paradigms.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-paradigms">Learning paradigms</h3>
+        <p class="mt-2 text-sm text-soft">Supervised, unsupervised, reinforcement.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">labels → supervised · no labels → unsupervised</p>
+        <a href="mlf-paradigms.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-classification-metrics">Classification metrics</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Confusion matrix, precision, recall, F1.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">TP 40 · FP 10 · FN 20 · TN 30 → F1 0.73</p>
-        <a href="mlf-classification-metrics.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-classification-metrics">Classification metrics</h3>
+        <p class="mt-2 text-sm text-soft">Confusion matrix, precision, recall, F1.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">TP 40 · FP 10 · FN 20 · TN 30 → F1 0.73</p>
+        <a href="mlf-classification-metrics.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-regression-metrics">Regression metrics</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">MAE, MSE, RMSE and R².</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">MAE robust · MSE punishes big errors</p>
-        <a href="mlf-regression-metrics.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-regression-metrics">Regression metrics</h3>
+        <p class="mt-2 text-sm text-soft">MAE, MSE, RMSE and R².</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">MAE robust · MSE punishes big errors</p>
+        <a href="mlf-regression-metrics.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-bias-variance">Bias–variance trade-off</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Underfit, good fit, overfit.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">error = bias² + variance + noise</p>
-        <a href="mlf-bias-variance.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-bias-variance">Bias–variance trade-off</h3>
+        <p class="mt-2 text-sm text-soft">Underfit, good fit, overfit.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">error = bias² + variance + noise</p>
+        <a href="mlf-bias-variance.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-regularization">Regularization</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">L1 and L2 penalties on weights.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">L2 shrinks · L1 shrinks and zeroes</p>
-        <a href="mlf-regularization.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-regularization">Regularization</h3>
+        <p class="mt-2 text-sm text-soft">L1 and L2 penalties on weights.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">L2 shrinks · L1 shrinks and zeroes</p>
+        <a href="mlf-regularization.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-cross-validation">Cross-validation</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Rotate the test fold k times.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">k trainings · mean ± spread</p>
-        <a href="mlf-cross-validation.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-cross-validation">Cross-validation</h3>
+        <p class="mt-2 text-sm text-soft">Rotate the test fold k times.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">k trainings · mean ± spread</p>
+        <a href="mlf-cross-validation.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-preprocessing">Preprocessing</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Scale, encode, impute.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">fit on train · apply everywhere</p>
-        <a href="mlf-preprocessing.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-preprocessing">Preprocessing</h3>
+        <p class="mt-2 text-sm text-soft">Scale, encode, impute.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">fit on train · apply everywhere</p>
+        <a href="mlf-preprocessing.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
-      <article class="flex flex-col rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h3 class="font-semibold" data-review-slugs="mlf-data-leakage">Data leakage</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">When test or future information sneaks in.</p>
-        <p class="mt-3 flex-1 font-mono text-xs text-indigo-600 dark:text-indigo-300">too good to be true → check for leaks</p>
-        <a href="mlf-data-leakage.html" class="mt-4 self-start rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600">Study</a>
+      <article class="card flex flex-col">
+        <h3 data-review-slugs="mlf-data-leakage">Data leakage</h3>
+        <p class="mt-2 text-sm text-soft">When test or future information sneaks in.</p>
+        <p class="mt-3 flex-1 font-mono text-xs text-accent">too good to be true → check for leaks</p>
+        <a href="mlf-data-leakage.html" class="mt-4 self-start btn btn-primary btn-sm">Study</a>
       </article>
     </div>
 
-    <article class="prose prose-slate dark:prose-invert max-w-none mt-10">
+    <article class="prose max-w-none mt-10">
       <h2>Which one to pick?</h2>
       <pre class="mermaid">
 flowchart TD
@@ -154,48 +169,68 @@ flowchart TD
       </ul>
     </article>
 
-      <section class="no-print mt-12 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h2 class="text-2xl font-bold">Review schedule</h2>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Come back after 3, 7, 14, then 30 days. Spacing beats cramming.</p>
-        <div class="mt-4 flex flex-wrap items-center gap-3">
-          <button id="review-done" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">I studied this today</button>
-          <span id="review-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite"></span>
-        </div>
+
+      <section id="video-section" class="card no-print mt-12">
+        <h2 class="flex items-center gap-2 text-2xl">
+          <svg class="text-accent" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8.5v7l6-3.5z" fill="currentColor"/></svg>
+          Video talking points
+        </h2>
+        <p class="mt-2 text-sm text-soft">Use these 5 bullets as your script outline. Say each one in your own words. Do not read them: glance at them and speak.</p>
+        <ol class="talking-points mt-4">
+          <li><strong>Hook (10 sec).</strong> Ask: why do so many machine-learning models look great in the lab and fail in the real world?</li>
+          <li><strong>The big picture (30 sec).</strong> ML foundations are the rules that make a score trustworthy: the right paradigm, the right metric, honest validation, and no leakage.</li>
+          <li><strong>Bias vs variance (30 sec).</strong> Too simple a model underfits, too flexible a model overfits. Regularization and more data fight variance; a richer model fights bias.</li>
+          <li><strong>How to choose (45 sec).</strong> Walk the "Which one to pick?" flowchart: classes, use precision, recall and F1; numbers, use MAE, MSE or $R^2$; choosing settings, use cross-validation; overfitting, regularize; always preprocess inside the training data.</li>
+          <li><strong>One takeaway (10 sec).</strong> A model is only as good as the honesty of its evaluation.</li>
+        </ol>
       </section>
 
-      <section id="feynman" class="no-print mt-12 rounded-xl bg-indigo-500/10 ring-1 ring-indigo-500/30 p-6 shadow-sm">
-        <h2 class="text-2xl font-bold">Feynman prompt</h2>
+      <section id="flashcards-section" class="card no-print mt-8">
+        <h2 class="text-2xl">Flashcards</h2>
+        <p class="mt-2 text-sm text-soft">Flip each card. Rate yourself honestly: Again, Hard, Good, or Easy. Cards you rate "Again" will show up again at the end of the session.</p>
+        <div data-flashcards class="mt-4"></div>
+      </section>
+
+      <section id="feynman" class="no-print mt-12 card card-tint">
+        <h2 class="text-2xl">Feynman prompt</h2>
         <p class="mt-2 text-lg">Explain this topic in your own words, as if teaching a beginner.</p>
-        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
+        <p class="mt-1 text-sm text-soft">Explain it in your own words first, then record a 2–3 minute video on your phone.</p>
         <ul class="mt-4 space-y-2">
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you define it?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you give an example?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> Did you mention a limitation?</label></li>
-          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-indigo-500"> I identified at least one gap in my explanation and filled it.</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you define it?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you give an example?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> Did you mention a limitation?</label></li>
+          <li><label class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4"> I identified at least one gap in my explanation and filled it.</label></li>
         </ul>
         <div class="mt-6 flex flex-wrap items-center gap-4">
           <p data-timer class="font-mono text-5xl tabular-nums" aria-live="off">25:00</p>
           <div class="flex gap-2">
-            <button data-action="start" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:opacity-40">Start</button>
-            <button data-action="pause" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40">Pause</button>
-            <button data-action="reset" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Reset</button>
+            <button data-action="start" class="btn btn-primary disabled:opacity-40">Start</button>
+            <button data-action="pause" class="btn disabled:opacity-40">Pause</button>
+            <button data-action="reset" class="btn">Reset</button>
           </div>
         </div>
-        <p data-done hidden class="mt-3 font-semibold text-indigo-500" role="status">Time's up.</p>
-        <p class="mt-4 rounded-lg bg-white/60 dark:bg-slate-800/60 p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
+        <p data-done hidden class="mt-3 font-semibold text-accent" role="status">Time's up.</p>
+        <p class="mt-4 rounded-lg bg-soft p-3"><strong>Ready to record?</strong> Open your phone camera now and record a 2–3 minute explanation.</p>
       </section>
 
-      <section class="no-print mt-8 rounded-xl bg-white dark:bg-slate-800 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-        <h2 class="text-2xl font-bold">My notes</h2>
+      <section class="no-print mt-8 card">
+        <h2 class="text-2xl">My notes</h2>
         <label for="notes" class="sr-only">My notes for this topic</label>
-        <textarea id="notes" rows="8" class="mt-3 w-full rounded-xl bg-slate-50 dark:bg-slate-900 p-3 font-mono text-sm ring-1 ring-slate-300 dark:ring-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Write your explanation outline here…"></textarea>
+        <textarea id="notes" rows="8" class="field mt-3" placeholder="Write your explanation outline here…"></textarea>
         <div class="mt-3 flex items-center gap-2">
-          <button id="notes-save" class="rounded-lg bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600">Save</button>
-          <button id="notes-clear" class="rounded-lg px-4 py-2 font-medium ring-1 ring-slate-400 dark:ring-slate-600 hover:bg-slate-200 dark:hover:bg-slate-800">Clear</button>
-          <span id="notes-status" class="text-sm text-slate-500" aria-live="polite"></span>
+          <button id="notes-save" class="btn btn-primary">Save</button>
+          <button id="notes-clear" class="btn">Clear</button>
+          <span id="notes-status" class="text-sm text-soft" aria-live="polite"></span>
         </div>
-        <p class="mt-2 text-xs text-slate-500">Saved only in this browser (localStorage). Nothing is uploaded.</p>
+        <p class="mt-2 text-xs text-soft">Saved only in this browser (localStorage). Nothing is uploaded.</p>
       </section>
   </main>
+  <footer class="site-footer no-print">
+    <div class="site-footer-inner">
+      <p><strong>StudyHub</strong> — a free, open study site for Algorithms and Machine Learning.</p>
+      <p>Found a mistake, want to add a page, or improve an explanation? <a href="https://github.com/bloopdex/study-hub" target="_blank" rel="noopener">Contribute on GitHub</a>.</p>
+      <p class="site-footer-meta">Made with care. Licensed under MIT.</p>
+    </div>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="StudyHub">
+  <style>@media (prefers-color-scheme: light) { .logo-bg { fill: #4f46e5; } }</style>
+  <!-- Rounded square: indigo-500 (dark) / indigo-600 (light). -->
+  <rect class="logo-bg" width="64" height="64" rx="14" fill="#6366f1"/>
+  <!-- Review loop: a 320° arc with an arrowhead, slate-100. -->
+  <g class="logo-loop" fill="none" stroke="#f1f5f9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M49.6 19.2A23 23 0 1 1 36 11.3"/>
+    <path d="M32.6 7.6 36 11.3 31.6 13.6"/>
+  </g>
+  <!-- Spark: 4-point star, amber-300. -->
+  <path d="M32 15.5Q33 20 37.5 21Q33 22 32 26.5Q31 22 26.5 21Q31 20 32 15.5Z" fill="#fcd34d"/>
+  <!-- Open book: two curved pages meeting at the spine. -->
+  <path d="M32 33Q24 28 17 30V43Q24 41 32 45ZM32 33Q40 28 47 30V43Q40 41 32 45" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

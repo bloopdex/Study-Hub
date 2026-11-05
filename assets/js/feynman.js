@@ -26,6 +26,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (n) el.insertAdjacentHTML('beforeend', ` <span class="review-badge">${n > 1 ? n + ' due' : 'Due for review'}</span>`);
   });
 
+  // Dashboard "Overall progress": pages studied and due (from review:*), flashcards rated today (from flashcards:*).
+  const overall = document.getElementById('overall-progress');
+  if (overall) {
+    const slugs = [...new Set([...document.querySelectorAll('[data-review-slugs]')].flatMap(el => el.dataset.reviewSlugs.split(/\s+/)))];
+    const today = isoDate(new Date());
+    let cards = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith('flashcards:')) cards += JSON.parse(localStorage.getItem(k))?.daily?.[today] || 0;
+      }
+    } catch {}
+    const stat = (name, v) => { overall.querySelector(`[data-stat="${name}"]`).textContent = v; };
+    stat('studied', slugs.filter(getReview).length);
+    stat('total', slugs.length);
+    stat('due', slugs.filter(isDue).length);
+    stat('cards', cards);
+  }
+
   const slug = document.body.dataset.slug;
   const box = document.getElementById('feynman');
   if (!slug || !box) return;
@@ -43,13 +62,17 @@ document.addEventListener('DOMContentLoaded', () => {
       ? `Last studied ${r.lastStudied} · next review ${r.nextReview} (step ${r.stage} of ${REVIEW_DAYS.length}).`
       : 'Not studied yet. Click the button after your first study session.') + extra;
   }
-  document.getElementById('review-done').onclick = () => {
-    const before = getReview(slug)?.lastStudied;
-    const r = saveReview(slug);
-    if (!r) return showReview(' Could not save: browser storage is blocked.');
-    showReview(before === r.lastStudied ? ' Already logged today.' : '');
-  };
-  showReview();
+  // Hubs have no review schedule box.
+  const reviewBtn = document.getElementById('review-done');
+  if (reviewBtn) {
+    reviewBtn.onclick = () => {
+      const before = getReview(slug)?.lastStudied;
+      const r = saveReview(slug);
+      if (!r) return showReview(' Could not save: browser storage is blocked.');
+      showReview(before === r.lastStudied ? ' Already logged today.' : '');
+    };
+    showReview();
+  }
 
   // --- Timer: while running we store the end time, so a refresh keeps counting.
   const KEY = 'feynman:' + slug, FULL = 25 * 60 * 1000;

@@ -1,6 +1,8 @@
 # Study Hub
 
-A static study website: 9 hubs, 90 topic pages, and a printable prep sheet. Every topic page teaches with a worked example first, then gives Quick Recall checkpoints, self-check questions, a Feynman timer, a notes box and a review schedule.
+A static study website: 9 hubs, 90 topic pages, a complexity-analysis primer and a printable prep sheet: 100 pages under `topics/`, plus the dashboard and the prep sheet. Every topic page teaches with a worked example first, then gives Quick Recall checkpoints, self-check questions, 7 video talking points, an Anki-style flashcard session, a Feynman timer, a notes box and a review schedule.
+
+Content totals: 1,005 flashcards (10 or 11 per page, 100 sets) and 100 Mixed Review questions (10 per hub).
 
 There is no backend, no build step and no tracking. Nothing you type leaves your browser.
 
@@ -14,6 +16,14 @@ There is no backend, no build step and no tracking. Nothing you type leaves your
   # then open http://localhost:8080
   ```
 
+## Repository link
+
+Every page footer links to the GitHub repository, `https://github.com/bloopdex/study-hub`. To point the footer somewhere else, replace that URL in the HTML files. For example:
+
+```bash
+grep -rl https://github.com/bloopdex/study-hub --include=*.html . | xargs sed -i "s#https://github.com/bloopdex/study-hub#https://github.com/OWNER/REPO#g"
+```
+
 ## Offline use
 
 CSS and JavaScript (Tailwind, KaTeX, Prism, Mermaid, Google Fonts) are loaded from CDNs, so the first visit needs an internet connection. After that, the browser cache serves them. All images are local SVG files in `assets/images/`.
@@ -21,16 +31,20 @@ CSS and JavaScript (Tailwind, KaTeX, Prism, Mermaid, Google Fonts) are loaded fr
 ## Layout
 
 ```
-index.html              dashboard: 4 groups of hub cards
+index.html              dashboard: overall progress card, 4 groups of hub cards
 prep-sheet.html         one compact block per topic page, printable (A4)
 topics/<hub>.html       9 hubs: sorting, searching, linear-structures, trees, graphs,
                         paradigms, ml-foundations, ml-algorithms, dl
 topics/<page>.html      90 topic pages
+topics/complexity-analysis.html  standalone page with hub design (no child pages)
 assets/css/style.css    custom styles on top of Tailwind
 assets/js/main.js       theme toggle, table of contents, Mixed Review
 assets/js/mdx-runtime.js KaTeX, Prism and Mermaid rendering
 assets/js/feynman.js    timer, checklist, notes, review schedule, due badges
 assets/js/review-bank.js Mixed Review questions (10 per hub)
+assets/js/flashcards.js  flashcards, 8 to 12 per page slug (window.FLASHCARDS)
+assets/js/flashcard-runner.js  flashcard session, ratings and Anki export
+assets/images/logo.svg  logo and favicon
 assets/images/          one SVG diagram per topic page
 ```
 
@@ -45,9 +59,13 @@ assets/images/          one SVG diagram per topic page
    - common mistakes, then Try it yourself;
    - Did you know?, key points;
    - self-check questions (6 to 10, the last one about what to leave out);
-   - resources.
+   - resources;
+   - Video talking points: 7 bullets (hook, what it is, why it exists, how it works, the cost, when it fails, one takeaway), written for this page;
+   - Flashcards: an empty `<div data-flashcards>` inside the section, then review schedule, Feynman prompt, notes and the footer.
+   Keep the header, progress bar, `flashcards.js` and `flashcard-runner.js` script tags as they are.
 4. Add a card for the page to its hub (`topics/<hub>.html`). The `data-review-slugs` attribute on the card's `<h3>` turns on the "due for review" badge.
-5. Optionally add questions to the hub's list in `assets/js/review-bank.js`.
+5. Add 8 to 12 cards under the new slug in `assets/js/flashcards.js`: `{ front: '...', back: '...' }`, front at most 80 characters, back at most 150.
+6. Optionally add questions to the hub's list in `assets/js/review-bank.js`.
 
 ## Add an image
 
@@ -69,6 +87,7 @@ Everything lives in your browser's `localStorage`, under these keys:
 | `theme` | `light` or `dark` |
 | `notes:<slug>` | the text of the notes box |
 | `feynman:<slug>` | timer state and checklist ticks (a running timer survives a reload) |
+| `flashcards:<slug>` | last rating per card, finished-session summaries, and cards rated per day (shown on the dashboard) |
 | `review:<slug>` | `lastStudied`, `nextReview` and `stage` (reviews after 3, 7, 14, then 30 days) |
 
 This data never leaves your machine and is not shared between browsers or devices. Clearing the site data in your browser erases it.
